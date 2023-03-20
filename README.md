@@ -16,8 +16,8 @@ A Raycast extension for identifying, summarizing, and comparing selected files u
     - Summarize the spoken word content of audio files.
 
 ## Images
-![File Summarization Example](./metadata/file-ai-1.png)
-![Audio Summarization Example](./metadata/file-ai-2.png)
-![File Comparison Example](./metadata/file-ai-3.png)
-![Purpose Identification Example](./metadata/file-ai-4.png)
-![Overlap Analysis Example](./metadata/file-ai-5.png)
+![File Summarization Example](./examples/jpg-text-summarization-1.png)
+![Audio Summarization Example](./examples/mp3-audio-summarization-1.png)
+![File Comparison Example](./examples/pdf-file-comparison-1.png)
+![Purpose Identification Example](./examples/app-file-identification.png)
+![Overlap Analysis Example](./examples/pdf-overlap-analysis-1.png)
