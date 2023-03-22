@@ -1,27 +1,55 @@
 import { Detail, popToRoot, showToast, Toast, useUnstableAI } from "@raycast/api";
-import { useEffect, useState } from "react";
-import { getAudioContents } from "./file-utils";
+import { useEffect } from "react";
+import { ERRORTYPE, installDefaults, useAudioContents } from "./file-utils";
+import ResponseActions from "./ResponseActions";
 
 export default function Command() {
-    const [commandError, setCommandError] = useState<string | undefined>();
-    const [audioContents, setAudioContents] = useState<string[]>([]);
+  const { selectedFiles, contentPrompts, loading, errorType } = useAudioContents();
 
-    useEffect(() => {
-        getAudioContents(setCommandError).then(([, contents]) => setAudioContents(contents as string[]))
-    }, [])
+  useEffect(() => {
+    installDefaults();
+  }, []);
 
-    const basePrompt = "Summarize and assess the the following audio transcriptions, using the provided file names as headings. Format the output as markdown. Here are the transcriptions:\n"
+  const basePrompt =
+    "Summarize and assess the the following audio files using the file names as headings. Discuss the transcribed text's purpose and significance. Here are the audio transcriptions:";
 
-    const audioContentsString = audioContents.join("\n")
+  const contentPromptString = contentPrompts.join("\n");
+  const fullPrompt = basePrompt + contentPromptString;
+  const { data, isLoading, revalidate } = useUnstableAI(fullPrompt, { execute: contentPrompts.length > 0 });
 
-    const { data, isLoading } = useUnstableAI(basePrompt + audioContentsString, { execute: audioContents.length > 0 });
-
-    if (commandError) {
-        showToast({ title: "Failed Audio Summarization", message: commandError, style: Toast.Style.Failure })
-        popToRoot()
-        return
+  if (errorType) {
+    let errorMessage = "";
+    if (errorType == ERRORTYPE.FINDER_INACTIVE) {
+      errorMessage = "Can't get selected files";
+    } else if (errorType == ERRORTYPE.MIN_SELECTION_NOT_MET) {
+      errorMessage = "Must select at least 1 file";
+    } else if (errorType == ERRORTYPE.INPUT_TOO_LONG) {
+      errorMessage = "Input too large";
     }
 
-    const text = `# Audio Summarization\n${data ? data : "Loading..."}`
-    return <Detail isLoading={isLoading || audioContents.length == 0} markdown={text} />
+    showToast({
+      title: "Failed Audio Summarization",
+      message: errorMessage,
+      style: Toast.Style.Failure,
+    });
+    popToRoot();
+    return;
+  }
+
+  const text = `# Audio Summarization\n${data ? data : "Transcribing files..."}`;
+  return (
+    <Detail
+      isLoading={loading || isLoading || contentPrompts.length == 0}
+      markdown={text}
+      actions={
+        <ResponseActions
+          commandSummary="Summary"
+          responseText={text}
+          promptText={fullPrompt}
+          reattempt={revalidate}
+          files={selectedFiles}
+        />
+      }
+    />
+  );
 }

@@ -25,13 +25,13 @@
     },
     {
       "name": "file-overlap",
-      "title": "Assess Overlap",
+      "title": "Assess File Overlap",
       "description": "Assess the overlap in content of the selected files",
       "mode": "view"
     },
     {
       "name": "identify",
-      "title": "Identify Purpose",
+      "title": "Identify Selected Files",
       "description": "Identify the primary purpose of the selected files",
       "mode": "view"
     },
@@ -40,10 +40,23 @@
       "title": "Summarize Spoken Audio",
       "description": "Summarize the spoken words in the selected audio files",
       "mode": "view"
+    },
+    {
+      "name": "create-command",
+      "title": "Create File AI Command",
+      "description": "Create a custom File AI command accessible via 'Search File AI Commands'",
+      "mode": "view"
+    },
+    {
+      "name": "search-commands",
+      "title": "Search File AI Commands",
+      "description": "Search custom File AI commands",
+      "mode": "view"
     }
   ],
   "dependencies": {
     "@raycast/api": "^1.48.9",
+    "@raycast/utils": "^1.5.2",
     "run-applescript": "^6.1.0",
     "exifr": "^7.1.3"
   },
