@@ -19,7 +19,7 @@ A Raycast extension for identifying, summarizing, and comparing selected files u
 - Summarize Spoken Audio
     - Summarize the spoken word content of audio files.
 - File AI Chat
-    - Start a back-and-forth conversation with AI with selected files provided as context.
+    - Start a back-and-forth conversation with AI with selected files provided as context.       
 - Import Custom File AI Commands
     - Add custom commands from a JSON string.
 
@@ -51,15 +51,18 @@ You can create custom File AI commands, accessed via the "Search File AI Command
 - Extract Named Entities
 - Extract Phone Numbers
 - Extract URLs
+- Extract Visible Text
 - Extract Vocabulary
 - Find Errors
 - Generate Questions
 - Historical Context
 - Identify Gaps
 - Identify Relationships
+- Location Significance
 - Make Jingle
 - Make Poem
 - Make Song
+- Metadata Analysis
 - Meeting Agenda
 - Pattern Analysis
 - Pros And Cons
@@ -89,13 +92,22 @@ You can create custom File AI commands, accessed via the "Search File AI Command
 
 When creating custom commands, you can use placeholders in your prompts that will be substituted with relevant information whenever you run the command. These placeholders range from simple information, like the current date, to complex data retrieval operations such as getting the content of the most recent email. Placeholders are a powerful way to add context to your File AI prompts. The valid placeholders are as follows:
 
-#### File Data Placeholders
+#### API Data Placeholders
 | Placeholder | Replaced With |
 | --- | --- |
-| `{{contents}}` | The contents of the selected files |
-| `{{files}}` | Replaced with the list of selected file paths |
-| `{{fileNames}}` | Replaced with the list of selected file names |
-| `{{metadata}}` | Replaced with the metadata of each file as a list below the file path |
+| `{{location}}` | Your current location in city, region, country format, obtained from [geojs.io](https://get.geojs.io) |
+| `{{todayWeather}}` | The weather forecast for today, obtained from [open-meteo.com](https://open-meteo.com) |
+| `{{weekWeather}}` | The weather forecast for the next week, obtained from [open-meteo.com](https://open-meteo.com) |
+
+#### Application Data Placeholders
+| Placeholder | Replaced With |
+| --- | --- |
+| `{{installedApps}}` | The list of installed applications |
+| `{{lastEmail}}` | The subject, sender, and content of the most recently received email in Mail.app |
+| `{{lastNote}}` | The text of the most recently edited note in Notes.app |
+| `{{musicTracks}}` | The list of track titles in Music.app |
+| `{{safariTopSites}}` | Your list of top visited sites in Safari |
+| `{{selectedText}}` | The currently selected text |
 
 #### Calendar Data Placeholders
 | Placeholder | Replaced With |
@@ -111,27 +123,29 @@ When creating custom commands, you can use placeholders in your prompts that wil
 | `{{monthReminders}}` | Upcoming reminders over the next month |
 | `{{yearReminders}}` | Upcoming reminders over the next year |
 
-#### System Data Placeholders
-| Placeholder | Replaced With |
-| --- | --- |
-| `{{user}}` | Replaced with the logged in user's username |
-| `{{homedir}}` | The user's home directory |
-
 #### Context Data Placeholders
 | Placeholder | Replaced With |
 | --- | --- |
-| `{{currentApplication}}` | The name of the current application |
-| `{{selectedText}}` | The currently selected text |
-| `{{currentURL}}` | The current URL of the active tab of the active browser |
-| `{{currentTabText}}` | The text content of the active tab of the active browser |
 | `{{clipboardText}}` | The text of the clipboard |
+| `{{currentApplication}}` | The name of the current application |
+| `{{currentTabText}}` | The text content of the active tab of the active browser |
 | `{{currentTrack}}` | The title of the track/stream currently playing in Music.app |
-| `{{musicTracks}}` | The list of track titles in Music.app |
-| `{{lastNote}}` | The text of the most recently edited note in Notes.app |
-| `{{lastEmail}}` | The subject, sender, and content of the most recently received email in Mail.app |
-| `{{installedApps}}` | The list of installed applications |
+| `{{currentURL}}` | The current URL of the active tab of the active browser |
 | `{{fileAICommands}}` | The list of all custom File AI commands |
-| `{{safariTopSites}}` | Your list of top visited sites in Safari |
+
+#### File Data Placeholders
+| Placeholder | Replaced With |
+| --- | --- |
+| `{{contents}}` | The contents of the selected files |
+| `{{fileNames}}` | Replaced with the list of selected file names |
+| `{{files}}` | Replaced with the list of selected file paths |
+| `{{metadata}}` | Replaced with the metadata of each file as a list below the file path |
+
+#### System Data Placeholders
+| Placeholder | Replaced With |
+| --- | --- |
+| `{{homedir}}` | The user's home directory |
+| `{{user}}` | Replaced with the logged in user's username |
 
 #### Other Placeholders
 | Placeholder | Replaced With |
@@ -159,6 +173,7 @@ When creating custom commands, you can use placeholders in your prompts that wil
 | Extract Named Entities | What are the named entities in the following files, and what are their meanings and purpose? Clarify any abbreviations. Format the response as markdown list of sentences with the entity terms in bold. Use the file names as headings. |
 | Extract Phone Numbers | Identify all phone numbers in the following files and list them using markdown. Include anything that might be a phone number. If possible, provide the name of the person or company to which the phone number belongs. |
 | Extract URLs | Extract URLs from the following files and list them as markdown links |
+| Extract Visible Text | I will give you information about files, including their contents, and I want you to output the text content. Preserve the original format of the content as best as possible. Always output something. |
 | Extract Vocabulary | Extract the most difficult vocabulary words from the following files and define them. Format the response as a markdown list. |
 | Find Errors | What errors and inconsistencies in the following files, why are they significant, and how can I fix them? Format the response as markdown list of sentences with the file names in bold. Use the file names as headings. |
 | Generate Questions | Generate questions based on the content of each of the following files, their metadata, filename, type, and other information. Format the response as a markdown list. |
@@ -199,8 +214,22 @@ When creating custom commands, you can use placeholders in your prompts that wil
 | Command Name | Prompt |
 | --- | --- |
 | Relate To Current Track | Relate and compare this file to the song {{currentTrack}}. |
+| Songs I Might Like | Based on the following songs in my library, recommend new songs I might like. Output the recommendations as a markdown list. For each song, explain in terms of my other songs why you think I'd like it. The recommendations must not be in my library already. Here are the songs: """{{musicTracks}}""{{END}} |
+| Suggest Similar Songs | Suggest songs similar to {currentTrack}}. Use "Songs Similar To {{currentTrack}}" as the header for the output. For each suggestion, provide a brief explanation.{{END}} |
+| Summarize Last Note | Summarize my last note: """{{lastNote}}""" |
 | Use Cases | List 5 use cases for each of the following files based on their content. Explain how each use case relates to the file. Format the response as a markdown list. Use the file names as headings. |
 | User Stories | Create 5 user stories based on the contents of the following files. Format the response as a markdown list. Use each file name as a heading. |
+
+## Installation
+
+This extension is not yet published to the Raycast store. In the meantime, you can install the extension manually from this repository.
+
+### Manual Installation
+```bash
+git clone https://github.com/SKaplanOfficial/Raycast-File-AI.git && cd Raycast-File-AI
+
+npm install && npm run dev
+```
 
 ## Useful Resources
 

@@ -30,6 +30,8 @@ import {
   getInstalledApplications,
   getLastEmail,
   getSafariTopSites,
+  getJSONResponse,
+  getWeatherData,
 } from "./utils/context-utils";
 
 export default function CommandResponse(props: {
@@ -42,7 +44,6 @@ export default function CommandResponse(props: {
 }) {
   const { commandName, prompt, minNumFiles, acceptedFileExtensions, skipMetadata, skipAudioDetails } = props;
 
-  /* Context State */
   const [currentApplication, setCurrentApplication] = useState<string>("");
   const [currentURL, setCurrentURL] = useState<string>();
   const [currentTabText, setCurrentTabText] = useState<string>();
@@ -55,8 +56,9 @@ export default function CommandResponse(props: {
   const [installedApps, setInstalledApps] = useState<string>();
   const [fileAICommands, setFileAICommands] = useState<string>();
   const [safariTopSites, setSafariTopSites] = useState<string>();
-
-  /* Calendar Data State */
+  const [location, setLocation] = useState<string>();
+  const [todayWeather, setTodayWeather] = useState<string>();
+  const [weekWeather, setWeekWeather] = useState<string>();
   const [currentTime] = useState<string>(getCurrentTime());
   const [date] = useState<string>(getCurrentDate());
   const [todayEvents, setTodayEvents] = useState<string>("");
@@ -74,114 +76,91 @@ export default function CommandResponse(props: {
       ? useFileContents(minNumFiles, acceptedFileExtensions, skipMetadata, skipAudioDetails)
       : { selectedFiles: [], contentPrompts: [], loading: false, errorType: undefined };
 
+  const replacements: { [key: string]: () => void } = {
+    // Context Data
+    "{{currentApplication}}": async () => {
+      const app = await getFrontmostApplication();
+      setCurrentApplication(app.name);
+    },
+    "{{currentURL}}": async () => {
+      let appName = currentApplication;
+      if (!currentApplication) {
+        const app = await getFrontmostApplication();
+        appName = app.name;
+        setCurrentApplication(appName);
+      }
+
+      if (SupportedBrowsers.includes(appName)) {
+        const URL = await getCurrentURL(appName);
+        setCurrentURL(URL);
+      } else {
+        setCurrentURL("");
+      }
+    },
+    "{{currentTabText}}": async () => {
+      let appName = currentApplication;
+      if (!currentApplication) {
+        const app = await getFrontmostApplication();
+        appName = app.name;
+        setCurrentApplication(appName);
+      }
+
+      if (SupportedBrowsers.includes(appName)) {
+        const URL = await getCurrentURL(appName);
+        const URLText = await getTextOfWebpage(URL);
+        setCurrentTabText(filterString(URLText));
+      } else {
+        setCurrentTabText("");
+      }
+    },
+    "{{selectedText}}": async () => setSelectedText((await getSelectedText()).substring(0, 3000)),
+    "{{clipboardText}}": async () => {
+      const text = await Clipboard.readText();
+      setClipboardText(filterString(text as string));
+    },
+    "{{musicTracks}}": async () => setMusicTracks(filterString(await getTrackNames())),
+    "{{currentTrack}}": async () => setCurrentTrack(await getCurrentTrack()),
+    "{{lastNote}}": async () => setLastNote(filterString(await getLastNote())),
+    "{{lastEmail}}": async () => setLastEmail(filterString(await getLastEmail())),
+    "{{installedApps}}": async () => setInstalledApps(filterString(filterString(await getInstalledApplications()))),
+    "{{fileAICommands}}": async () => {
+      const storedItems = await LocalStorage.allItems();
+      setFileAICommands(filterString(Object.keys(storedItems).join(", ")));
+    },
+    "{{safariTopSites}}": async () => setSafariTopSites(await getSafariTopSites()),
+
+    // API Data
+    "{{location}}": async () => {
+      const jsonObj = getJSONResponse("https://get.geojs.io/v1/ip/geo.json");
+      const city = jsonObj["city"];
+      const region = jsonObj["region"];
+      const country = jsonObj["country"];
+      setLocation(`${city}, ${region}, ${country}`);
+    },
+    "{{todayWeather}}": async () => setTodayWeather(getWeatherData(1) as unknown as string),
+    "{{weekWeather}}": async () => setWeekWeather(getWeatherData(7) as unknown as string),
+
+    // Calendar Data
+    "{{todayEvents}}": async () => setTodayEvents(filterString(await getUpcomingCalendarEvents(CalendarDuration.DAY))),
+    "{{weekEvents}}": async () => setWeekEvents(filterString(await getUpcomingCalendarEvents(CalendarDuration.WEEK))),
+    "{{monthEvents}}": async () =>
+      setMonthEvents(filterString(await getUpcomingCalendarEvents(CalendarDuration.MONTH))),
+    "{{yearEvents}}": async () => setYearEvents(filterString(await getUpcomingCalendarEvents(CalendarDuration.YEAR))),
+    "{{todayReminders}}": async () =>
+      setTodayReminders(filterString(await getUpcomingCalendarEvents(CalendarDuration.DAY))),
+    "{{weekReminders}}": async () =>
+      setWeekReminders(filterString(await getUpcomingCalendarEvents(CalendarDuration.WEEK))),
+    "{{monthReminders}}": async () =>
+      setMonthReminders(filterString(await getUpcomingCalendarEvents(CalendarDuration.MONTH))),
+    "{{yearReminders}}": async () =>
+      setYearReminders(filterString(await getUpcomingCalendarEvents(CalendarDuration.YEAR))),
+  };
+
   useEffect(() => {
-    /* Context Data Retrieval */
-    if (
-      prompt.includes("{{currentApplication}}") ||
-      prompt.includes("{{currentURL}}") ||
-      prompt.includes("{{currentTabText}}")
-    ) {
-      Promise.resolve(getFrontmostApplication()).then((app) => {
-        setCurrentApplication(app.name);
-        if (prompt.includes("{{currentURL}}") && SupportedBrowsers.includes(app.name)) {
-          Promise.resolve(getCurrentURL(app.name)).then((URL) => setCurrentURL(URL));
-        } else {
-          setCurrentURL("");
-        }
-
-        if (prompt.includes("{{currentTabText}}") && SupportedBrowsers.includes(app.name)) {
-          Promise.resolve(getCurrentURL(app.name)).then((URL) => {
-            Promise.resolve(getTextOfWebpage(URL)).then((text) => setCurrentTabText(filterString(text)));
-          });
-        } else {
-          setCurrentTabText("");
-        }
-      });
-    }
-
-    if (prompt.includes("{{selectedText}}")) {
-      Promise.resolve(getSelectedText()).then((text) => setSelectedText(text));
-    }
-
-    if (prompt.includes("{{clipboardText}}")) {
-      Promise.resolve(Clipboard.readText()).then((text) => setClipboardText(text));
-    }
-
-    if (prompt.includes("{{musicTracks}}")) {
-      Promise.resolve(getTrackNames()).then((tracks) => setMusicTracks(tracks));
-    }
-
-    if (prompt.includes("{{currentTrack}}")) {
-      Promise.resolve(getCurrentTrack()).then((trackName) => setCurrentTrack(trackName));
-    }
-
-    if (prompt.includes("{{lastNote}}")) {
-      Promise.resolve(getLastNote()).then((plaintext) => setLastNote(plaintext));
-    }
-
-    if (prompt.includes("{{lastEmail}}")) {
-      Promise.resolve(getLastEmail()).then((content) => setLastEmail(content));
-    }
-
-    if (prompt.includes("{{installedApps}}")) {
-      Promise.resolve(getInstalledApplications()).then((apps) => setInstalledApps(filterString(apps)));
-    }
-
-    if (prompt.includes("{{fileAICommands}}")) {
-      Promise.resolve(LocalStorage.allItems()).then((items) => setFileAICommands(Object.keys(items).join(", ")));
-    }
-
-    if (prompt.includes("{{safariTopSites}}")) {
-      Promise.resolve(getSafariTopSites()).then((sites) => setSafariTopSites(sites));
-    }
-
-    /* Calendar Data Retrieval */
-    if (prompt.includes("{{todayEvents}}")) {
-      Promise.resolve(getUpcomingCalendarEvents(CalendarDuration.DAY)).then((eventsString) =>
-        setTodayEvents(eventsString)
-      );
-    }
-
-    if (prompt.includes("{{weekEvents}}")) {
-      Promise.resolve(getUpcomingCalendarEvents(CalendarDuration.WEEK)).then((eventsString) =>
-        setWeekEvents(eventsString)
-      );
-    }
-
-    if (prompt.includes("{{monthEvents}}")) {
-      Promise.resolve(getUpcomingCalendarEvents(CalendarDuration.MONTH)).then((eventsString) =>
-        setMonthEvents(eventsString)
-      );
-    }
-
-    if (prompt.includes("{{yearEvents}}")) {
-      Promise.resolve(getUpcomingCalendarEvents(CalendarDuration.YEAR)).then((eventsString) =>
-        setYearEvents(eventsString)
-      );
-    }
-
-    if (prompt.includes("{{todayReminders}}")) {
-      Promise.resolve(getUpcomingCalendarEvents(CalendarDuration.DAY)).then((remindersString) =>
-        setTodayReminders(remindersString)
-      );
-    }
-
-    if (prompt.includes("{{weekReminders}}")) {
-      Promise.resolve(getUpcomingCalendarEvents(CalendarDuration.WEEK)).then((remindersString) =>
-        setWeekReminders(remindersString)
-      );
-    }
-
-    if (prompt.includes("{{monthReminders}}")) {
-      Promise.resolve(getUpcomingCalendarEvents(CalendarDuration.MONTH)).then((remindersString) =>
-        setMonthReminders(remindersString)
-      );
-    }
-
-    if (prompt.includes("{{yearReminders}}")) {
-      Promise.resolve(getUpcomingCalendarEvents(CalendarDuration.YEAR)).then((remindersString) =>
-        setYearReminders(remindersString)
-      );
+    for (const key in replacements) {
+      if (prompt.includes(key)) {
+        Promise.resolve(replacements[key]());
+      }
     }
   }, []);
 
@@ -206,6 +185,9 @@ export default function CommandResponse(props: {
     (!prompt.includes("{{lastEmail}}") || lastEmail != undefined) &&
     (!prompt.includes("{{fileAICommands}}") || fileAICommands != undefined) &&
     (!prompt.includes("{{safariTopSites}}") || safariTopSites != undefined) &&
+    (!prompt.includes("{{location}}") || location != undefined) &&
+    (!prompt.includes("{{todayWeather}}") || todayWeather != undefined) &&
+    (!prompt.includes("{{weekWeather}}") || weekWeather != undefined) &&
     (!prompt.includes("{{installedApps}}") || installedApps != undefined)
   ) {
     setLoadingData(false);
@@ -256,6 +238,9 @@ export default function CommandResponse(props: {
     .replaceAll("{{installedApps}}", installedApps == undefined ? "" : installedApps)
     .replaceAll("{{fileAICommands}}", fileAICommands == undefined ? "" : fileAICommands)
     .replaceAll("{{topSites}}", safariTopSites == undefined ? "" : safariTopSites)
+    .replaceAll("{{location}}", location == undefined ? "" : location)
+    .replaceAll("{{todayWeather}}", todayWeather == undefined ? "" : todayWeather)
+    .replaceAll("{{weekWeather}}", weekWeather == undefined ? "" : weekWeather)
 
     /* System Data Substitutions */
     .replaceAll("{{user}}", os.userInfo().username)
