@@ -10,20 +10,13 @@ A Raycast extension for identifying, summarizing, and comparing selected files u
     - Search and run custom File AI commands
 - Summarize Selected Files
     - Summarize the contents of selected text files, PDFs, images, audio files, and more.
-- Compare Selected Files
-    - Compare and contrast the contents of selected files.
-- Assess File Overlap
-    - Assess the overlap in ideas between the contents of two or more selected files.
-- Identify Selected Files
-    - Get a quick overview of the purpose and usage of a file.
-- Summarize Spoken Audio
-    - Summarize the spoken word content of audio files.
 - File AI Chat
     - Start a back-and-forth conversation with AI with selected files provided as context.       
 - Import Custom File AI Commands
     - Add custom commands from a JSON string.
 
 ## Images
+![List Of Default Commands](./examples/default-command-list.png)
 ![File Summarization Example](./examples/jpg-text-summarization-1.png)
 ![Audio Summarization Example](./examples/mp3-audio-summarization-1.png)
 ![File Comparison Example](./examples/pdf-file-comparison-1.png)
@@ -32,65 +25,15 @@ A Raycast extension for identifying, summarizing, and comparing selected files u
 
 ## Custom Commands
 
-You can create custom File AI commands, accessed via the "Search File AI Commands" command, to execute your own prompts acting on the contents of selected files. A variety of useful defaults are provided, as listed below.
-
-### Default Custom Commands
-
-- Assess Academic Validity
-- Compose Response
-- Compose Tweet
-- Condense Files
-- Create Action Items
-- Create Flashcards
-- Create Notes
-- Create Slides
-- Detect Bias
-- Extend Files
-- Extract Code
-- Extract Emails
-- Extract Named Entities
-- Extract Phone Numbers
-- Extract URLs
-- Extract Visible Text
-- Extract Vocabulary
-- Find Errors
-- Generate Questions
-- Historical Context
-- Identify Gaps
-- Identify Relationships
-- Location Significance
-- Make Jingle
-- Make Poem
-- Make Song
-- Metadata Analysis
-- Meeting Agenda
-- Pattern Analysis
-- Pros And Cons
-- Recommend Apps
-- Respond To Last Email
-- Suggest File AI Commands
-- Suggest Hashtags
-- Suggest Improvements
-- Suggest Project Ideas
-- Suggest Related File AI Prompts
-- Suggest Title
-- Suggest Tools
-- Summarize Clipboard
-- Summarize Current Tab
-- Summarize Last Email
-- Table Of Contents
-- Today's Agenda
-- Translate To English
-- What Is This?
-- Write Abstract
-- Write Caption
-- Write Conclusion
-- Write Discussion
-- Write Introduction
+You can create custom File AI commands, accessed via the "Search File AI Commands" command, to execute your own prompts acting on the contents of selected files. A variety of useful defaults are provided, as listed under [Default Commands](#default-commands).
 
 ### Placeholders
 
 When creating custom commands, you can use placeholders in your prompts that will be substituted with relevant information whenever you run the command. These placeholders range from simple information, like the current date, to complex data retrieval operations such as getting the content of the most recent email. Placeholders are a powerful way to add context to your File AI prompts. The valid placeholders are as follows:
+
+#### URL Placeholders
+
+You can instruct File AI to extract text from any webpage by using the {{URL}} placeholder. For example, `{{http://68k.news}}` would be replaced with the visible text of the 68k News homepage. You can use this to interface between files, data, webpages, and APIs.
 
 #### API Data Placeholders
 | Placeholder | Replaced With |
@@ -159,6 +102,8 @@ When creating custom commands, you can use placeholders in your prompts that wil
 | Command Name | Prompt |
 | --- | --- |
 | Assess Academic Validity | Assess the academic validity of the following files based on their contents, the methodologies described within, and any results obtained. Use the file names as headings. |
+| Assess File Overlap | What overlaps in content or ideas exists between the following files? What are the similarities? |
+| Compare Selected Files | Compare and contrast the content, purpose, and significance of the following files. What are the similarities and differences between them? Format the response as one markdown paragraph. |
 | Compose Response | Compose a response to the following files in the style of an email. Sign the email with the name "{{user}}" |
 | Compose Tweet | Compose a tweet based on the following files: |
 | Condense Files | Condense the content of the following files as much as possible. Summarize sentences. Use abbreviations where possible. If the response includes any lists, remove them and briefly describe them instead. Condense clarifying language as much as possible. Use the file names as headings. |
@@ -179,6 +124,7 @@ When creating custom commands, you can use placeholders in your prompts that wil
 | Generate Questions | Generate questions based on the content of each of the following files, their metadata, filename, type, and other information. Format the response as a markdown list. |
 | Historical Context | Based on the topics mentioned in the following files, provide a list of the top 5 most significant relevant historical facts. Additionally, provide a paragraph summarizing a historical fact that relates to the entire content of the file. |
 | Identify Gaps | Identify any gaps in understanding or content that occur in the following files. Use the file names as headings. Provide content to fill in the gaps. |
+| Identify Selected Files | Identify the file type and most significant features of the following files based on their content. Discuss the primary purpose of the file based on its content. Categorize the content into relevant topics. Provide an assessment of the file's utility as well a list of relevant links and brief descriptions of them. Format the response as a markdown list using "## File Type", "## Topics", "## Defining Features", "## Purpose and Potential Usage", and "## Relevant Links" as headings. |
 | Identify Relationships | In one paragraph, identify any relationships that might exist between the following files based on their content and the topics they mention. Always identify some relationship, even if it is very general. Explain a use for the files together that none of them have individually. |
 | Make Jingle | Create short, memorable jingles summarizing the main ideas in each of the following files, using the file names as headings. |
 | Make Poem | Make rhyming poems about the the following files. Be creative and include references to the content and purpose of the file in unexpected ways. Do not summarize the file. Make each poem at least 3 stanzas long, but longer for longer files. Use the file names as markdown headings. |
@@ -187,6 +133,7 @@ When creating custom commands, you can use placeholders in your prompts that wil
 | Metadata Analysis | I want you to give several insights about files based on their metadata and file type. Do not summarize the file content, but instead relate the metadata to the content in a meaningful way. Use metadata to suggest improvements to the content. Provide detailed explanations for your suggestions. Format your response as a paragraph summary. Use the file names as headings.\nHere's the metadata:{{metadata}}\n\nHere are the files: |
 | Pattern Analysis | Identify and describe any patterns or trends in the content of the following files. Use the file names as headers. |
 | Pros And Cons | List pros and cons for the following files based on the topics mentioned within them. Format the response as a markdown list. Use the file names as headings. Do not provide any other commentary. |
+| Recent Headlines From 68k News | Discuss the recent headlines from 68k News: ###{{http://68k.news}}### |
 | Recommend Apps | Based on the list of apps I have installed, recommend 10 additional macOS applications that I might enjoy. Explain the significance of the relationship between each recommandation and my installed apps. Use any knowledge you have about the apps to inform your suggestions. Format the output as a markdown list. At the start, provide a paragraph analyzing common themes of my apps, directed at me. Here is the list of apps I have installed: ###{{installedApps}}### |
 | Response To last Email | Generate a response to the following email:###{{lastEmail}}### |
 | Suggest File AI Commands | Based on my current commands for the File AI extension, suggest new commands to create. Provide suggestions for titles as well prompts. The prompts must be relevant to an AI that can read the content of files, get information about the system, and get outside  data such as calendar events. The commands must be unique. Format the response as a single markdown list. Here are the commands I currently have: {{fileAICommands}} |
@@ -199,6 +146,7 @@ When creating custom commands, you can use placeholders in your prompts that wil
 | Summarize Clipboard | Summarize the following text, providing specific details. ###{{clipboardText}}### |
 | Summarize Current Tab | Based on the following text obtained from the active browser tab, what am I looking at? In your answer, discuss the content and meaning of the website. If the URL or the text are blank, report an error. For context, here is the url: {{currentURL}} And here is the text: ###{{currentTabText}}### |
 | Summarize Last Email | Summarize my most recent email and discuss its significance. I am the recipient. Format the response as a paragraph directed to me. Here is the email: ###{{lastEmail}}### |
+| Summarize Spoken Audio | Summarize and assess the the following audio files using the file names as headings. Discuss the transcribed text's purpose and significance. Here are the audio transcriptions: |
 | Table Of Contents | Generate a table of contents for each of the following files based on their content. Use the file names as headings. For each item in the table, provide an percent estimation of how far into the document the associated content occurs. Format the response as a markdown list. |
 | Today's Agenda | Make an agenda for my day using the following list of events. Format the output as friendly paragraph, directed at my, explaining when there is time for breaks or other activities that you recommend. Use today's date ({{date}}) as a markdown header. Here are the events: ###{{todayEvents}}### |
 | Translate To English | Translate the following files to English, using the file names as headings. Reword the translations so that they make sense in plain English. If the phrase is well known in either English or the source language, use the most commonly accepted translation. |

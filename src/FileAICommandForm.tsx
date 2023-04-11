@@ -8,8 +8,13 @@ interface CommandFormValues {
   icon: string;
   minNumFiles: string;
   acceptedFileExtensions: string;
-  useFileMetadata: boolean;
-  useSoundClassifications: boolean;
+  useMetadata: boolean;
+  useAudioDetails: boolean;
+  useSoundClassification: boolean;
+  useSubjectClassification: boolean;
+  useRectangleDetection: boolean;
+  useBarcodeDetection: boolean;
+  useFaceDetection: boolean;
 }
 
 export default function FileAICommandForm(props: {
@@ -19,7 +24,7 @@ export default function FileAICommandForm(props: {
   const { oldData, setCommands } = props;
   const { pop } = useNavigation();
 
-  let maxPromptLength = oldData?.minNumFiles == "0" ? 3000 : 500
+  let maxPromptLength = oldData?.minNumFiles == "0" ? 3000 : 500;
 
   const { handleSubmit, itemProps } = useForm<CommandFormValues>({
     async onSubmit(values) {
@@ -41,8 +46,14 @@ export default function FileAICommandForm(props: {
     },
     initialValues: oldData || {
       minNumFiles: "1",
-      useFileMetadata: false,
-      useSoundClassifications: false,
+      useMetadata: false,
+      acceptedFileExtensions: "",
+      useAudioDetails: false,
+      useSoundClassification: true,
+      useSubjectClassification: true,
+      useRectangleDetection: true,
+      useBarcodeDetection: true,
+      useFaceDetection: true,
     },
     validation: {
       name: FormValidation.Required,
@@ -50,7 +61,7 @@ export default function FileAICommandForm(props: {
         if (!value) {
           return "Must provide a prompt";
         }
-        
+
         if (value.length > maxPromptLength) {
           return `Prompt must be ${maxPromptLength} characters or fewer`;
         }
@@ -95,9 +106,9 @@ export default function FileAICommandForm(props: {
         title="Minimum File Count"
         placeholder="Minimum number of files required"
         onChange={(value) => {
-          const intVal = parseInt(value)
+          const intVal = parseInt(value);
           if (intVal == 0) {
-            maxPromptLength = 3000
+            maxPromptLength = 3000;
           }
         }}
         {...itemProps.minNumFiles}
@@ -110,15 +121,45 @@ export default function FileAICommandForm(props: {
       />
 
       <Form.Checkbox
-        label="General Metadata"
-        {...itemProps.useFileMetadata}
+        label="Use File Metadata"
+        {...itemProps.useMetadata}
         info="If checked, metadata of selected files will be included in the text provided to the AI, and additional EXIF data will be included for image files."
       />
 
       <Form.Checkbox
-        label="Sound Classifications"
-        {...itemProps.useSoundClassifications}
+        label="Use Subject Classifications"
+        {...itemProps.useSubjectClassification}
+        info="If checked, subject classification labels will be included in the text provided to the AI when acting on image files."
+      />
+
+      <Form.Checkbox
+        label="Use Sound Classifications"
+        {...itemProps.useSoundClassification}
         info="If checked, sound classification labels will be included in the text provided to the AI when acting on audio files."
+      />
+
+      <Form.Checkbox
+        label="Use Transcribed Audio"
+        {...itemProps.useAudioDetails}
+        info="If checked, transcribed text will be provided to the AI when acting on audio files."
+      />
+
+      <Form.Checkbox
+        label="Use Barcode Detection"
+        {...itemProps.useBarcodeDetection}
+        info="If checked, the payload text of any barcodes and QR codes in images will be included in the text provided to the AI."
+      />
+
+      <Form.Checkbox
+        label="Use Rectangle Detection"
+        {...itemProps.useRectangleDetection}
+        info="If checked, the size and position of rectangles in image files with be included in the text provided to the AI."
+      />
+
+      <Form.Checkbox
+        label="Use Face Detection"
+        {...itemProps.useFaceDetection}
+        info="If checked, the number of faces in image files will be included in the text provided to the AI."
       />
     </Form>
   );
