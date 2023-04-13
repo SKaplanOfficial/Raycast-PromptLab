@@ -32,11 +32,10 @@ export default function Command(props: { arguments: { commandName: string } }) {
         commandName={command.name}
         prompt={command.prompt}
         options={{
-          minNumFiles: parseInt(command.minNumFiles),
-          acceptedFileExtensions:
-            command.acceptedFileExtensions.trim().length > 0
-              ? command.acceptedFileExtensions.split(",").map((value) => value.trim())
-              : undefined,
+          minNumFiles: parseInt(command.minNumFiles as unknown as string),
+          acceptedFileExtensions: command.acceptedFileExtensions?.length
+            ? command.acceptedFileExtensions?.split(",").map((item) => item.trim())
+            : undefined,
           useMetadata: command.useMetadata,
           useSoundClassification: command.useSoundClassification,
           useAudioDetails: command.useAudioDetails,
@@ -65,11 +64,10 @@ export default function Command(props: { arguments: { commandName: string } }) {
                   commandName={command.name}
                   prompt={command.prompt}
                   options={{
-                    minNumFiles: parseInt(command.minNumFiles),
-                    acceptedFileExtensions:
-                      command.acceptedFileExtensions.trim().length > 0
-                        ? command.acceptedFileExtensions.split(",").map((value) => value.trim())
-                        : undefined,
+                    minNumFiles: parseInt(command.minNumFiles as unknown as string),
+                    acceptedFileExtensions: command.acceptedFileExtensions?.length
+                      ? command.acceptedFileExtensions?.split(",").map((item) => item.trim())
+                      : undefined,
                     useMetadata: command.useMetadata,
                     useSoundClassification: command.useSoundClassification,
                     useAudioDetails: command.useAudioDetails,
@@ -121,7 +119,25 @@ export default function Command(props: { arguments: { commandName: string } }) {
               />
               <Action.Push
                 title="Edit Command"
-                target={<FileAICommandForm oldData={command} setCommands={setCommands} />}
+                target={
+                  <FileAICommandForm
+                    oldData={{
+                      name: command.name,
+                      prompt: command.prompt,
+                      icon: command.icon,
+                      minNumFiles: command.minNumFiles as unknown as string,
+                      acceptedFileExtensions: command.acceptedFileExtensions,
+                      useMetadata: command.useMetadata,
+                      useAudioDetails: command.useAudioDetails,
+                      useSoundClassification: command.useSoundClassification,
+                      useSubjectClassification: command.useSubjectClassification,
+                      useRectangleDetection: command.useRectangleDetection,
+                      useBarcodeDetection: command.useBarcodeDetection,
+                      useFaceDetection: command.useFaceDetection,
+                    }}
+                    setCommands={setCommands}
+                  />
+                }
                 icon={Icon.Pencil}
                 shortcut={{ modifiers: ["cmd"], key: "e" }}
               />

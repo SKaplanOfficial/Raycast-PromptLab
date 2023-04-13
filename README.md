@@ -31,6 +31,10 @@ You can create custom File AI commands, accessed via the "Search File AI Command
 
 When creating custom commands, you can use placeholders in your prompts that will be substituted with relevant information whenever you run the command. These placeholders range from simple information, like the current date, to complex data retrieval operations such as getting the content of the most recent email. Placeholders are a powerful way to add context to your File AI prompts. The valid placeholders are as follows:
 
+### Script Placeholders
+
+You can include AppleScript in your commands that will be run prior to sending the prompt to Raycast AI. The output of the script will be included in the final prompt. To do this, surround your script with three curly braces, {{{like this}}}. For example: 'Summarize this text: {{{tell application "TextEdit" to get text of document 1}}}'
+
 #### URL Placeholders
 
 You can instruct File AI to extract text from any webpage by using the {{URL}} placeholder. For example, `{{http://68k.news}}` would be replaced with the visible text of the 68k News homepage. You can use this to interface between files, data, webpages, and APIs.
@@ -137,6 +141,7 @@ You can instruct File AI to extract text from any webpage by using the {{URL}} p
 | Recommend Apps | Based on the list of apps I have installed, recommend 10 additional macOS applications that I might enjoy. Explain the significance of the relationship between each recommandation and my installed apps. Use any knowledge you have about the apps to inform your suggestions. Format the output as a markdown list. At the start, provide a paragraph analyzing common themes of my apps, directed at me. Here is the list of apps I have installed: ###{{installedApps}}### |
 | Response To last Email | Generate a response to the following email:###{{lastEmail}}### |
 | Suggest File AI Commands | Based on my current commands for the File AI extension, suggest new commands to create. Provide suggestions for titles as well prompts. The prompts must be relevant to an AI that can read the content of files, get information about the system, and get outside  data such as calendar events. The commands must be unique. Format the response as a single markdown list. Here are the commands I currently have: {{fileAICommands}} |
+| Suggest Fonts | Here are some fonts I have installed. Identify some trends in my font choices, then recommend 5 unique fonts that I might like based on those trends. For each recommendation, explain why I might like it in relation to other fonts I have installed. Here are the fonts: {{{use framework "Foundation"\nset fontManager to current application's NSFontManager's\nsharedFontManager()\nset allFonts to fontManager's availableFonts() as list\nset randomFonts to {}\nrepeat 10 times\n	copy some item of allFonts to end of randomFonts\nend repeat\nreturn randomFonts}}}
 | Suggest Hashtags | Suggest hashtags for the following files based on their contents. Use the file names as markdown headings. |
 | Suggest Improvements | Suggest improvements to the content of the following files. Use the file names as headings. Format the response as a markdown list. |
 | Suggest Project Ideas | I want you to act as a project idea generator. I will provide file names and their contents, and you will response with a list of project ideas based on the content of each file. Format the response as a markdown list. Use the file names as headings. Here are the files: |
@@ -163,6 +168,7 @@ You can instruct File AI to extract text from any webpage by using the {{URL}} p
 | --- | --- |
 | Relate To Current Track | Relate and compare this file to the song {{currentTrack}}. |
 | Songs I Might Like | Based on the following songs in my library, recommend new songs I might like. Output the recommendations as a markdown list. For each song, explain in terms of my other songs why you think I'd like it. The recommendations must not be in my library already. Here are the songs: """{{musicTracks}}""{{END}} |
+| Suggest Names For Current Note | Suggest 3 possible names for the currently selected note. Make one concise. Here is its plaintext content: {{{tell application "Notes"\nset theText to plaintext of item 1 of (selection as list) as text\nset maxLength to 2000\nif length of theText < maxLength then\nset maxLength to length of theText\nend if\nreturn text 1 thru maxLength of theText\nend tell}}} |
 | Suggest Similar Songs | Suggest songs similar to {currentTrack}}. Use "Songs Similar To {{currentTrack}}" as the header for the output. For each suggestion, provide a brief explanation.{{END}} |
 | Summarize Last Note | Summarize my last note: """{{lastNote}}""" |
 | Use Cases | List 5 use cases for each of the following files based on their content. Explain how each use case relates to the file. Format the response as a markdown list. Use the file names as headings. |
