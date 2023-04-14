@@ -1,8 +1,19 @@
-import { Action, ActionPanel, Alert, Clipboard, confirmAlert, Icon, List, LocalStorage, showHUD } from "@raycast/api";
+import {
+  Action,
+  ActionPanel,
+  Alert,
+  Clipboard,
+  Color,
+  confirmAlert,
+  Icon,
+  List,
+  LocalStorage,
+  showHUD,
+} from "@raycast/api";
 import { useEffect, useState } from "react";
 import CommandResponse from "./CommandResponse";
 import { installDefaults } from "./utils/file-utils";
-import FileAICommandForm from "./FileAICommandForm";
+import CommandForm from "./CommandForm";
 import { Command } from "./utils/types";
 
 export default function Command(props: { arguments: { commandName: string } }) {
@@ -43,6 +54,9 @@ export default function Command(props: { arguments: { commandName: string } }) {
           useFaceDetection: command.useFaceDetection,
           useRectangleDetection: command.useRectangleDetection,
           useSubjectClassification: command.useSubjectClassification,
+          outputKind: command.outputKind,
+          actionScript: command.actionScript,
+          showResponse: command.showResponse,
         }}
       />
     );
@@ -53,7 +67,10 @@ export default function Command(props: { arguments: { commandName: string } }) {
     .map((command) => (
       <List.Item
         title={command.name}
-        icon={{ source: command.icon }}
+        icon={{
+          source: command.icon,
+          tintColor: command.iconColor == undefined ? Color.PrimaryText : command.iconColor,
+        }}
         key={command.name}
         actions={
           <ActionPanel>
@@ -75,6 +92,9 @@ export default function Command(props: { arguments: { commandName: string } }) {
                     useFaceDetection: command.useFaceDetection,
                     useRectangleDetection: command.useRectangleDetection,
                     useSubjectClassification: command.useSubjectClassification,
+                    outputKind: command.outputKind,
+                    actionScript: command.actionScript,
+                    showResponse: command.showResponse,
                   }}
                 />
               }
@@ -120,11 +140,12 @@ export default function Command(props: { arguments: { commandName: string } }) {
               <Action.Push
                 title="Edit Command"
                 target={
-                  <FileAICommandForm
+                  <CommandForm
                     oldData={{
                       name: command.name,
                       prompt: command.prompt,
                       icon: command.icon,
+                      iconColor: command.iconColor,
                       minNumFiles: command.minNumFiles as unknown as string,
                       acceptedFileExtensions: command.acceptedFileExtensions,
                       useMetadata: command.useMetadata,
@@ -134,6 +155,9 @@ export default function Command(props: { arguments: { commandName: string } }) {
                       useRectangleDetection: command.useRectangleDetection,
                       useBarcodeDetection: command.useBarcodeDetection,
                       useFaceDetection: command.useFaceDetection,
+                      outputKind: command.outputKind,
+                      actionScript: command.actionScript,
+                      showResponse: command.showResponse,
                     }}
                     setCommands={setCommands}
                   />

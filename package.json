@@ -1,15 +1,26 @@
 {
   "$schema": "https://www.raycast.com/schemas/extension.json",
-  "name": "file-ai",
-  "title": "File AI",
-  "description": "Summarize files with AI",
+  "name": "promptlab",
+  "title": "PromptLab",
+  "description": "Create custom AI commands using powerful placeholders",
   "icon": "command-icon.png",
   "author": "HelloImSteven",
   "categories": [
     "Productivity",
-    "Data"
+    "Data",
+    "Developer Tools"
   ],
   "license": "MIT",
+  "preferences": [
+    {
+      "name": "pdfOCR",
+      "label": "Use OCR For PDFs",
+      "type": "checkbox",
+      "default": true,
+      "description": "If checked, PromptLab will use OCR to extract text from PDFs. This takes longer but enables analysis of more PDF content types.",
+      "required": false
+    }
+  ],
   "commands": [
     {
       "name": "summarize-files",
@@ -18,39 +29,43 @@
       "mode": "view"
     },
     {
-      "name": "compare-files",
-      "title": "Compare Selected Files",
-      "description": "Compare and contrast the contents of the selected files",
-      "mode": "view"
-    },
-    {
-      "name": "file-overlap",
-      "title": "Assess File Overlap",
-      "description": "Assess the overlap in content of the selected files",
-      "mode": "view"
-    },
-    {
-      "name": "identify",
-      "title": "Identify Selected Files",
-      "description": "Identify the primary purpose of the selected files",
-      "mode": "view"
-    },
-    {
-      "name": "summarize-speech",
-      "title": "Summarize Spoken Audio",
-      "description": "Summarize the spoken words in the selected audio files",
-      "mode": "view"
-    },
-    {
       "name": "create-command",
-      "title": "Create File AI Command",
-      "description": "Create a custom File AI command accessible via 'Search File AI Commands'",
+      "title": "Create PromptLab Command",
+      "description": "Create a custom PromptLab command accessible via 'Search PromptLab Commands'",
       "mode": "view"
     },
     {
       "name": "search-commands",
-      "title": "Search File AI Commands",
-      "description": "Search custom File AI commands",
+      "title": "Search PromptLab Commands",
+      "description": "Search custom PromptLab commands",
+      "mode": "view",
+      "arguments": [
+        {
+          "name": "commandName",
+          "placeholder": "Command Name",
+          "required": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "chat",
+      "title": "PromptLab Chat",
+      "description": "Start an interactive chat with the context of selected files provided'",
+      "mode": "view",
+      "arguments": [
+        {
+          "name": "initialQuery",
+          "placeholder": "Initial Query",
+          "required": false,
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "import-commands",
+      "title": "Import PromptLab Commands",
+      "description": "Import custom PromptLab commands from a JSON string",
       "mode": "view"
     }
   ],

@@ -1,4 +1,14 @@
-import { Action, ActionPanel, Form, showToast, Icon, LocalStorage, useNavigation } from "@raycast/api";
+import {
+  Action,
+  ActionPanel,
+  Form,
+  showToast,
+  Icon,
+  LocalStorage,
+  useNavigation,
+  Color,
+  environment,
+} from "@raycast/api";
 import { useForm, FormValidation } from "@raycast/utils";
 import { Command } from "./utils/types";
 
@@ -6,6 +16,7 @@ interface CommandFormValues {
   name: string;
   prompt: string;
   icon: string;
+  iconColor?: string;
   minNumFiles: string;
   acceptedFileExtensions?: string;
   useMetadata?: boolean;
@@ -15,9 +26,12 @@ interface CommandFormValues {
   useRectangleDetection?: boolean;
   useBarcodeDetection?: boolean;
   useFaceDetection?: boolean;
+  outputKind?: string;
+  actionScript?: string;
+  showResponse?: boolean;
 }
 
-export default function FileAICommandForm(props: {
+export default function CommandForm(props: {
   oldData?: CommandFormValues;
   setCommands?: React.Dispatch<React.SetStateAction<Command[] | undefined>>;
 }) {
@@ -45,7 +59,8 @@ export default function FileAICommandForm(props: {
       pop();
     },
     initialValues: oldData || {
-      minNumFiles: "1",
+      iconColor: Color.PrimaryText,
+      minNumFiles: "0",
       useMetadata: false,
       acceptedFileExtensions: "",
       useAudioDetails: false,
@@ -54,6 +69,9 @@ export default function FileAICommandForm(props: {
       useRectangleDetection: true,
       useBarcodeDetection: true,
       useFaceDetection: true,
+      outputKind: "detail",
+      actionScript: "",
+      showResponse: true,
     },
     validation: {
       name: FormValidation.Required,
@@ -89,8 +107,6 @@ export default function FileAICommandForm(props: {
     >
       <Form.TextField title="Command Name" placeholder="Name of File AI Command" {...itemProps.name} />
 
-      <Form.TextArea title="Prompt" placeholder="Instructions for Raycast AI to follow" {...itemProps.prompt} />
-
       <Form.Dropdown title="Icon" {...itemProps.icon}>
         {Object.keys(Icon).map((iconName, index) => (
           <Form.Dropdown.Item
@@ -102,7 +118,61 @@ export default function FileAICommandForm(props: {
         ))}
       </Form.Dropdown>
 
+      <Form.Dropdown title="Icon Color" {...itemProps.iconColor}>
+        <Form.Dropdown.Item
+          title={environment.theme == "dark" ? "White" : "Black"}
+          value={Color.PrimaryText}
+          icon={{ source: Icon.CircleFilled, tintColor: Color.PrimaryText }}
+        />
+        <Form.Dropdown.Item title="Red" value={Color.Red} icon={{ source: Icon.CircleFilled, tintColor: Color.Red }} />
+        <Form.Dropdown.Item
+          title="Orange"
+          value={Color.Orange}
+          icon={{ source: Icon.CircleFilled, tintColor: Color.Orange }}
+        />
+        <Form.Dropdown.Item
+          title="Yellow"
+          value={Color.Yellow}
+          icon={{ source: Icon.CircleFilled, tintColor: Color.Yellow }}
+        />
+        <Form.Dropdown.Item
+          title="Green"
+          value={Color.Green}
+          icon={{ source: Icon.CircleFilled, tintColor: Color.Green }}
+        />
+        <Form.Dropdown.Item
+          title="Blue"
+          value={Color.Blue}
+          icon={{ source: Icon.CircleFilled, tintColor: Color.Blue }}
+        />
+        <Form.Dropdown.Item
+          title="Purple"
+          value={Color.Purple}
+          icon={{ source: Icon.CircleFilled, tintColor: Color.Purple }}
+        />
+        <Form.Dropdown.Item
+          title="Magenta"
+          value={Color.Magenta}
+          icon={{ source: Icon.CircleFilled, tintColor: Color.Magenta }}
+        />
+      </Form.Dropdown>
+
+      <Form.TextArea title="Prompt" placeholder="Instructions for Raycast AI to follow" {...itemProps.prompt} />
+
       <Form.TextArea
+        title="Script"
+        placeholder="AppleScript code to run after response"
+        info="An AppleScript script to run after receiving a response to the prompt. Use the `response` variable to access the text of the response."
+        {...itemProps.actionScript}
+      />
+
+      <Form.Checkbox
+        label="Show Response View"
+        {...itemProps.showResponse}
+        info="If checked, the AI's output will be display in Raycast. Disabling this is only useful if you provide an action script."
+      />
+
+      <Form.TextField
         title="Minimum File Count"
         placeholder="Minimum number of files required"
         onChange={(value) => {
@@ -114,6 +184,15 @@ export default function FileAICommandForm(props: {
         {...itemProps.minNumFiles}
       />
 
+      <Form.Dropdown
+        title="Output View"
+        info="The view in which the command's output will be rendered. Detail is the most likely to work for any given command, but File AI will do its best to give you usable output no matter what."
+        {...itemProps.outputKind}
+      >
+        <Form.Dropdown.Item title="Detail" value="detail" icon={Icon.AppWindow} />
+        <Form.Dropdown.Item title="List" value="list" icon={Icon.List} />
+      </Form.Dropdown>
+
       <Form.TextArea
         title="Accepted File Extensions"
         placeholder="Comma-separated list of file extensions, e.g. txt, csv, html"
@@ -121,6 +200,7 @@ export default function FileAICommandForm(props: {
       />
 
       <Form.Checkbox
+        title="Included Information"
         label="Use File Metadata"
         {...itemProps.useMetadata}
         info="If checked, metadata of selected files will be included in the text provided to the AI, and additional EXIF data will be included for image files."

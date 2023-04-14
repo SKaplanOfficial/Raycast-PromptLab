@@ -1,18 +1,18 @@
-# File AI
+# PromptLab
 
-A Raycast extension for identifying, summarizing, and comparing selected files using Raycast AI.
+A Raycast extension for creating power, contextually-aware AI commands using placeholders, action scripts, and more.
 
 ## Commands
 
-- Create File AI Command
-    - Create a custom File AI command accessible via 'Search File AI Commands'
-- Search File AI Commands
-    - Search and run custom File AI commands
+- Create PromptLab Command
+    - Create a custom PromptLab command accessible via 'Search PromptLab Commands'
+- Search PromptLab Commands
+    - Search and run custom PromptLab commands
 - Summarize Selected Files
     - Summarize the contents of selected text files, PDFs, images, audio files, and more.
-- File AI Chat
+- PromptLab Chat
     - Start a back-and-forth conversation with AI with selected files provided as context.       
-- Import Custom File AI Commands
+- Import Custom PromptLab Commands
     - Add custom commands from a JSON string.
 
 ## Images
@@ -25,11 +25,11 @@ A Raycast extension for identifying, summarizing, and comparing selected files u
 
 ## Custom Commands
 
-You can create custom File AI commands, accessed via the "Search File AI Commands" command, to execute your own prompts acting on the contents of selected files. A variety of useful defaults are provided, as listed under [Default Commands](#default-commands).
+You can create custom PromptLab commands, accessed via the "Search PromptLab Commands" command, to execute your own prompts acting on the contents of selected files. A variety of useful defaults are provided, as listed under [Default Commands](#default-commands).
 
 ### Placeholders
 
-When creating custom commands, you can use placeholders in your prompts that will be substituted with relevant information whenever you run the command. These placeholders range from simple information, like the current date, to complex data retrieval operations such as getting the content of the most recent email. Placeholders are a powerful way to add context to your File AI prompts. The valid placeholders are as follows:
+When creating custom commands, you can use placeholders in your prompts that will be substituted with relevant information whenever you run the command. These placeholders range from simple information, like the current date, to complex data retrieval operations such as getting the content of the most recent email. Placeholders are a powerful way to add context to your PromptLab prompts. The valid placeholders are as follows:
 
 ### Script Placeholders
 
@@ -37,7 +37,7 @@ You can include AppleScript in your commands that will be run prior to sending t
 
 #### URL Placeholders
 
-You can instruct File AI to extract text from any webpage by using the {{URL}} placeholder. For example, `{{http://68k.news}}` would be replaced with the visible text of the 68k News homepage. You can use this to interface between files, data, webpages, and APIs.
+You can instruct PromptLab to extract text from any webpage by using the {{URL}} placeholder. For example, `{{http://68k.news}}` would be replaced with the visible text of the 68k News homepage. You can use this to interface between files, data, webpages, and APIs.
 
 #### API Data Placeholders
 | Placeholder | Replaced With |
@@ -53,6 +53,7 @@ You can instruct File AI to extract text from any webpage by using the {{URL}} p
 | `{{lastEmail}}` | The subject, sender, and content of the most recently received email in Mail.app |
 | `{{lastNote}}` | The text of the most recently edited note in Notes.app |
 | `{{musicTracks}}` | The list of track titles in Music.app |
+| `{{safariBookmarks}}` | List of bookmarks in Safari |
 | `{{safariTopSites}}` | Your list of top visited sites in Safari |
 | `{{selectedText}}` | The currently selected text |
 
@@ -78,7 +79,7 @@ You can instruct File AI to extract text from any webpage by using the {{URL}} p
 | `{{currentTabText}}` | The text content of the active tab of the active browser |
 | `{{currentTrack}}` | The title of the track/stream currently playing in Music.app |
 | `{{currentURL}}` | The current URL of the active tab of the active browser |
-| `{{fileAICommands}}` | The list of all custom File AI commands |
+| `{{fileAICommands}}` | The list of all custom PromptLab commands |
 
 #### File Data Placeholders
 | Placeholder | Replaced With |
@@ -91,13 +92,25 @@ You can instruct File AI to extract text from any webpage by using the {{URL}} p
 #### System Data Placeholders
 | Placeholder | Replaced With |
 | --- | --- |
+| `{{computerName}}` | The computer's name (prettified form of the hostname) |
 | `{{homedir}}` | The user's home directory |
+| `{{hostname}}` | The computer's hostname |
 | `{{user}}` | Replaced with the logged in user's username |
 
 #### Other Placeholders
 | Placeholder | Replaced With |
 | --- | --- |
 | `{{END}}` | Marks the end of a prompt -- no content, metadata, or instructions will be appended after |
+
+### Action Scripts
+
+When configuring a PromptLab command, you can provide AppleScript code to execute once the AI finishes its response. You can access the response text via the `response` variable in AppleScript. Several convenient handlers for working with the response text are also provided, as listed below. Action Scripts can be used to build complex workflows using AI as a content provider, navigator, or decision-maker.
+
+#### Provided Handlers
+| Handler | Purpose | Returns |
+| --- | --- | --- |
+| `split(theString, theDelimiter)` | Splits text around the specified delimiter. | List of String |
+| `trim(theString)` | Removes leading and trailing spaces from text. | String |
 
 ## List of Useful Prompts
 
@@ -140,12 +153,12 @@ You can instruct File AI to extract text from any webpage by using the {{URL}} p
 | Recent Headlines From 68k News | Discuss the recent headlines from 68k News: ###{{http://68k.news}}### |
 | Recommend Apps | Based on the list of apps I have installed, recommend 10 additional macOS applications that I might enjoy. Explain the significance of the relationship between each recommandation and my installed apps. Use any knowledge you have about the apps to inform your suggestions. Format the output as a markdown list. At the start, provide a paragraph analyzing common themes of my apps, directed at me. Here is the list of apps I have installed: ###{{installedApps}}### |
 | Response To last Email | Generate a response to the following email:###{{lastEmail}}### |
-| Suggest File AI Commands | Based on my current commands for the File AI extension, suggest new commands to create. Provide suggestions for titles as well prompts. The prompts must be relevant to an AI that can read the content of files, get information about the system, and get outside  data such as calendar events. The commands must be unique. Format the response as a single markdown list. Here are the commands I currently have: {{fileAICommands}} |
+| Suggest PromptLab Commands | Based on my current commands for the PromptLab extension, suggest new commands to create. Provide suggestions for titles as well prompts. The prompts must be relevant to an AI that can read the content of files, get information about the system, and get outside  data such as calendar events. The commands must be unique. Format the response as a single markdown list. Here are the commands I currently have: {{fileAICommands}} |
 | Suggest Fonts | Here are some fonts I have installed. Identify some trends in my font choices, then recommend 5 unique fonts that I might like based on those trends. For each recommendation, explain why I might like it in relation to other fonts I have installed. Here are the fonts: {{{use framework "Foundation"\nset fontManager to current application's NSFontManager's\nsharedFontManager()\nset allFonts to fontManager's availableFonts() as list\nset randomFonts to {}\nrepeat 10 times\n	copy some item of allFonts to end of randomFonts\nend repeat\nreturn randomFonts}}}
 | Suggest Hashtags | Suggest hashtags for the following files based on their contents. Use the file names as markdown headings. |
 | Suggest Improvements | Suggest improvements to the content of the following files. Use the file names as headings. Format the response as a markdown list. |
 | Suggest Project Ideas | I want you to act as a project idea generator. I will provide file names and their contents, and you will response with a list of project ideas based on the content of each file. Format the response as a markdown list. Use the file names as headings. Here are the files: |
-| Suggest Related File AI Prompts | Suggest prompts for an AI that can read the contents of selected files based on the contents of the following files. Use the file contents to create useful prompts that could act on the files. The AI does not have the ability to modify files or create new ones. All prompts should reference "the contents of the following files". |
+| Suggest Related PromptLab Prompts | Suggest prompts for an AI that can read the contents of selected files based on the contents of the following files. Use the file contents to create useful prompts that could act on the files. The AI does not have the ability to modify files or create new ones. All prompts should reference "the contents of the following files". |
 | Suggest Title | Suggest new titles for the following files based on their content and topics mentioned. Use the file names as headings. |
 | Suggest Tools | Suggest tools to use based on the topics discussed in the following files. Explain why each tool is relevant. Use the file names as headings. Do not provide any commentary other than the list of tools and their explanations. |
 | Summarize Clipboard | Summarize the following text, providing specific details. ###{{clipboardText}}### |
@@ -170,6 +183,7 @@ You can instruct File AI to extract text from any webpage by using the {{URL}} p
 | Songs I Might Like | Based on the following songs in my library, recommend new songs I might like. Output the recommendations as a markdown list. For each song, explain in terms of my other songs why you think I'd like it. The recommendations must not be in my library already. Here are the songs: """{{musicTracks}}""{{END}} |
 | Suggest Names For Current Note | Suggest 3 possible names for the currently selected note. Make one concise. Here is its plaintext content: {{{tell application "Notes"\nset theText to plaintext of item 1 of (selection as list) as text\nset maxLength to 2000\nif length of theText < maxLength then\nset maxLength to length of theText\nend if\nreturn text 1 thru maxLength of theText\nend tell}}} |
 | Suggest Similar Songs | Suggest songs similar to {currentTrack}}. Use "Songs Similar To {{currentTrack}}" as the header for the output. For each suggestion, provide a brief explanation.{{END}} |
+| Suggest Websites | Suggest 5 new websites based on the following bookmarks. Under the heading "My Recommendations:", for each suggestion, explain why I might like it relative to my current bookmarks. Output the sites as markdown links. Provide a command-separated list of my current bookmarks at the start of your response under the heading "Current Bookmarks:". {{{tell application "Brave Browser"\nset theBookmarks to {}\n	repeat with theFolder in bookmark folders\n		set theBookmarks to theBookmarks & (title of bookmark items of theFolder)\n	end repeat\n	return theBookmarks\nend tell}}} |
 | Summarize Last Note | Summarize my last note: """{{lastNote}}""" |
 | Use Cases | List 5 use cases for each of the following files based on their content. Explain how each use case relates to the file. Format the response as a markdown list. Use the file names as headings. |
 | User Stories | Create 5 user stories based on the contents of the following files. Format the response as a markdown list. Use each file name as a heading. |
@@ -180,7 +194,7 @@ This extension is not yet published to the Raycast store. In the meantime, you c
 
 ### Manual Installation
 ```bash
-git clone https://github.com/SKaplanOfficial/Raycast-File-AI.git && cd Raycast-File-AI
+git clone https://github.com/SKaplanOfficial/Raycast-PromptLab.git && cd Raycast-File-AI
 
 npm install && npm run dev
 ```
