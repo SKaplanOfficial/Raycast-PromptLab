@@ -16,12 +16,11 @@ A Raycast extension for creating powerful, contextually-aware AI commands using 
     - Add custom commands from a JSON string.
 
 ## Images
-![List Of Default Commands](./examples/default-command-list.png)
-![File Summarization Example](./examples/jpg-text-summarization-1.png)
-![Audio Summarization Example](./examples/mp3-audio-summarization-1.png)
-![File Comparison Example](./examples/pdf-file-comparison-1.png)
-![Purpose Identification Example](./examples/app-file-identification.png)
-![Overlap Analysis Example](./examples/pdf-overlap-analysis-1.png)
+![List Of Default Commands](./examples/promptlab-1.png)
+![Editing a command](./examples/promptlab-2.png)
+![Customization options for commands](./examples/promptlab-3.png)
+![Identify Selected Files example](./examples/promptlab-4.png)
+![Recent News Headlines Example](./examples/promptlab-5.png)
 
 ## Custom Commands
 
