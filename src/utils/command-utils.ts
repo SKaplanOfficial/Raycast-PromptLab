@@ -13,7 +13,6 @@ import { runAppleScript } from "run-applescript";
  * @param response The PromptLab AI response.
  */
 export const runActionScript = async (script: string, response: string) => {
-  console.log(response);
   try {
     await runAppleScript(`use framework "AVFoundation"
     use framework "CoreLocation"
