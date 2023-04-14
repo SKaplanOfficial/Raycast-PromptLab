@@ -67,7 +67,7 @@ export const runActionScript = async (script: string, response: string) => {
         return text startIndex thru endIndex of theString
     end trim
 
-    set response to "${response}"
+    set response to "${response.replaceAll('"', '\\"')}"
     ${script}`);
   } catch (error) {
     console.error(error);
