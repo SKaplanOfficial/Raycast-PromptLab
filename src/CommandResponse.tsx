@@ -21,6 +21,7 @@ import {
   getCurrentDate,
   getCurrentTime,
   getUpcomingCalendarEvents,
+  getUpcomingReminders,
 } from "./utils/calendar-utils";
 import {
   getTextOfWebpage,
@@ -193,16 +194,16 @@ export default function CommandResponse(props: { commandName: string; prompt: st
       return filterString(await getUpcomingCalendarEvents(CalendarDuration.YEAR));
     },
     "{{todayReminders}}": async () => {
-      return filterString(await getUpcomingCalendarEvents(CalendarDuration.DAY));
+      return filterString(await getUpcomingReminders(CalendarDuration.DAY));
     },
     "{{weekReminders}}": async () => {
-      return filterString(await getUpcomingCalendarEvents(CalendarDuration.WEEK));
+      return filterString(await getUpcomingReminders(CalendarDuration.WEEK));
     },
     "{{monthReminders}}": async () => {
-      return filterString(await getUpcomingCalendarEvents(CalendarDuration.MONTH));
+      return filterString(await getUpcomingReminders(CalendarDuration.MONTH));
     },
     "{{yearReminders}}": async () => {
-      return filterString(await getUpcomingCalendarEvents(CalendarDuration.YEAR));
+      return filterString(await getUpcomingReminders(CalendarDuration.YEAR));
     },
   };
 

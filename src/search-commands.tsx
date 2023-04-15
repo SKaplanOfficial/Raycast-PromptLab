@@ -16,7 +16,7 @@ import { installDefaults } from "./utils/file-utils";
 import CommandForm from "./CommandForm";
 import { Command } from "./utils/types";
 
-export default function Command(props: { arguments: { commandName: string } }) {
+export default function SearchCommand(props: { arguments: { commandName: string } }) {
   const { commandName } = props.arguments;
   const [commands, setCommands] = useState<Command[]>();
   const [searchText, setSearchText] = useState<string | undefined>(
@@ -61,6 +61,12 @@ export default function Command(props: { arguments: { commandName: string } }) {
       />
     );
   }
+
+  const getCommandJSON = (command: Command) => {
+    const cmdObj: { [key: string]: Command } = {};
+    cmdObj[command.name] = command;
+    return JSON.stringify(cmdObj).replaceAll(/\\([^"])/g, "\\\\$1");
+  };
 
   const listItems = commands
     ?.sort((a, b) => (a.name > b.name ? 1 : -1))
@@ -138,7 +144,7 @@ ${command.actionScript || "None"}
               />
               <Action.CopyToClipboard
                 title="Copy Command JSON"
-                content={JSON.stringify(command)}
+                content={getCommandJSON(command)}
                 shortcut={{ modifiers: ["cmd", "shift"], key: "j" }}
               />
               <Action
@@ -194,6 +200,35 @@ ${command.actionScript || "None"}
                 icon={Icon.Pencil}
                 shortcut={{ modifiers: ["cmd"], key: "e" }}
               />
+              <Action.Push
+                title="Duplicate Command"
+                target={
+                  <CommandForm
+                    oldData={{
+                      name: command.name + " Copy",
+                      prompt: command.prompt,
+                      icon: command.icon,
+                      iconColor: command.iconColor,
+                      minNumFiles: command.minNumFiles as unknown as string,
+                      acceptedFileExtensions: command.acceptedFileExtensions,
+                      useMetadata: command.useMetadata,
+                      useAudioDetails: command.useAudioDetails,
+                      useSoundClassification: command.useSoundClassification,
+                      useSubjectClassification: command.useSubjectClassification,
+                      useRectangleDetection: command.useRectangleDetection,
+                      useBarcodeDetection: command.useBarcodeDetection,
+                      useFaceDetection: command.useFaceDetection,
+                      outputKind: command.outputKind,
+                      actionScript: command.actionScript,
+                      showResponse: command.showResponse,
+                      description: command.description,
+                    }}
+                    setCommands={setCommands}
+                  />
+                }
+                icon={Icon.EyeDropper}
+                shortcut={{ modifiers: ["cmd"], key: "e" }}
+              />
               <Action
                 title="Delete Command"
                 onAction={async () => {
@@ -243,7 +278,7 @@ ${command.actionScript || "None"}
       searchText={searchText}
       onSearchTextChange={(text) => setSearchText(text)}
       filtering={true}
-      isShowingDetail={true}
+      isShowingDetail={commands != undefined}
       searchBarPlaceholder={`Search ${
         !commands || commands.length == 1 ? "commands..." : `${commands.length} commands...`
       }`}
