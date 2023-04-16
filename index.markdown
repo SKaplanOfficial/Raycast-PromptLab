@@ -7,7 +7,7 @@ layout: home
 
 PromptLab is a Raycast extension for creating powerful, contextually-aware AI commands using placeholders, action scripts, and more.
 
-PromptLab allows you to create custom AI commands with prompts that utilize contextual placeholders such as {% raw %}{{selectedText}}, {{todayEvents}}, or {{currentApplication}}{% endraw %} to vastly expand the capabilities of Raycast AI. PromptLab can also extract information from selected files, if you choose, so that it can tell you about the subjects in an image, summarize a PDF, and more.
+PromptLab allows you to create custom AI commands with prompts that utilize contextual placeholders such as {% raw %}`{{selectedText}}`, `{{todayEvents}}`, or `{{currentApplication}}`{% endraw %} to vastly expand the capabilities of Raycast AI. PromptLab can also extract information from selected files, if you choose, so that it can tell you about the subjects in an image, summarize a PDF, and more.
 
 PromptLab also supports "action scripts" -- AppleScripts which run with the AI's response as input. This opens a whole new world of capabilities such as allowing the AI to generate and modify files.
 
@@ -49,6 +49,7 @@ PromptLab also supports "action scripts" -- AppleScripts which run with the AI's
     - Add custom commands from a JSON string.
 
 ## Images
+
 ![Preview of Search PromptLab Commands showing the default command 'Split Into Text Files'](./assets/promptlab-1.png)
 ![Editing a command](./assets/promptlab-2.png)
 ![Customization options for commands](./assets/promptlab-3.png)
@@ -73,6 +74,7 @@ You can include AppleScript in your commands that will be run prior to sending t
 You can instruct PromptLab to extract text from any webpage by using the {% raw %}{{URL}}{% endraw %} placeholder. For example, `{% raw %}{{http://68k.news}}{% endraw %}` would be replaced with the visible text of the 68k News homepage. You can use this to interface between files, data, webpages, and APIs.
 
 #### API Data Placeholders
+
 | Placeholder | Replaced With |
 | --- | --- |
 | `{% raw %}{{location}}{% endraw %}` | Your current location in city, region, country format, obtained from [geojs.io](https://get.geojs.io) |
@@ -80,6 +82,7 @@ You can instruct PromptLab to extract text from any webpage by using the {% raw 
 | `{% raw %}{{weekWeather}}{% endraw %}` | The weather forecast for the next week, obtained from [open-meteo.com](https://open-meteo.com) |
 
 #### Application Data Placeholders
+
 | Placeholder | Replaced With |
 | --- | --- |
 | `{% raw %}{{installedApps}}{% endraw %}` | The list of installed applications |
@@ -90,6 +93,7 @@ You can instruct PromptLab to extract text from any webpage by using the {% raw 
 | `{% raw %}{{safariTopSites}}{% endraw %}` | Your list of top visited sites in Safari |
 
 #### Calendar Data Placeholders
+
 | Placeholder | Replaced With |
 | --- | --- |
 | `{% raw %}{{date}}{% endraw %}` | The current date (day number, month name, year) |
@@ -104,6 +108,7 @@ You can instruct PromptLab to extract text from any webpage by using the {% raw 
 | `{% raw %}{{yearReminders}}{% endraw %}` | Upcoming reminders over the next year |
 
 #### Context Data Placeholders
+
 | Placeholder | Replaced With |
 | --- | --- |
 | `{% raw %}{{clipboardText}}{% endraw %}` | The text of the clipboard |
@@ -117,6 +122,7 @@ You can instruct PromptLab to extract text from any webpage by using the {% raw 
 | `{% raw %}{{selectedText}}{% endraw %}` | The currently selected text |
 
 #### File Data Placeholders
+
 | Placeholder | Replaced With |
 | --- | --- |
 | `{% raw %}{{contents}}{% endraw %}` | The contents of the selected files |
@@ -125,6 +131,7 @@ You can instruct PromptLab to extract text from any webpage by using the {% raw 
 | `{% raw %}{{metadata}}{% endraw %}` | Replaced with the metadata of each file as a list below the file path |
 
 #### System Data Placeholders
+
 | Placeholder | Replaced With |
 | --- | --- |
 | `{% raw %}{{computerName}}{% endraw %}` | The computer's name (prettified form of the hostname) |
@@ -133,6 +140,7 @@ You can instruct PromptLab to extract text from any webpage by using the {% raw 
 | `{% raw %}{{user}}{% endraw %}` | Replaced with the logged in user's username |
 
 #### Other Placeholders
+
 | Placeholder | Replaced With |
 | --- | --- |
 | `{% raw %}{{END}}{% endraw %}` | Marks the end of a prompt -- no content, metadata, or instructions will be appended after |
@@ -142,6 +150,7 @@ You can instruct PromptLab to extract text from any webpage by using the {% raw 
 When configuring a PromptLab command, you can provide AppleScript code to execute once the AI finishes its response. You can access the response text via the `response` variable in AppleScript. Several convenient handlers for working with the response text are also provided, as listed below. Action Scripts can be used to build complex workflows using AI as a content provider, navigator, or decision-maker.
 
 #### Provided Handlers
+
 | Handler | Purpose | Returns |
 | --- | --- | --- |
 | `split(theText, theDelimiter)` | Splits text around the specified delimiter. | List of String |
