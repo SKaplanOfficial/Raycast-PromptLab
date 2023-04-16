@@ -6,7 +6,31 @@ PromptLab allows you to create custom AI commands with prompts that utilize cont
 
 PromptLab also supports "action scripts" -- AppleScripts which run with the AI's response as input. This opens a whole new world of capabilities such as allowing the AI to generate and modify files.
 
-## Commands
+## Table Of Contents
+
+- [Top-Level Commands](#top-level-commands)
+- [Images](#images)
+- [Create Your Own Commands](#create-your-own-commands)
+    - [Placeholders](#placeholders)
+        - [Script Placeholders](#script-placeholders)
+        - [URL Placeholders](#url-placeholders)
+        - [API Data Placeholders](#api-data-placeholders)
+        - [Application Data Placeholders](#application-data-placeholders)
+        - [Calendar Data Placeholders](#calendar-data-placeholders)
+        - [Context Data Placeholders](#context-data-placeholders)
+        - [File Data Placeholders](#file-data-placeholders)
+        - [System Data Placeholders](#system-data-placeholders)
+        - [Other Placeholders](#other-placeholders)
+    - [Action Scripts](#action-scripts)
+        - [Provided Handlers](#provided-handlers)
+- [List Of Useful Prompts](#list-of-useful-prompts)
+    - [Default Command Prompts](#default-command-prompts)
+    - [Non-Default Command Prompts](#non-default-command-prompts)
+- [Installation](#installation)
+    - [Manual Installation](#manual-installation)
+- [Useful Resources](#useful-resources)
+
+## Top-Level Commands
 
 - Create PromptLab Command
     - Create a custom PromptLab command accessible via 'Search PromptLab Commands'
@@ -27,7 +51,7 @@ PromptLab also supports "action scripts" -- AppleScripts which run with the AI's
 ![Recent News Headlines Example](./examples/promptlab-5.png)
 ![PromptLab commands as Quicklinks](./examples/promptlab-6.png)
 
-## Custom Commands
+## Create Your Own Commands
 
 You can create custom PromptLab commands, accessed via the "Search PromptLab Commands" command, to execute your own prompts acting on the contents of selected files. A variety of useful defaults are provided, as listed under [Default Commands](#default-commands).
 
@@ -53,14 +77,12 @@ You can instruct PromptLab to extract text from any webpage by using the {{URL}}
 #### Application Data Placeholders
 | Placeholder | Replaced With |
 | --- | --- |
-| `{{input}}` | An input string provided by either Quicklink input or the currently selected text |
 | `{{installedApps}}` | The list of installed applications |
 | `{{lastEmail}}` | The subject, sender, and content of the most recently received email in Mail.app |
 | `{{lastNote}}` | The text of the most recently edited note in Notes.app |
 | `{{musicTracks}}` | The list of track titles in Music.app |
 | `{{safariBookmarks}}` | List of bookmarks in Safari |
 | `{{safariTopSites}}` | Your list of top visited sites in Safari |
-| `{{selectedText}}` | The currently selected text |
 
 #### Calendar Data Placeholders
 | Placeholder | Replaced With |
@@ -86,6 +108,8 @@ You can instruct PromptLab to extract text from any webpage by using the {{URL}}
 | `{{currentTrack}}` | The title of the track/stream currently playing in Music.app |
 | `{{currentURL}}` | The current URL of the active tab of the active browser |
 | `{{fileAICommands}}` | The list of all custom PromptLab commands |
+| `{{input}}` | An input string provided by either Quicklink input or the currently selected text |
+| `{{selectedText}}` | The currently selected text |
 
 #### File Data Placeholders
 | Placeholder | Replaced With |
@@ -122,7 +146,7 @@ When configuring a PromptLab command, you can provide AppleScript code to execut
 
 ## List of Useful Prompts
 
-### Default Commands
+### Default Command Prompts
 
 | Command Name | Prompt |
 | --- | --- |
@@ -184,7 +208,7 @@ When configuring a PromptLab command, you can provide AppleScript code to execut
 | Write Discussion | Write a new discussion section for each of the following files in the style of an academic research paper. The discussion should be past tense and highlight the paper's successes. Use the file names as headings. |
 | Write Introduction | Write improved introduction sections for the following files in the style of an academic research paper. Use the file names as headings. The introductions must be at least 3 paragraphs long and describe what the file's contents are about, in future tense, as well as provide background information and a summary of the results. If the introduction includes a list, briefly describe the list instead of listing all elements.`
 
-### Non-Default Commands
+### Non-Default Command Prompts
 
 | Command Name | Prompt |
 | --- | --- |
