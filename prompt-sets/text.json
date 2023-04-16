@@ -1,0 +1,40 @@
+{
+    "Get Synonyms": {
+        "name": "Get Synonyms",
+        "useAudioDetails": false,
+        "iconColor": "raycast-red",
+        "useSoundClassification": false,
+        "useRectangleDetection": false,
+        "useSubjectClassification": false,
+        "actionScript": "",
+        "useFaceDetection": false,
+        "showResponse": true,
+        "useMetadata": false,
+        "useBarcodeDetection": false,
+        "icon": "text-16",
+        "outputKind": "list",
+        "prompt": "Give me a list of synonyms for {{input}}",
+        "acceptedFileExtensions": "",
+        "description": "",
+        "minNumFiles": "0"
+    },
+    "Get Antonyms": {
+        "useSubjectClassification": false,
+        "actionScript": "",
+        "description": "",
+        "minNumFiles": "0",
+        "useSoundClassification": false,
+        "useFaceDetection": false,
+        "showResponse": true,
+        "outputKind": "list",
+        "useBarcodeDetection": false,
+        "name": "Get Antonyms",
+        "icon": "text-16",
+        "prompt": "Give me a list of antonyms for {{input}}",
+        "useAudioDetails": false,
+        "acceptedFileExtensions": "",
+        "useRectangleDetection": false,
+        "useMetadata": false,
+        "iconColor": "raycast-red"
+    }
+}

@@ -21,6 +21,7 @@ A Raycast extension for creating powerful, contextually-aware AI commands using 
 ![Customization options for commands](./examples/promptlab-3.png)
 ![Identify Selected Files example](./examples/promptlab-4.png)
 ![Recent News Headlines Example](./examples/promptlab-5.png)
+![PromptLab commands as Quicklinks](./examples/promptlab-6.png)
 
 ## Custom Commands
 
@@ -48,6 +49,7 @@ You can instruct PromptLab to extract text from any webpage by using the {{URL}}
 #### Application Data Placeholders
 | Placeholder | Replaced With |
 | --- | --- |
+| `{{input}}` | An input string provided by either Quicklink input or the currently selected text |
 | `{{installedApps}}` | The list of installed applications |
 | `{{lastEmail}}` | The subject, sender, and content of the most recently received email in Mail.app |
 | `{{lastNote}}` | The text of the most recently edited note in Notes.app |
@@ -109,8 +111,10 @@ When configuring a PromptLab command, you can provide AppleScript code to execut
 #### Provided Handlers
 | Handler | Purpose | Returns |
 | --- | --- | --- |
-| `split(theString, theDelimiter)` | Splits text around the specified delimiter. | List of String |
-| `trim(theString)` | Removes leading and trailing spaces from text. | String |
+| `split(theText, theDelimiter)` | Splits text around the specified delimiter. | List of String |
+| `trim(theText)` | Removes leading and trailing spaces from text. | String |
+| `replaceAll(theText, textToReplace, theReplacement)` | Replaces all occurrences of a string within the given text. | String |
+| `rselect(theArray, numItems)` | Randomly selects the specified number of items from a list. | List |
 
 ## List of Useful Prompts
 
@@ -189,6 +193,8 @@ When configuring a PromptLab command, you can provide AppleScript code to execut
 | Tomorrow's Agenda | Make an agenda for my day tomorrow using the following list of events. Today is {{date}}, only use events for tomorrow, ignore the rest. Format the output as friendly paragraph, directed at me. Use tomorrow's date as a heading. Here are the events:###{{weekEvents}}{{weekReminders}}### |
 | Use Cases | List 5 use cases for each of the following files based on their content. Explain how each use case relates to the file. Format the response as a markdown list. Use the file names as headings. |
 | User Stories | Create 5 user stories based on the contents of the following files. Format the response as a markdown list. Use each file name as a heading. |
+
+Additional commands can be found in the [prompt-sets](./prompt-sets/) directory. Feel free to contribute your own!
 
 ## Installation
 

@@ -1,0 +1,20 @@
+{
+    "Split Into Text Files": {
+        "iconColor": "raycast-blue",
+        "icon": "new-document-16",
+        "useSoundClassification": false,
+        "useFaceDetection": false,
+        "useRectangleDetection": false,
+        "minNumFiles": "1",
+        "showResponse": true,
+        "useMetadata": false,
+        "outputKind": "detail",
+        "prompt": "Split the content of the following files into multiple logical sections. Do not put headings in their own section. Output the text of each section. Separate the sections with \"$$$$$\".",
+        "actionScript": "set parts to split(response, \"$$$$$\")\\n\\ntell application \"System Events\"\\nset homeDir to POSIX path of home folder\\nend tell\\n\\nrepeat with i from 1 to length of parts\\n    set theFile to open for access homeDir & \"/Downloads/\" & (word 1 of item i of parts) & \".txt\" with write permission\\n    write item i of parts to theFile\\n    close access theFile\\nend repeat",
+        "useAudioDetails": false,
+        "name": "Split Into Text Files",
+        "acceptedFileExtensions": "",
+        "useBarcodeDetection": false,
+        "useSubjectClassification": false
+    }
+}

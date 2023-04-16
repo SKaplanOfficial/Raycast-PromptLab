@@ -1,0 +1,40 @@
+{
+    "Today's Agenda": {
+        "iconColor": "raycast-blue",
+        "useSubjectClassification": false,
+        "useFaceDetection": false,
+        "useAudioDetails": false,
+        "useRectangleDetection": false,
+        "useSoundClassification": false,
+        "useMetadata": false,
+        "acceptedFileExtensions": "",
+        "minNumFiles": "0",
+        "description": "Creates an itemized agenda for today",
+        "prompt": "Make an agenda for my day using the following list of events. Format the output as friendly paragraph, directed at my, explaining when there is time for breaks or other activities that you recommend. Use today's date ({{date}}) as a markdown header. Here are the events:\\n\\n###\\n{{todayEvents}}\\n{{todayReminders}}\\n###",
+        "showResponse": true,
+        "icon": "calendar-16",
+        "useBarcodeDetection": false,
+        "actionScript": "",
+        "outputKind": "detail",
+        "name": "Today's Agenda"
+    },
+    "Tomorrow's Agenda": {
+        "useFaceDetection": false,
+        "outputKind": "detail",
+        "name": "Tomorrow's Agenda",
+        "useBarcodeDetection": false,
+        "minNumFiles": "0",
+        "acceptedFileExtensions": "",
+        "iconColor": "raycast-blue",
+        "useMetadata": false,
+        "icon": "calendar-16",
+        "actionScript": "",
+        "useAudioDetails": false,
+        "description": "Summarizes events and reminders coming up tomorrow",
+        "useSoundClassification": false,
+        "useRectangleDetection": false,
+        "useSubjectClassification": false,
+        "showResponse": true,
+        "prompt": "Make an agenda for my day tomorrow using the following list of events. Today is {{date}}, only use events for tomorrow, ignore the rest. Format the output as friendly paragraph, directed at me. Use tomorrow's date as a heading. Here are the events:\\n\\n###\\n{{weekEvents}}\\n{{weekReminders}}\\n###"
+    }
+}

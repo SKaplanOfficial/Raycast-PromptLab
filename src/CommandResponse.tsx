@@ -43,8 +43,13 @@ import { CommandOptions } from "./utils/types";
 import { runAppleScript } from "run-applescript";
 import { runActionScript } from "./utils/command-utils";
 
-export default function CommandResponse(props: { commandName: string; prompt: string; options: CommandOptions }) {
-  const { commandName, prompt, options } = props;
+export default function CommandResponse(props: {
+  commandName: string;
+  prompt: string;
+  input?: string;
+  options: CommandOptions;
+}) {
+  const { commandName, prompt, input, options } = props;
   const [substitutedPrompt, setSubstitutedPrompt] = useState<string>(prompt);
   const [loadingData, setLoadingData] = useState<boolean>(true);
 
@@ -54,6 +59,10 @@ export default function CommandResponse(props: { commandName: string; prompt: st
       : { selectedFiles: [], contentPrompts: [], loading: false, errorType: undefined };
 
   const replacements: { [key: string]: () => Promise<string> } = {
+    "{{input}}": async () => {
+      return input || (await getSelectedText()).substring(0, 3000);
+    },
+
     // File Data
     "{{files}}": async () => {
       return selectedFiles ? selectedFiles?.join(", ") : "";
