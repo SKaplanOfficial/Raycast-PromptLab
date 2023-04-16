@@ -28,9 +28,8 @@ twitter_username: HelloImSteven7
 github_username:  SKaplanOfficial
 
 # Build settings
-remote_theme: pages-themes/hacker@v0.2.0
+remote_theme: merlot
 plugins:
-  - jekyll-remote-theme
   - jekyll-feed
 
 # Exclude from processing.
