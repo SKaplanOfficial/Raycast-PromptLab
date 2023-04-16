@@ -164,7 +164,7 @@ export const getUpcomingReminders = async (duration: CalendarDuration): Promise<
         
         set dueDateFormatter to ca's NSDateFormatter's alloc()'s init()
         (dueDateFormatter's setDateFormat:"MMMM dd, YYYY 'at' HH:mm a")
-        set eventDueString to (dueDateFormatter's stringFromDate:eventStartDate)
+        set eventDueString to (dueDateFormatter's stringFromDate:eventDueDate)
         
         set reminderInfo to eventTitle & " on " & eventDueString
         copy reminderInfo to end of theReminders

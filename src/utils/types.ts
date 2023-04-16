@@ -1,5 +1,9 @@
 export interface ExtensionPreferences {
   pdfOCR: boolean;
+  modelEndpoint: string;
+  apiKey: string;
+  inputSchema: string;
+  outputKeyPath: string;
 }
 
 /**
@@ -42,4 +46,9 @@ export interface Command {
   actionScript?: string;
   showResponse?: boolean;
   description?: string;
+}
+
+/** Output from a model endpoint */
+export interface modelOutput {
+  [key: string]: string | modelOutput
 }

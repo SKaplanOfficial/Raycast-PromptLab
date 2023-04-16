@@ -247,7 +247,7 @@ ${command.actionScript || "None"}
                 }}
                 icon={Icon.Trash}
                 style={Action.Style.Destructive}
-                shortcut={{ modifiers: ["cmd", "shift"], key: "d" }}
+                shortcut={{ modifiers: ["cmd", "opt", "shift"], key: "d" }}
               />
             </ActionPanel.Section>
           </ActionPanel>

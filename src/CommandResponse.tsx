@@ -8,7 +8,6 @@ import {
   LocalStorage,
   showToast,
   Toast,
-  useUnstableAI,
 } from "@raycast/api";
 import { ERRORTYPE, useFileContents } from "./utils/file-utils";
 import ResponseActions from "./ResponseActions";
@@ -42,6 +41,7 @@ import {
 import { CommandOptions } from "./utils/types";
 import { runAppleScript } from "run-applescript";
 import { runActionScript } from "./utils/command-utils";
+import useModel from "./utils/useModel";
 
 export default function CommandResponse(props: {
   commandName: string;
@@ -265,16 +265,25 @@ export default function CommandResponse(props: {
     /{{END}}(\n|.)*/,
     ""
   );
-  const { data, isLoading, revalidate } = useUnstableAI(fullPrompt, {
-    execute:
-      !loadingData && ((options.minNumFiles != undefined && options.minNumFiles == 0) || contentPrompts.length > 0),
-  });
+
+  const { data, isLoading, revalidate, error } = useModel(
+    fullPrompt,
+    !loadingData && ((options.minNumFiles != undefined && options.minNumFiles == 0) || contentPrompts.length > 0)
+  );
 
   useEffect(() => {
     if (data && !isLoading && options.actionScript != undefined && options.actionScript.trim().length > 0) {
       Promise.resolve(runActionScript(options.actionScript, data));
     }
   }, [data, isLoading]);
+
+  if (error) {
+    showToast({
+      title: error.toString(),
+      style: Toast.Style.Failure,
+    });
+    return null;
+  }
 
   if (errorType) {
     let errorMessage = "";

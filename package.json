@@ -19,6 +19,39 @@
       "default": true,
       "description": "If checked, PromptLab will use OCR to extract text from PDFs. This takes longer but enables analysis of more PDF content types.",
       "required": false
+    },
+    {
+      "name": "modelEndpoint",
+      "title": "Model Endpoint",
+      "type": "textfield",
+      "required": true,
+      "default": "Raycast AI",
+      "description": "The API endpoint of the model used to generate PromptLab command output. Set to 'Raycast AI' to use the Raycast AI API."
+    },
+    {
+      "name": "apiKey",
+      "title": "API Key",
+      "type": "password",
+      "required": false,
+      "default": "N/A",
+      "description": "The API key for the model source. This is only used if the model source is set to something other than Raycast AI."
+    },
+    {
+      "name": "inputSchema",
+      "title": "Input Schema",
+      "type": "textfield",
+      "required": false,
+      "default": "N/A",
+      "description": "The JSON schema of the endpoint used to generate PromptLab command output. This is only used if the model source is set to something other than Raycast AI. Use {input} to represent PromptLab's input to the command.",
+      "placeholder": "{ \"prompt\": \"{input}\" }"
+    },
+    {
+      "name": "outputKeyPath",
+      "title": "Output Key Path",
+      "type": "textfield",
+      "required": false,
+      "default": "N/A",
+      "description": "The key path to the text output in the JSON response from the model endpoint. For example, choices[0].message.content, for the OpenAI API. This is only used if the model source is set to something other than Raycast AI."
     }
   ],
   "commands": [
