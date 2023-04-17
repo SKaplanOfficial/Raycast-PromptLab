@@ -23,7 +23,7 @@ email: skaplanofficial@gmail.com
 description: >- # this means to ignore newlines until "baseurl:"
   PromptLab is Raycast extension for creating powerful, contextually-aware AI commands using placeholders, action scripts, and more.
 baseurl: "/Raycast-PromptLab/" # the subpath of your site, e.g. /blog
-url: "https://skaplanofficial.github.io" # the base hostname & protocol for your site, e.g. http://example.com
+url: "promptlab.skaplab.io" # the base hostname & protocol for your site, e.g. http://example.com
 twitter_username: HelloImSteven7
 github_username:  SKaplanOfficial
 
