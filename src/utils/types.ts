@@ -50,5 +50,5 @@ export interface Command {
 
 /** Output from a model endpoint */
 export interface modelOutput {
-  [key: string]: string | modelOutput
+  [key: string]: string | modelOutput;
 }

@@ -94,9 +94,13 @@ ${command.description || "None"}
 ${command.prompt}
 
 ## Action Script
-${command.actionScript ? `\`\`\`
+${
+  command.actionScript
+    ? `\`\`\`
 ${command.actionScript}
-\`\`\`` : "None"}
+\`\`\``
+    : "None"
+}
 
 ## Options
 | Option | Value |

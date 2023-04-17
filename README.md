@@ -125,6 +125,7 @@ You can instruct PromptLab to extract text from any webpage by using the {{URL}}
 | --- | --- |
 | `{{contents}}` | The contents of the selected files |
 | `{{fileNames}}` | Replaced with the list of selected file names |
+| `{{file:path}}` | The contents of a specific file on the disk. Adds the file to your current selection. |
 | `{{files}}` | Replaced with the list of selected file paths |
 | `{{metadata}}` | Replaced with the metadata of each file as a list below the file path |
 

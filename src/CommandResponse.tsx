@@ -39,10 +39,15 @@ import {
   getCurrentDirectory,
 } from "./utils/context-utils";
 import { CommandOptions } from "./utils/types";
-import { runAppleScript } from "run-applescript";
-import { runActionScript } from "./utils/command-utils";
+import {
+  replaceAppleScriptPlaceholders,
+  replaceFileSelectionPlaceholders,
+  replaceOldAppleScriptPlaceholders,
+  replaceShellScriptPlaceholders,
+  replaceURLPlaceholders,
+  runActionScript,
+} from "./utils/command-utils";
 import useModel from "./utils/useModel";
-import { exec } from "child_process";
 
 export default function CommandResponse(props: {
   commandName: string;
@@ -230,50 +235,12 @@ export default function CommandResponse(props: {
         }
       }
 
-      // Replace AppleScript placeholders with their output -- Old Way
-      const codeMatches = prompt.match(/{{{(.*[\s\n\r]*)*}}}/g) || [];
-      for (const m of codeMatches) {
-        const script = m.substring(3, m.length - 3);
-        const output = await runAppleScript(script);
-        subbedPrompt = filterString(subbedPrompt.replaceAll(m, output));
-      }
-
-      // Replace AppleScript placeholders with their output -- New Way
-      const applescriptMatches = prompt.match(/{{as:(.*[\s\n\r]*)*}}/g) || [];
-      for (const m of applescriptMatches) {
-        const script = m.substring(5, m.length - 2);
-        const output = await runAppleScript(script);
-        subbedPrompt = filterString(subbedPrompt.replaceAll(m, output));
-      }
-
-      // Replace shell script placeholders with their output
-      const shellScriptMatches = prompt.match(/{{shell:(.*[\s\n\r]*)*}}/g) || [];
-      for (const m of shellScriptMatches) {
-        const script = m.substring(8, m.length - 2);
-
-        const runScript = (script: string): Promise<string> => {
-          return new Promise((resolve, reject) => {
-            exec(script, (error, stdout) => {
-              if (error) {
-                reject(error);
-                return;
-              }
-              resolve(stdout);
-            });
-          });
-        };
-
-        const output = await runScript(script);
-        subbedPrompt = filterString(subbedPrompt.replaceAll(m, output));
-      }
-      // Replace URL placeholders with the website's visible text
-      const matches = prompt.match(/{{(https?:.*?)}}/g) || [];
-      for (const m of matches) {
-        const url = m.substring(2, m.length - 2);
-        const text = await getTextOfWebpage(url);
-        subbedPrompt = subbedPrompt.replaceAll(m, filterString(text));
-      }
-
+      // Replace complex placeholders (i.e. shell scripts, AppleScripts, etc.)
+      subbedPrompt = await replaceOldAppleScriptPlaceholders(subbedPrompt);
+      subbedPrompt = await replaceAppleScriptPlaceholders(subbedPrompt);
+      subbedPrompt = await replaceShellScriptPlaceholders(subbedPrompt);
+      subbedPrompt = await replaceURLPlaceholders(subbedPrompt);
+      subbedPrompt = await replaceFileSelectionPlaceholders(subbedPrompt);
       return subbedPrompt;
     };
 
@@ -301,11 +268,13 @@ export default function CommandResponse(props: {
   );
 
   useEffect(() => {
+    // Run post-response action script if one is defined
     if (data && !isLoading && options.actionScript != undefined && options.actionScript.trim().length > 0) {
       Promise.resolve(runActionScript(options.actionScript, data));
     }
   }, [data, isLoading]);
 
+  // Report errors related to getting data from the model
   if (error) {
     showToast({
       title: error.toString(),
@@ -314,6 +283,7 @@ export default function CommandResponse(props: {
     return null;
   }
 
+  // Report errors related to getting selected file contents
   if (errorType) {
     let errorMessage = "";
     if (errorType == ERRORTYPE.FINDER_INACTIVE) {
@@ -332,6 +302,7 @@ export default function CommandResponse(props: {
     return null;
   }
 
+  // Get the text output for the response
   const text = `${options.outputKind == "detail" || options.outputKind == undefined ? `# ${commandName}\n` : ``}${
     data
       ? data
@@ -340,6 +311,7 @@ export default function CommandResponse(props: {
       : "Analyzing files..."
   }`;
 
+  // Don't show the response if the user has disabled it
   if (options.showResponse == false) {
     return null;
   }
