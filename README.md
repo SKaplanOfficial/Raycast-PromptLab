@@ -6,6 +6,8 @@ PromptLab allows you to create custom AI commands with prompts that utilize cont
 
 PromptLab also supports "action scripts" -- AppleScripts which run with the AI's response as input. This opens a whole new world of capabilities such as allowing the AI to generate and modify files.
 
+[My Other Extensions](https://www.raycast.com/HelloImSteven) | [Donate](https://www.paypal.com/donate/?hosted_button_id=2XFX5UXXR8M6J)
+
 ## Table Of Contents
 
 - [Top-Level Commands](#top-level-commands)
@@ -51,6 +53,8 @@ PromptLab also supports "action scripts" -- AppleScripts which run with the AI's
 ![Identify Selected Files example](./examples/promptlab-4.png)
 ![Recent News Headlines Example](./examples/promptlab-5.png)
 ![PromptLab commands as Quicklinks](./examples/promptlab-6.png)
+
+View more images in [the gallery](https://skaplanofficial.github.io/Raycast-PromptLab/gallery).
 
 ## Create Your Own Commands
 
@@ -186,7 +190,7 @@ When configuring a PromptLab command, you can provide AppleScript code to execut
 | Meeting Agenda | Create a meeting agenda covering the contents of the following files. Use today's date and time, {{date}}, to provide headings and structure to the agenda. |
 | Metadata Analysis | I want you to give several insights about files based on their metadata and file type. Do not summarize the file content, but instead relate the metadata to the content in a meaningful way. Use metadata to suggest improvements to the content. Provide detailed explanations for your suggestions. Format your response as a paragraph summary. Use the file names as headings.\nHere's the metadata:{{metadata}}\n\nHere are the files: |
 | Pattern Analysis | Identify and describe any patterns or trends in the content of the following files. Use the file names as headers. |
-| Performance Summary | Give me a detailed analysis of my CPU and RAM usage based on this data. Use raw numbers instead of percentages. Output two friendly paragraphs. along with a markdown table. ###{{shell:top -stats command -l 1 -n 10 | grep -iE '(PhysMem|CPU Usage)'}}### |
+| Performance Summary | Give me a detailed analysis of my CPU and RAM usage based on this data. Output two friendly paragraphs. along with a markdown table. ###{{shell:top -stats command,cpu,rsize -n 10 -l 2 -s 1 -e | tail -20 | grep -iE '(PhysMem|CPU Usage)'}}### |
 | Pros And Cons | List pros and cons for the following files based on the topics mentioned within them. Format the response as a markdown list. Use the file names as headings. Do not provide any other commentary. |
 | Recent Headlines From 68k News | Discuss the recent headlines from 68k News: ###{{http://68k.news}}### |
 | Recommend Apps | Based on the list of apps I have installed, recommend 10 additional macOS applications that I might enjoy. Explain the significance of the relationship between each recommandation and my installed apps. Use any knowledge you have about the apps to inform your suggestions. Format the output as a markdown list. At the start, provide a paragraph analyzing common themes of my apps, directed at me. Here is the list of apps I have installed: ###{{installedApps}}### |

@@ -42,7 +42,7 @@ import { CommandOptions } from "./utils/types";
 import { runAppleScript } from "run-applescript";
 import { runActionScript } from "./utils/command-utils";
 import useModel from "./utils/useModel";
-import { execSync } from "child_process";
+import { exec } from "child_process";
 
 export default function CommandResponse(props: {
   commandName: string;
@@ -249,10 +249,22 @@ export default function CommandResponse(props: {
       // Replace shell script placeholders with their output
       const shellScriptMatches = prompt.match(/{{shell:(.*[\s\n\r]*)*}}/g) || [];
       for (const m of shellScriptMatches) {
-        console.log("here");
         const script = m.substring(8, m.length - 2);
-        const output = execSync(script);
-        subbedPrompt = filterString(subbedPrompt.replaceAll(m, output.toString()));
+
+        const runScript = (script: string): Promise<string> => {
+          return new Promise((resolve, reject) => {
+            exec(script, (error, stdout) => {
+              if (error) {
+                reject(error);
+                return;
+              }
+              resolve(stdout);
+            });
+          });
+        };
+
+        const output = await runScript(script);
+        subbedPrompt = filterString(subbedPrompt.replaceAll(m, output));
       }
       // Replace URL placeholders with the website's visible text
       const matches = prompt.match(/{{(https?:.*?)}}/g) || [];

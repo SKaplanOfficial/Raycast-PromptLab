@@ -94,7 +94,9 @@ ${command.description || "None"}
 ${command.prompt}
 
 ## Action Script
-${command.actionScript || "None"}
+${command.actionScript ? `\`\`\`
+${command.actionScript}
+\`\`\`` : "None"}
 
 ## Options
 | Option | Value |
@@ -210,7 +212,7 @@ ${command.actionScript || "None"}
                   />
                 }
                 icon={Icon.EyeDropper}
-                shortcut={{ modifiers: ["cmd"], key: "e" }}
+                shortcut={{ modifiers: ["cmd", "shift"], key: "e" }}
               />
               <Action
                 title="Delete Command"
@@ -229,7 +231,7 @@ ${command.actionScript || "None"}
                 }}
                 icon={Icon.Trash}
                 style={Action.Style.Destructive}
-                shortcut={{ modifiers: ["cmd", "shift"], key: "d" }}
+                shortcut={{ modifiers: ["cmd"], key: "d" }}
               />
               <Action
                 title="Delete All Commands"
