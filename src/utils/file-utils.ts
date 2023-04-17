@@ -102,6 +102,11 @@ export function useFileContents(options: CommandOptions) {
 
         const fileContents: Promise<string[]> = Promise.all(
           filteredFiles.map(async (file, index) => {
+            if (fs.lstatSync(file).size > 10000000) {
+              setErrorType(ERRORTYPE.INPUT_TOO_LONG);
+              return "";
+            }
+
             let contents = `{File ${index + 1} - ${
               file.endsWith("/") ? file.split("/").at(-2) : file.split("/").at(-1)
             }}:\n`;

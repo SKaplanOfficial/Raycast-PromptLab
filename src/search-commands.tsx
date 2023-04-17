@@ -216,7 +216,7 @@ ${command.actionScript}
                   />
                 }
                 icon={Icon.EyeDropper}
-                shortcut={{ modifiers: ["cmd", "shift"], key: "e" }}
+                shortcut={{ modifiers: ["ctrl"], key: "c" }}
               />
               <Action
                 title="Delete Command"
