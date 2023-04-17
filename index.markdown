@@ -11,9 +11,7 @@ PromptLab allows you to create custom AI commands with prompts that utilize cont
 
 PromptLab also supports "action scripts" -- AppleScripts which run with the AI's response as input. This opens a whole new world of capabilities such as allowing the AI to generate and modify files.
 
-[GitHub Repo](https://github.com/SKaplanOfficial/Raycast-PromptLab)
-[My Other Extensions](https://www.raycast.com/HelloImSteven)
-[Donate](https://www.paypal.com/donate/?hosted_button_id=2XFX5UXXR8M6J)
+[GitHub Repo](https://github.com/SKaplanOfficial/Raycast-PromptLab) | [My Other Extensions](https://www.raycast.com/HelloImSteven) | [Donate](https://www.paypal.com/donate/?hosted_button_id=2XFX5UXXR8M6J)
 
 ## Table Of Contents
 
