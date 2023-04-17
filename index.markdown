@@ -11,6 +11,10 @@ PromptLab allows you to create custom AI commands with prompts that utilize cont
 
 PromptLab also supports "action scripts" -- AppleScripts which run with the AI's response as input. This opens a whole new world of capabilities such as allowing the AI to generate and modify files.
 
+[GitHub Repo](https://github.com/SKaplanOfficial/Raycast-PromptLab)
+[My Other Extensions](https://www.raycast.com/HelloImSteven)
+[Donate](https://www.paypal.com/donate/?hosted_button_id=2XFX5UXXR8M6J)
+
 ## Table Of Contents
 
 - [Top-Level Commands](#top-level-commands)
@@ -33,6 +37,7 @@ PromptLab also supports "action scripts" -- AppleScripts which run with the AI's
     - [Non-Default Command Prompts](#non-default-command-prompts)
 - [Installation](#installation)
     - [Manual Installation](#manual-installation)
+- [Custom Model Endpoints](#custom-model-endpoints)
 - [Useful Resources](#useful-resources)
 
 ## Top-Level Commands
@@ -47,6 +52,8 @@ PromptLab also supports "action scripts" -- AppleScripts which run with the AI's
     - Start a back-and-forth conversation with AI with selected files provided as context.       
 - Import Custom PromptLab Commands
     - Add custom commands from a JSON string.
+
+View more images in [the gallery](./gallery).
 
 ## Images
 
@@ -67,7 +74,11 @@ When creating custom commands, you can use placeholders in your prompts that wil
 
 ### Script Placeholders
 
-You can include AppleScript in your commands that will be run prior to sending the prompt to Raycast AI. The output of the script will be included in the final prompt. To do this, surround your script with three curly braces, {% raw %}{{{like this}}}{% endraw %}. For example: 'Summarize this text: {% raw %}{{{tell application "TextEdit" to get text of document 1}}}{% endraw %}'
+You can include shell scripts and AppleScripts in your commands that will be run prior to sending the prompt to Raycast AI. The output of the script, limited to 2000 characters, will be included in the final prompt.
+
+To use a shell script, surround the script with double curly braces and prefix it with `shell:`, `{% raw %}{{shell:like this}}{% endraw %}`. For example, 'Summarize my current CPU usage: {% raw %}{{shell:top -ocpu -l 1}}{% endraw %}'
+
+To use an AppleScript script, surround the script with double curly braces and prefix it with `as:` or `as:`, `{% raw %}{{as:like this}}{% endraw %}`. For example: 'Summarize this text: {% raw %}{{as:tell application "TextEdit" to get text of document 1}}{% endraw %}'.
 
 #### URL Placeholders
 
@@ -195,13 +206,14 @@ When configuring a PromptLab command, you can provide AppleScript code to execut
 | Meeting Agenda | Create a meeting agenda covering the contents of the following files. Use today's date and time, {% raw %}{{date}}{% endraw %}, to provide headings and structure to the agenda. |
 | Metadata Analysis | I want you to give several insights about files based on their metadata and file type. Do not summarize the file content, but instead relate the metadata to the content in a meaningful way. Use metadata to suggest improvements to the content. Provide detailed explanations for your suggestions. Format your response as a paragraph summary. Use the file names as headings.\nHere's the metadata:{% raw %}{{metadata}}{% endraw %}\n\nHere are the files: |
 | Pattern Analysis | Identify and describe any patterns or trends in the content of the following files. Use the file names as headers. |
+| Performance Summary | Give me a detailed analysis of my CPU and RAM usage based on this data. Output two friendly paragraphs. along with a markdown table. ###{% raw %}{{shell:top -stats command -l 1 -n 10 | grep -iE '(PhysMem|CPU Usage)'}}{% endraw %}### |
 | Pros And Cons | List pros and cons for the following files based on the topics mentioned within them. Format the response as a markdown list. Use the file names as headings. Do not provide any other commentary. |
 | Recent Headlines From 68k News | Discuss the recent headlines from 68k News: ###{% raw %}{{http://68k.news}}{% endraw %}### |
 | Recommend Apps | Based on the list of apps I have installed, recommend 10 additional macOS applications that I might enjoy. Explain the significance of the relationship between each recommandation and my installed apps. Use any knowledge you have about the apps to inform your suggestions. Format the output as a markdown list. At the start, provide a paragraph analyzing common themes of my apps, directed at me. Here is the list of apps I have installed: ###{% raw %}{{installedApps}}{% endraw %}### |
 | Response To last Email | Generate a response to the following email:###{% raw %}{{lastEmail}}{% endraw %}### |
 | Split Into Text Files | Split the content of the following file into multiple logical sections. Do not put headings in their own section. Output the text of each section. Write "$$$$$" between each section. |
 | Suggest PromptLab Commands | Based on my current commands for the PromptLab extension, suggest new commands to create. Provide suggestions for titles as well prompts. The prompts must be relevant to an AI that can read the content of files, get information about the system, and get outside  data such as calendar events. The commands must be unique. Format the response as a single markdown list. Here are the commands I currently have: {% raw %}{{fileAICommands}}{% endraw %} |
-| Suggest Fonts | Here are some fonts I have installed. Identify some trends in my font choices, then recommend 5 unique fonts that I might like based on those trends. For each recommendation, explain why I might like it in relation to other fonts I have installed. Here are the fonts: {% raw %}{{{use framework "Foundation"\nset fontManager to current application's NSFontManager's\nsharedFontManager()\nset allFonts to fontManager's availableFonts() as list\nset randomFonts to {}\nrepeat 10 times\n	copy some item of allFonts to end of randomFonts\nend repeat\nreturn randomFonts}}}{% endraw %} |
+| Suggest Fonts | Here are some fonts I have installed. Identify some trends in my font choices, then recommend 5 unique fonts that I might like based on those trends. For each recommendation, explain why I might like it in relation to other fonts I have installed. Here are the fonts: {% raw %}{{as:use framework "Foundation"\nset fontManager to current application's NSFontManager's\nsharedFontManager()\nset allFonts to fontManager's availableFonts() as list\nset randomFonts to {}\nrepeat 10 times\n	copy some item of allFonts to end of randomFonts\nend repeat\nreturn randomFonts}}{% endraw %} |
 | Suggest Hashtags | Suggest hashtags for the following files based on their contents. Use the file names as markdown headings. |
 | Suggest Improvements | Suggest improvements to the content of the following files. Use the file names as headings. Format the response as a markdown list. |
 | Suggest Project Ideas | I want you to act as a project idea generator. I will provide file names and their contents, and you will response with a list of project ideas based on the content of each file. Format the response as a markdown list. Use the file names as headings. Here are the files: |
@@ -228,9 +240,9 @@ When configuring a PromptLab command, you can provide AppleScript code to execut
 | --- | --- |
 | Relate To Current Track | Relate and compare this file to the song {% raw %}{{currentTrack}}{% endraw %}. |
 | Songs I Might Like | Based on the following songs in my library, recommend new songs I might like. Output the recommendations as a markdown list. For each song, explain in terms of my other songs why you think I'd like it. The recommendations must not be in my library already. Here are the songs: """{% raw %}{{musicTracks}}""{{END}}{% endraw %} |
-| Suggest Names For Current Note | Suggest 3 possible names for the currently selected note. Make one concise. Here is its plaintext content: {% raw %}{{{tell application "Notes"\nset theText to plaintext of item 1 of (selection as list) as text\nset maxLength to 2000\nif length of theText < maxLength then\nset maxLength to length of theText\nend if\nreturn text 1 thru maxLength of theText\nend tell}}}{% endraw %} |
+| Suggest Names For Current Note | Suggest 3 possible names for the currently selected note. Make one concise. Here is its plaintext content: {% raw %}{{as:tell application "Notes"\nset theText to plaintext of item 1 of (selection as list) as text\nset maxLength to 2000\nif length of theText < maxLength then\nset maxLength to length of theText\nend if\nreturn text 1 thru maxLength of theText\nend tell}}{% endraw %} |
 | Suggest Similar Songs | Suggest songs similar to {% raw %}{{currentTrack}}{% endraw %}. Use "Songs Similar To {% raw %}{{currentTrack}}{% endraw %}" as the header for the output. For each suggestion, provide a brief explanation.{% raw %}{{END}}{% endraw %} |
-| Suggest Websites | Suggest 5 new websites based on the following bookmarks. Under the heading "My Recommendations:", for each suggestion, explain why I might like it relative to my current bookmarks. Output the sites as markdown links. Provide a command-separated list of my current bookmarks at the start of your response under the heading "Current Bookmarks:". {% raw %}{{{tell application "Brave Browser"\nset theBookmarks to {}\n	repeat with theFolder in bookmark folders\n		set theBookmarks to theBookmarks & (title of bookmark items of theFolder)\n	end repeat\n	return theBookmarks\nend tell}}}{% endraw %} |
+| Suggest Websites | Suggest 5 new websites based on the following bookmarks. Under the heading "My Recommendations:", for each suggestion, explain why I might like it relative to my current bookmarks. Output the sites as markdown links. Provide a command-separated list of my current bookmarks at the start of your response under the heading "Current Bookmarks:". {% raw %}{{as:tell application "Brave Browser"\nset theBookmarks to {}\n	repeat with theFolder in bookmark folders\n		set theBookmarks to theBookmarks & (title of bookmark items of theFolder)\n	end repeat\n	return theBookmarks\nend tell}}{% endraw %} |
 | Summarize Last Note | Summarize my last note: """{% raw %}{{lastNote}}{% endraw %}""" |
 | Tomorrow's Agenda | Make an agenda for my day tomorrow using the following list of events. Today is {% raw %}{{date}}{% endraw %}, only use events for tomorrow, ignore the rest. Format the output as friendly paragraph, directed at me. Use tomorrow's date as a heading. Here are the events:###{% raw %}{{weekEvents}}{{weekReminders}}{% endraw %}### |
 | Use Cases | List 5 use cases for each of the following files based on their content. Explain how each use case relates to the file. Format the response as a markdown list. Use the file names as headings. |
@@ -248,6 +260,23 @@ git clone https://github.com/SKaplanOfficial/Raycast-PromptLab.git && cd Raycast
 
 npm install && npm run dev
 ```
+
+## Custom Model Endpoints
+
+When you first run PromptLab, you'll have the option to configure a custom model API endpoint. If you have access to Raycast AI, you can just leave everything as-is, unless you have a particular need for a different model. You can, of course, adjust the configuration via the Raycast preferences at any time.
+
+To use any arbitrary endpoint, put the endpoint URL in the `Model Endpoint` preference field and provide your `API Key`. Then, specify the `Input Schema` in JSON notation, using {input} to indicate where PromptLab should input its prompt. Next, specify the `Output Key` of the output text within the returned JSON object. If the model endpoint returns a string, rather than a JSON object, leave this field empty.
+
+### OpenAI API Example
+
+To use the OpenAI API as the model endpoint, configure the extension as follows:
+
+| Preference Name | Value |
+| --- | --- |
+| Model Endpoint | https://api.openai.com/v1/chat/completions |
+| API Key | Your API key |
+| Input Schema | { "model": "gpt-4", "messages": [{"role": "user", "content": "{input}"}] }
+| Output Key Path | choices[0].message.content |
 
 ## Useful Resources
 
