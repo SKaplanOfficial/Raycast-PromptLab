@@ -42,6 +42,7 @@ import { CommandOptions } from "./utils/types";
 import { runAppleScript } from "run-applescript";
 import { runActionScript } from "./utils/command-utils";
 import useModel from "./utils/useModel";
+import { execSync } from "child_process";
 
 export default function CommandResponse(props: {
   commandName: string;
@@ -229,7 +230,7 @@ export default function CommandResponse(props: {
         }
       }
 
-      // Replace script placeholders with their output
+      // Replace AppleScript placeholders with their output -- Old Way
       const codeMatches = prompt.match(/{{{(.*[\s\n\r]*)*}}}/g) || [];
       for (const m of codeMatches) {
         const script = m.substring(3, m.length - 3);
@@ -237,6 +238,22 @@ export default function CommandResponse(props: {
         subbedPrompt = filterString(subbedPrompt.replaceAll(m, output));
       }
 
+      // Replace AppleScript placeholders with their output -- New Way
+      const applescriptMatches = prompt.match(/{{as:(.*[\s\n\r]*)*}}/g) || [];
+      for (const m of applescriptMatches) {
+        const script = m.substring(5, m.length - 2);
+        const output = await runAppleScript(script);
+        subbedPrompt = filterString(subbedPrompt.replaceAll(m, output));
+      }
+
+      // Replace shell script placeholders with their output
+      const shellScriptMatches = prompt.match(/{{shell:(.*[\s\n\r]*)*}}/g) || [];
+      for (const m of shellScriptMatches) {
+        console.log("here");
+        const script = m.substring(8, m.length - 2);
+        const output = execSync(script);
+        subbedPrompt = filterString(subbedPrompt.replaceAll(m, output.toString()));
+      }
       // Replace URL placeholders with the website's visible text
       const matches = prompt.match(/{{(https?:.*?)}}/g) || [];
       for (const m of matches) {
