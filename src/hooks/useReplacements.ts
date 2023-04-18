@@ -1,4 +1,4 @@
-import { Clipboard, LocalStorage, getFrontmostApplication, getSelectedText } from "@raycast/api";
+import { Clipboard, LocalStorage, getSelectedText } from "@raycast/api";
 import {
   SupportedBrowsers,
   getComputerName,
@@ -9,6 +9,7 @@ import {
   getJSONResponse,
   getLastEmail,
   getLastNote,
+  getMenubarOwningApplication,
   getSafariBookmarks,
   getSafariTopSites,
   getTextOfWebpage,
@@ -69,22 +70,21 @@ export const useReplacements = (
 
     // Context Data
     "{{currentApplication}}": async () => {
-      const app = await getFrontmostApplication();
-      return app.name;
+      return await getMenubarOwningApplication();
     },
     "{{currentTabText}}": async () => {
-      const app = await getFrontmostApplication();
-      if (SupportedBrowsers.includes(app.name)) {
-        const URL = await getCurrentURL(app.name);
+      const app = await getMenubarOwningApplication();
+      if (SupportedBrowsers.includes(app)) {
+        const URL = await getCurrentURL(app);
         const URLText = await getTextOfWebpage(URL);
         return filterString(URLText);
       }
       return "";
     },
     "{{currentURL}}": async () => {
-      const app = await getFrontmostApplication();
-      if (SupportedBrowsers.includes(app.name)) {
-        const URL = await getCurrentURL(app.name);
+      const app = await getMenubarOwningApplication();
+      if (SupportedBrowsers.includes(app)) {
+        const URL = await getCurrentURL(app);
         return URL;
       }
       return "";

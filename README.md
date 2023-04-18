@@ -24,6 +24,7 @@ PromptLab also supports "action scripts" -- AppleScripts which run with the AI's
         - [System Data Placeholders](#system-data-placeholders)
         - [Other Placeholders](#other-placeholders)
     - [Action Scripts](#action-scripts)
+        - [Provided Variables](#provided-variables)
         - [Provided Handlers](#provided-handlers)
 - [List Of Useful Prompts](#list-of-useful-prompts)
     - [Default Command Prompts](#default-command-prompts)
@@ -148,6 +149,13 @@ You can instruct PromptLab to extract text from any webpage by using the {{URL}}
 ### Action Scripts
 
 When configuring a PromptLab command, you can provide AppleScript code to execute once the AI finishes its response. You can access the response text via the `response` variable in AppleScript. Several convenient handlers for working with the response text are also provided, as listed below. Action Scripts can be used to build complex workflows using AI as a content provider, navigator, or decision-maker.
+
+### Provided Variables
+| Variable | Value | Type |
+| --- | --- | --- |
+| `input` | The selected files or text input provided to the command. | String |
+| `prompt` | The prompt component of the command that was run. | String |
+| `response` | The full response received from the AI. | String |
 
 #### Provided Handlers
 | Handler | Purpose | Returns |

@@ -78,7 +78,13 @@ export default function CommandResponse(props: {
 
   useEffect(() => {
     // Run post-response action script if one is defined
-    if (data && !isLoading && options.actionScript != undefined && options.actionScript.trim().length > 0) {
+    if (
+      data &&
+      !isLoading &&
+      options.actionScript != undefined &&
+      options.actionScript.trim().length > 0 &&
+      options.actionScript != "None"
+    ) {
       Promise.resolve(
         runActionScript(
           options.actionScript,
