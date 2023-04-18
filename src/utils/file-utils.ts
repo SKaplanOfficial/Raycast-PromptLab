@@ -252,9 +252,10 @@ const getImageVisionDetails = (filePath: string, options: CommandOptions): strin
   set animalRequest to current application's VNRecognizeAnimalsRequest's alloc()'s init()
   set faceRequest to current application's VNDetectFaceRectanglesRequest's alloc()'s init()
   set rectRequest to current application's VNDetectRectanglesRequest's alloc()'s init()
+  set saliencyRequest to current application's VNGenerateAttentionBasedSaliencyImageRequest's alloc()'s init()
   rectRequest's setMaximumObservations:0
   
-  requestHandler's performRequests:{textRequest, classificationRequest, barcodeRequest, animalRequest, faceRequest, rectRequest} |error|:(missing value)
+  requestHandler's performRequests:{textRequest, classificationRequest, barcodeRequest, animalRequest, faceRequest, rectRequest, saliencyRequest} |error|:(missing value)
   
   -- Extract raw text results
   set textResults to textRequest's results()
@@ -328,11 +329,40 @@ const getImageVisionDetails = (filePath: string, options: CommandOptions): strin
   end repeat`
       : ``
   }
+
+  ${
+    options.useSaliencyAnalysis
+      ? `-- Identify areas most likely to draw attention
+  set pointsOfInterest to ""
+  set saliencyResults to saliencyRequest's results()
+  repeat with observation in saliencyResults
+    set salientObjects to observation's salientObjects()
+    repeat with salientObject in salientObjects
+      set bl to salientObject's bottomLeft()
+      set br to salientObject's bottomRight()
+      set tl to salientObject's topLeft()
+      set tr to salientObject's topRight()
+
+      set midX to (bl's x + br's x) / 2
+      set midY to (bl's y + tl's y) / 2
+      set pointsOfInterest to pointsOfInterest & (" (" & midX as text) & "," & midY as text & ")"
+    end repeat
+  end repeat`
+      : ``
+  }
   
   set promptText to ""
   if theText is not "" then
     set promptText to "<Transcribed text of the image: \\"" & theText & "\\".>"
   end if
+
+  ${
+    options.useSaliencyAnalysis
+      ? `if pointsOfInterest is not "" then
+    set promptText to promptText & "<Areas most likely to draw attention: " & pointsOfInterest & ">"
+  end if`
+      : ``
+  }
   
   ${
     options.useSubjectClassification

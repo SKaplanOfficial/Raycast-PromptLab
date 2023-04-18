@@ -14,7 +14,7 @@ import {
   getTextOfWebpage,
   getTrackNames,
   getWeatherData,
-} from "./utils/context-utils";
+} from "../utils/context-utils";
 import {
   CalendarDuration,
   filterString,
@@ -22,7 +22,7 @@ import {
   getCurrentTime,
   getUpcomingCalendarEvents,
   getUpcomingReminders,
-} from "./utils/calendar-utils";
+} from "../utils/calendar-utils";
 import * as fs from "fs";
 import * as os from "os";
 

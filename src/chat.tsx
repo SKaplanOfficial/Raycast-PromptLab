@@ -11,7 +11,7 @@ import {
 } from "@raycast/api";
 import { useState } from "react";
 import { ERRORTYPE, useFileContents } from "./utils/file-utils";
-import { useReplacements } from "./useReplacements";
+import { useReplacements } from "./hooks/useReplacements";
 import {
   replaceAppleScriptPlaceholders,
   replaceFileSelectionPlaceholders,
@@ -31,6 +31,7 @@ export default function Command(props: { arguments: { initialQuery: string } }) 
     useRectangleDetection: true,
     useBarcodeDetection: true,
     useFaceDetection: true,
+    useSaliencyAnalysis: true,
   });
   const [query, setQuery] = useState<string>();
   const [response, setResponse] = useState<string>();

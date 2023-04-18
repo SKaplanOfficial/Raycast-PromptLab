@@ -67,6 +67,7 @@ export default function SearchCommand(props: { arguments: { commandName: string;
           outputKind: command.outputKind,
           actionScript: command.actionScript,
           showResponse: command.showResponse,
+          useSaliencyAnalysis: command.useSaliencyAnalysis,
         }}
       />
     );
@@ -113,7 +114,8 @@ ${command.actionScript}
 | Use Audio Transcription? | ${command.useAudioDetails ? "Yes" : "No"} |
 | Use Barcode Detection? | ${command.useBarcodeDetection ? "Yes" : "No"} |
 | Use Face Detection? | ${command.useFaceDetection ? "Yes" : "No"} |
-| Use Rectangle Detection? | ${command.useRectangleDetection ? "Yes" : "No"} |`}
+| Use Rectangle Detection? | ${command.useRectangleDetection ? "Yes" : "No"} |
+| Use Saliency Analysis? | ${command.useSaliencyAnalysis ? "Yes" : "No"} |`}
           />
         }
         actions={
@@ -139,6 +141,7 @@ ${command.actionScript}
                     outputKind: command.outputKind,
                     actionScript: command.actionScript,
                     showResponse: command.showResponse,
+                    useSaliencyAnalysis: command.useSaliencyAnalysis,
                   }}
                 />
               }
@@ -193,6 +196,7 @@ ${command.actionScript}
                         actionScript: command.actionScript || "None",
                         showResponse: command.showResponse ? "TRUE" : "FALSE",
                         description: command.description || "None",
+                        useSaliencyAnalysis: command.useSaliencyAnalysis ? "TRUE" : "FALSE",
                       },
                     }),
                   }).then((res) => {
@@ -267,6 +271,7 @@ ${command.actionScript}
                       actionScript: command.actionScript,
                       showResponse: command.showResponse,
                       description: command.description,
+                      useSaliencyAnalysis: command.useSaliencyAnalysis,
                     }}
                     setCommands={setCommands}
                   />
@@ -296,6 +301,7 @@ ${command.actionScript}
                       actionScript: command.actionScript,
                       showResponse: command.showResponse,
                       description: command.description,
+                      useSaliencyAnalysis: command.useSaliencyAnalysis,
                     }}
                     setCommands={setCommands}
                     duplicate={true}

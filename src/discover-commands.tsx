@@ -85,7 +85,8 @@ export default function Discover() {
   | Use Audio Transcription? | ${command.useAudioDetails == "TRUE" ? "Yes" : "No"} |
   | Use Barcode Detection? | ${command.useBarcodeDetection == "TRUE" ? "Yes" : "No"} |
   | Use Face Detection? | ${command.useFaceDetection == "TRUE" ? "Yes" : "No"} |
-  | Use Rectangle Detection? | ${command.useRectangleDetection == "TRUE" ? "Yes" : "No"} |`}
+  | Use Rectangle Detection? | ${command.useRectangleDetection == "TRUE" ? "Yes" : "No"} |
+  | Use Saliency Analysis? | ${command.useSaliencyAnalysis == "TRUE" ? "Yes" : "No"} |`}
         />
       }
       actions={
@@ -123,6 +124,7 @@ export default function Discover() {
                 actionScript: command.actionScript,
                 showResponse: command.showResponse == "TRUE" ? true : false,
                 description: command.description,
+                useSaliencyAnalysis: command.useSaliencyAnalysis == "TRUE" ? true : false,
               };
               LocalStorage.setItem(cmdName, JSON.stringify(commandData)).then(() => {
                 showToast({ title: "Command Installed", message: `${command.name}" has been installed.` });
@@ -157,6 +159,7 @@ export default function Discover() {
                   outputKind: command.outputKind,
                   actionScript: command.actionScript,
                   showResponse: command.showResponse == "TRUE" ? true : false,
+                  useSaliencyAnalysis: command.useSaliencyAnalysis == "TRUE" ? true : false,
                 }}
               />
             }
@@ -213,6 +216,7 @@ export default function Discover() {
                     actionScript: command.actionScript,
                     showResponse: command.showResponse == "TRUE" ? true : false,
                     description: command.description,
+                    useSaliencyAnalysis: command.useSaliencyAnalysis == "TRUE" ? true : false,
                   }}
                   setCommands={setMyCommands}
                   duplicate={true}

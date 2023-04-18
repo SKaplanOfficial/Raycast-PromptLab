@@ -12,7 +12,7 @@ import {
   runActionScript,
 } from "./utils/command-utils";
 import useModel from "./utils/useModel";
-import { useReplacements } from "./useReplacements";
+import { useReplacements } from "./hooks/useReplacements";
 
 export default function CommandResponse(props: {
   commandName: string;
@@ -79,7 +79,14 @@ export default function CommandResponse(props: {
   useEffect(() => {
     // Run post-response action script if one is defined
     if (data && !isLoading && options.actionScript != undefined && options.actionScript.trim().length > 0) {
-      Promise.resolve(runActionScript(options.actionScript, data));
+      Promise.resolve(
+        runActionScript(
+          options.actionScript,
+          substitutedPrompt.replaceAll("{{contents}}", contentPromptString),
+          input || contentPromptString,
+          data
+        )
+      );
     }
   }, [data, isLoading]);
 

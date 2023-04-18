@@ -193,7 +193,7 @@ When configuring a PromptLab command, you can provide AppleScript code to execut
 | Make Song | Make a song based on the content of the following files. Provide a name for the song. |
 | Meeting Agenda | Create a meeting agenda covering the contents of the following files. Use today's date and time, {{date}}, to provide headings and structure to the agenda. |
 | Metadata Analysis | I want you to give several insights about files based on their metadata and file type. Do not summarize the file content, but instead relate the metadata to the content in a meaningful way. Use metadata to suggest improvements to the content. Provide detailed explanations for your suggestions. Format your response as a paragraph summary. Use the file names as headings.\nHere's the metadata:{{metadata}}\n\nHere are the files: |
-| Pattern Analysis | Identify and describe any patterns or trends in the content of the following files. Use the file names as headers. |
+| Pattern Analysis | Identify and describe any patterns or trends in the content of the following files. Use the file names as headers. Discuss patterns formed by any coordinates, rectangles, etc. Do not mention coordinates. |
 | Performance Summary | Give me a detailed analysis of my CPU and RAM usage based on this data. Output two friendly paragraphs. along with a markdown table. ###{{shell:top -stats command,cpu,rsize -n 10 -l 2 -s 1 -e | tail -20 | grep -iE '(PhysMem|CPU Usage)'}}### |
 | Pros And Cons | List pros and cons for the following files based on the topics mentioned within them. Format the response as a markdown list. Use the file names as headings. Do not provide any other commentary. |
 | Recent Headlines From 68k News | Discuss the recent headlines from 68k News: ###{{http://68k.news}}### |

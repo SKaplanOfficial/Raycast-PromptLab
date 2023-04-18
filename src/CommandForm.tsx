@@ -30,6 +30,7 @@ interface CommandFormValues {
   actionScript?: string;
   showResponse?: boolean;
   description?: string;
+  useSaliencyAnalysis?: boolean;
 }
 
 export default function CommandForm(props: {
@@ -73,13 +74,14 @@ export default function CommandForm(props: {
       useAudioDetails: false,
       useSoundClassification: true,
       useSubjectClassification: true,
-      useRectangleDetection: true,
+      useRectangleDetection: false,
       useBarcodeDetection: true,
-      useFaceDetection: true,
+      useFaceDetection: false,
       outputKind: "detail",
       actionScript: "",
       showResponse: true,
       description: "",
+      useSaliencyAnalysis: true,
     },
     validation: {
       name: FormValidation.Required,
@@ -172,7 +174,7 @@ export default function CommandForm(props: {
 
       <Form.Description title="" text="Learn about placeholders to use in your prompts at promptlab.skaplan.io" />
 
-      <Form.TextArea title="Prompt" placeholder="Instructions for Raycast AI to follow" {...itemProps.prompt} />
+      <Form.TextArea title="Prompt" placeholder="Instructions for AI to follow" {...itemProps.prompt} />
 
       <Form.TextArea
         title="Description"
@@ -191,7 +193,7 @@ export default function CommandForm(props: {
       <Form.Checkbox
         label="Show Response View"
         {...itemProps.showResponse}
-        info="If checked, the AI's output will be display in Raycast. Disabling this is only useful if you provide an action script."
+        info="If checked, the AI's output will be displayed in Raycast. Disabling this is only useful if you provide an action script."
       />
 
       <Form.Separator />
@@ -264,6 +266,12 @@ export default function CommandForm(props: {
         label="Use Face Detection"
         {...itemProps.useFaceDetection}
         info="If checked, the number of faces in image files will be included in the text provided to the AI."
+      />
+
+      <Form.Checkbox
+        label="Use Saliency Analysis"
+        {...itemProps.useSaliencyAnalysis}
+        info="If checked, the areas of an image most likely to draw attention will be included in the text provided to the AI."
       />
     </Form>
   );

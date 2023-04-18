@@ -25,13 +25,15 @@ import { Command, StoreCommand } from "./types";
  * @param script The AppleScript script to execute.
  * @param response The PromptLab AI response.
  */
-export const runActionScript = async (script: string, response: string) => {
+export const runActionScript = async (script: string, prompt: string, input: string, response: string) => {
   try {
     await runAppleScript(`${objcImports}
     ${splitHandler}
     ${trimHandler}
     ${replaceAllHandler}
     ${rselectHandler}
+    set prompt to "${prompt.replaceAll('"', '\\"')}"
+    set input to "${input.replaceAll('"', '\\"')}"
     set response to "${response.replaceAll('"', '\\"')}"
     ${script}`);
   } catch (error) {
