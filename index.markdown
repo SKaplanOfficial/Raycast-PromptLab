@@ -5,7 +5,7 @@
 layout: home
 ---
 
-PromptLab is a Raycast extension for creating powerful, contextually-aware AI commands using placeholders, action scripts, and more.
+PromptLab is a Raycast extension for creating and sharing powerful, contextually-aware AI commands using placeholders, action scripts, and more.
 
 PromptLab allows you to create custom AI commands with prompts that utilize contextual placeholders such as {% raw %}`{{selectedText}}`, `{{todayEvents}}`, or `{{currentApplication}}`{% endraw %} to vastly expand the capabilities of Raycast AI. PromptLab can also extract information from selected files, if you choose, so that it can tell you about the subjects in an image, summarize a PDF, and more.
 
@@ -272,9 +272,11 @@ To use the OpenAI API as the model endpoint, configure the extension as follows:
 | Preference Name | Value |
 | --- | --- |
 | Model Endpoint | https://api.openai.com/v1/chat/completions |
+| API Authorization Type | Bearer Token |
 | API Key | Your API key |
-| Input Schema | { "model": "gpt-4", "messages": [{"role": "user", "content": "{input}"}] }
-| Output Key Path | choices[0].message.content |
+| Input Schema | { "model": "gpt-4", "messages": [{"role": "user", "content": "{input}"}], "stream": true }
+| Output Key Path | choices[0].delta.content |
+| Output Timing | Asynchronous |
 
 ## Useful Resources
 
