@@ -1,6 +1,6 @@
 # PromptLab
 
-A Raycast extension for creating powerful, contextually-aware AI commands using placeholders, action scripts, and more.
+A Raycast extension for creating and sharing powerful, contextually-aware AI commands using placeholders, action scripts, and more.
 
 PromptLab allows you to create custom AI commands with prompts that utilize contextual placeholders such as {{selectedText}}, {{todayEvents}}, or {{currentApplication}} to vastly expand the capabilities of Raycast AI. PromptLab can also extract information from selected files, if you choose, so that it can tell you about the subjects in an image, summarize a PDF, and more.
 
@@ -35,17 +35,17 @@ PromptLab also supports "action scripts" -- AppleScripts which run with the AI's
 
 ## Top-Level Commands
 
-- Create PromptLab Command
+- New PromptLab Command
     - Create a custom PromptLab command accessible via 'Search PromptLab Commands'
-- Search PromptLab Commands
-    - Search and run custom PromptLab commands
+- My PromptLab Commands
+    - Search and run custom PromptLab commands that you've installed or created
 - PromptLab Command Store
     - Explore and search commands uploaded to the store by other PromptLab users
 - Summarize Selected Files
     - Summarize the contents of selected text files, PDFs, images, audio files, and more.
 - PromptLab Chat
     - Start a back-and-forth conversation with AI with selected files provided as context.       
-- Import Custom PromptLab Commands
+- Import PromptLab Commands
     - Add custom commands from a JSON string.
 
 ## Images
@@ -244,7 +244,7 @@ This extension is not yet published to the Raycast store. In the meantime, you c
 
 ### Manual Installation
 ```bash
-git clone https://github.com/SKaplanOfficial/Raycast-PromptLab.git && cd Raycast-File-AI
+git clone https://github.com/SKaplanOfficial/Raycast-PromptLab.git && cd Raycast-PromptLab
 
 npm install && npm run dev
 ```
