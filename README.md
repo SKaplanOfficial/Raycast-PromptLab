@@ -39,6 +39,8 @@ PromptLab also supports "action scripts" -- AppleScripts which run with the AI's
     - Create a custom PromptLab command accessible via 'Search PromptLab Commands'
 - Search PromptLab Commands
     - Search and run custom PromptLab commands
+- PromptLab Command Store
+    - Explore and search commands uploaded to the store by other PromptLab users
 - Summarize Selected Files
     - Summarize the contents of selected text files, PDFs, images, audio files, and more.
 - PromptLab Chat
@@ -53,6 +55,7 @@ PromptLab also supports "action scripts" -- AppleScripts which run with the AI's
 ![Identify Selected Files example](./examples/promptlab-4.png)
 ![Recent News Headlines Example](./examples/promptlab-5.png)
 ![PromptLab commands as Quicklinks](./examples/promptlab-6.png)
+![Navigating the PromptLab Command Store](./examples/promptlab-7.png)
 
 View more images in [the gallery](https://skaplanofficial.github.io/Raycast-PromptLab/gallery).
 

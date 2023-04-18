@@ -11,6 +11,7 @@ import { filterString } from "./calendar-utils";
 import { getTextOfWebpage } from "./context-utils";
 import { exec } from "child_process";
 import * as os from "os";
+import { Command, StoreCommand } from "./types";
 
 /**
  * Runs the action script of a PromptLab command, providing the AI response as the `response` variable.
@@ -134,4 +135,16 @@ export const replaceFileSelectionPlaceholders = async (prompt: string) => {
     subbedPrompt = subbedPrompt.replaceAll(m, "");
   }
   return subbedPrompt;
+};
+
+/**
+ * Gets the importable JSON string representation of a command.
+ *
+ * @param command The command to get the JSON representation of.
+ * @returns The JSON string representation of the command.
+ */
+export const getCommandJSON = (command: Command | StoreCommand) => {
+  const cmdObj: { [key: string]: Command | StoreCommand } = {};
+  cmdObj[command.name] = command;
+  return JSON.stringify(cmdObj).replaceAll(/\\([^"])/g, "\\\\$1");
 };

@@ -9,12 +9,17 @@ import {
   List,
   LocalStorage,
   showHUD,
+  showToast,
+  Toast,
 } from "@raycast/api";
 import { useEffect, useState } from "react";
 import CommandResponse from "./CommandResponse";
 import { installDefaults } from "./utils/file-utils";
 import CommandForm from "./CommandForm";
-import { Command } from "./utils/types";
+import { Command, StoreCommand } from "./utils/types";
+import fetch from "node-fetch";
+import { QUICKLINK_URL_BASE, STORE_ENDPOINT } from "./utils/constants";
+import { getCommandJSON } from "./utils/command-utils";
 
 export default function SearchCommand(props: { arguments: { commandName: string; queryInput: string } }) {
   const { commandName, queryInput } = props.arguments;
@@ -66,12 +71,6 @@ export default function SearchCommand(props: { arguments: { commandName: string;
       />
     );
   }
-
-  const getCommandJSON = (command: Command) => {
-    const cmdObj: { [key: string]: Command } = {};
-    cmdObj[command.name] = command;
-    return JSON.stringify(cmdObj).replaceAll(/\\([^"])/g, "\\\\$1");
-  };
 
   const listItems = commands
     ?.sort((a, b) => (a.name > b.name ? 1 : -1))
@@ -147,6 +146,69 @@ ${command.actionScript}
               shortcut={{ modifiers: ["cmd"], key: "r" }}
             />
 
+            <Action
+              title="Share To PromptLab Store"
+              icon={Icon.Upload}
+              shortcut={{ modifiers: ["cmd", "shift"], key: "s" }}
+              onAction={async () => {
+                const toast = await showToast({
+                  style: Toast.Style.Animated,
+                  title: "Uploading Command",
+                });
+
+                fetch(STORE_ENDPOINT).then(async (response) => {
+                  const storeCommands: StoreCommand[] = ((await response.json()) as { data: StoreCommand[] })["data"];
+
+                  const storeCommandPrompts = storeCommands.map((command) => command.prompt);
+
+                  if (storeCommandPrompts.includes(command.prompt)) {
+                    toast.style = Toast.Style.Failure;
+                    toast.title = "Error";
+                    toast.message = "Command already exists in PromptLab Store";
+                    return;
+                  }
+
+                  fetch(STORE_ENDPOINT, {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                      data: {
+                        name: command.name,
+                        prompt: command.prompt,
+                        icon: command.icon,
+                        iconColor: command.iconColor,
+                        minNumFiles: command.minNumFiles?.toString(),
+                        acceptedFileExtensions: command.acceptedFileExtensions,
+                        useMetadata: command.useMetadata ? "TRUE" : "FALSE",
+                        useAudioDetails: command.useAudioDetails ? "TRUE" : "FALSE",
+                        useSoundClassification: command.useSoundClassification ? "TRUE" : "FALSE",
+                        useSubjectClassification: command.useSubjectClassification ? "TRUE" : "FALSE",
+                        useRectangleDetection: command.useRectangleDetection ? "TRUE" : "FALSE",
+                        useBarcodeDetection: command.useBarcodeDetection ? "TRUE" : "FALSE",
+                        useFaceDetection: command.useFaceDetection ? "TRUE" : "FALSE",
+                        outputKind: command.outputKind,
+                        actionScript: command.actionScript || "None",
+                        showResponse: command.showResponse ? "TRUE" : "FALSE",
+                        description: command.description || "None",
+                      },
+                    }),
+                  }).then((res) => {
+                    if (res.statusText == "OK") {
+                      toast.style = Toast.Style.Success;
+                      toast.title = "Success";
+                      toast.message = `Added ${command.name} to the PromptLab Store`;
+                    } else {
+                      toast.style = Toast.Style.Failure;
+                      toast.title = "Error";
+                      toast.message = "Couldn't upload command";
+                    }
+                  });
+                });
+              }}
+            />
+
             <ActionPanel.Section title="Copy Actions">
               <Action.CopyToClipboard
                 title="Copy Prompt"
@@ -166,7 +228,7 @@ ${command.actionScript}
                   Promise.resolve(
                     LocalStorage.allItems().then((items) => {
                       delete items["--defaults-installed"];
-                      Clipboard.copy(JSON.stringify(items)).then(() => showHUD("Copied All PromptLab Commads"));
+                      Clipboard.copy(JSON.stringify(items)).then(() => showHUD("Copied All PromptLab Commands"));
                     })
                   );
                 }}
@@ -176,20 +238,43 @@ ${command.actionScript}
             <ActionPanel.Section title="Command Controls">
               <Action.CreateQuicklink
                 quicklink={{
-                  link: `raycast://extensions/HelloImSteven/promptlab/search-commands?arguments=%7B%22commandName%22:%22${encodeURI(
-                    command.name
-                  )}%22${command.prompt.includes("{{input}}") ? "%2C%22queryInput%22%3A%22{Input}%22" : ""}%7D`,
+                  link: `${QUICKLINK_URL_BASE}${encodeURI(command.name)}%22${
+                    command.prompt.includes("{{input}}") ? "%2C%22queryInput%22%3A%22{Input}%22" : ""
+                  }%7D`,
                   name: command.name,
                 }}
               />
               <Action.Push
                 title="Edit Command"
-                target={<CommandForm oldData={command} setCommands={setCommands} />}
+                target={
+                  <CommandForm
+                    oldData={{
+                      name: command.name,
+                      prompt: command.prompt,
+                      icon: command.icon,
+                      iconColor: command.iconColor,
+                      minNumFiles: command.minNumFiles?.toString(),
+                      acceptedFileExtensions: command.acceptedFileExtensions,
+                      useMetadata: command.useMetadata,
+                      useAudioDetails: command.useAudioDetails,
+                      useSoundClassification: command.useSoundClassification,
+                      useSubjectClassification: command.useSubjectClassification,
+                      useRectangleDetection: command.useRectangleDetection,
+                      useBarcodeDetection: command.useBarcodeDetection,
+                      useFaceDetection: command.useFaceDetection,
+                      outputKind: command.outputKind,
+                      actionScript: command.actionScript,
+                      showResponse: command.showResponse,
+                      description: command.description,
+                    }}
+                    setCommands={setCommands}
+                  />
+                }
                 icon={Icon.Pencil}
                 shortcut={{ modifiers: ["cmd"], key: "e" }}
               />
               <Action.Push
-                title="Duplicate Command"
+                title="Create Derivative"
                 target={
                   <CommandForm
                     oldData={{
@@ -197,7 +282,7 @@ ${command.actionScript}
                       prompt: command.prompt,
                       icon: command.icon,
                       iconColor: command.iconColor,
-                      minNumFiles: command.minNumFiles as unknown as string,
+                      minNumFiles: command.minNumFiles?.toString(),
                       acceptedFileExtensions: command.acceptedFileExtensions,
                       useMetadata: command.useMetadata,
                       useAudioDetails: command.useAudioDetails,

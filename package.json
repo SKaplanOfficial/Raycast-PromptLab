@@ -24,7 +24,7 @@
       "name": "modelEndpoint",
       "title": "Model Endpoint",
       "type": "textfield",
-      "required": true,
+      "required": false,
       "default": "Raycast AI",
       "description": "The API endpoint of the model used to generate PromptLab command output. Set to 'Raycast AI' to use the Raycast AI API."
     },
@@ -32,15 +32,15 @@
       "name": "apiKey",
       "title": "API Key",
       "type": "password",
-      "required": true,
-      "default": "N/A",
+      "required": false,
+      "default": "",
       "description": "The API key for the model source. This is only used if the model source is set to something other than Raycast AI."
     },
     {
       "name": "inputSchema",
       "title": "Input Schema",
       "type": "textfield",
-      "required": true,
+      "required": false,
       "default": "N/A",
       "description": "The JSON schema of the endpoint used to generate PromptLab command output. This is only used if the model source is set to something other than Raycast AI. Use {input} to represent PromptLab's input to the command.",
       "placeholder": "{ \"prompt\": \"{input}\" }"
@@ -49,7 +49,7 @@
       "name": "outputKeyPath",
       "title": "Output Key Path",
       "type": "textfield",
-      "required": true,
+      "required": false,
       "default": "N/A",
       "description": "The key path to the text output in the JSON response from the model endpoint. For example, choices[0].message.content, for the OpenAI API. This is only used if the model source is set to something other than Raycast AI."
     }
@@ -100,13 +100,20 @@
       "title": "Import PromptLab Commands",
       "description": "Import custom PromptLab commands from a JSON string",
       "mode": "view"
+    },
+    {
+      "name": "discover-commands",
+      "title": "PromptLab Command Store",
+      "description": "Discover commands from the PromptLab community",
+      "mode": "view"
     }
   ],
   "dependencies": {
     "@raycast/api": "^1.48.9",
     "@raycast/utils": "^1.5.2",
     "run-applescript": "^6.1.0",
-    "exifr": "^7.1.3"
+    "exifr": "^7.1.3",
+    "node-fetch": "^3.3.1"
   },
   "devDependencies": {
     "@raycast/eslint-config": "1.0.5",

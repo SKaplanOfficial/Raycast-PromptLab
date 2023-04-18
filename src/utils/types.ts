@@ -41,10 +41,32 @@ export interface Command {
   useRectangleDetection?: boolean;
   useBarcodeDetection?: boolean;
   useFaceDetection?: boolean;
-  treatPDFsAsImages?: boolean;
   outputKind?: string;
   actionScript?: string;
   showResponse?: boolean;
+  description?: string;
+}
+
+/**
+ * A command response from SlashAPI.
+ */
+export interface StoreCommand {
+  name: string;
+  prompt: string;
+  icon: string;
+  iconColor?: string;
+  minNumFiles?: string;
+  acceptedFileExtensions?: string;
+  useMetadata?: string;
+  useSoundClassification?: string;
+  useAudioDetails?: string;
+  useSubjectClassification?: string;
+  useRectangleDetection?: string;
+  useBarcodeDetection?: string;
+  useFaceDetection?: string;
+  outputKind?: string;
+  actionScript?: string;
+  showResponse?: string;
   description?: string;
 }
 
