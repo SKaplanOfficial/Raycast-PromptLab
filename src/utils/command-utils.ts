@@ -47,7 +47,7 @@ export const runActionScript = async (script: string, response: string) => {
  */
 export const replaceOldAppleScriptPlaceholders = async (prompt: string) => {
   let subbedPrompt = prompt;
-  const codeMatches = prompt.match(/{{{(.*[\s\n\r]*)*}}}/g) || [];
+  const codeMatches = prompt.match(/{{{(.*?[\s\n\r]*)*?}}}/g) || [];
   for (const m of codeMatches) {
     const script = m.substring(3, m.length - 3);
     const output = await runAppleScript(script);
@@ -64,7 +64,7 @@ export const replaceOldAppleScriptPlaceholders = async (prompt: string) => {
  */
 export const replaceAppleScriptPlaceholders = async (prompt: string) => {
   let subbedPrompt = prompt;
-  const applescriptMatches = prompt.match(/{{as:(.*[\s\n\r]*)*}}/g) || [];
+  const applescriptMatches = prompt.match(/{{as:(.*?[\s\n\r]*)*?}}/g) || [];
   for (const m of applescriptMatches) {
     const script = m.substring(5, m.length - 2);
     const output = await runAppleScript(script);
@@ -81,7 +81,7 @@ export const replaceAppleScriptPlaceholders = async (prompt: string) => {
  */
 export const replaceShellScriptPlaceholders = async (prompt: string) => {
   let subbedPrompt = prompt;
-  const shellScriptMatches = prompt.match(/{{shell:(.*[\s\n\r]*)*}}/g) || [];
+  const shellScriptMatches = prompt.match(/{{shell:(.*?[\s\n\r]*)*?}}/g) || [];
   for (const m of shellScriptMatches) {
     const script = m.substring(8, m.length - 2);
 

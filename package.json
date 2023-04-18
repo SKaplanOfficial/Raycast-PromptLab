@@ -63,14 +63,14 @@
     },
     {
       "name": "create-command",
-      "title": "Create PromptLab Command",
+      "title": "New PromptLab Command",
       "description": "Create a custom PromptLab command accessible via 'Search PromptLab Commands'",
       "mode": "view"
     },
     {
       "name": "search-commands",
-      "title": "Search PromptLab Commands",
-      "description": "Search custom PromptLab commands",
+      "title": "My PromptLab Commands",
+      "description": "Search your installed PromptLab commands",
       "mode": "view",
       "arguments": [
         {

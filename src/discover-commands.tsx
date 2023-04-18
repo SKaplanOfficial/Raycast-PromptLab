@@ -77,15 +77,15 @@ export default function Discover() {
   | Option | Value |
   | --- | --- |
   | Output View | ${command.outputKind == "list" ? "List" : "Detail"} |
-  | Show Response View | ${command.showResponse ? "Yes" : "No"} |
+  | Show Response View | ${command.showResponse == "TRUE" ? "Yes" : "No"} |
   | Minimum File Count | ${command.minNumFiles} |
-  | Use File Metadata? | ${command.useMetadata ? "Yes" : "No"} |
-  | Use Sound Classification? | ${command.useSoundClassification ? "Yes" : "No"} |
-  | Use Subject Classification? | ${command.useSubjectClassification ? "Yes" : "No"} |
-  | Use Audio Transcription? | ${command.useAudioDetails ? "Yes" : "No"} |
-  | Use Barcode Detection? | ${command.useBarcodeDetection ? "Yes" : "No"} |
-  | Use Face Detection? | ${command.useFaceDetection ? "Yes" : "No"} |
-  | Use Rectangle Detection? | ${command.useRectangleDetection ? "Yes" : "No"} |`}
+  | Use File Metadata? | ${command.useMetadata == "TRUE" ? "Yes" : "No"} |
+  | Use Sound Classification? | ${command.useSoundClassification == "TRUE" ? "Yes" : "No"} |
+  | Use Subject Classification? | ${command.useSubjectClassification == "TRUE" ? "Yes" : "No"} |
+  | Use Audio Transcription? | ${command.useAudioDetails == "TRUE" ? "Yes" : "No"} |
+  | Use Barcode Detection? | ${command.useBarcodeDetection == "TRUE" ? "Yes" : "No"} |
+  | Use Face Detection? | ${command.useFaceDetection == "TRUE" ? "Yes" : "No"} |
+  | Use Rectangle Detection? | ${command.useRectangleDetection == "TRUE" ? "Yes" : "No"} |`}
         />
       }
       actions={

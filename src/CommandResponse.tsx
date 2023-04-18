@@ -1,43 +1,7 @@
-import {
-  Clipboard,
-  closeMainWindow,
-  Detail,
-  getFrontmostApplication,
-  getSelectedText,
-  List,
-  LocalStorage,
-  showToast,
-  Toast,
-} from "@raycast/api";
+import { closeMainWindow, Detail, List, showToast, Toast } from "@raycast/api";
 import { ERRORTYPE, useFileContents } from "./utils/file-utils";
 import ResponseActions from "./ResponseActions";
-import * as os from "os";
-import * as fs from "fs";
 import { useEffect, useState } from "react";
-import {
-  CalendarDuration,
-  filterString,
-  getCurrentDate,
-  getCurrentTime,
-  getUpcomingCalendarEvents,
-  getUpcomingReminders,
-} from "./utils/calendar-utils";
-import {
-  getTextOfWebpage,
-  getCurrentURL,
-  SupportedBrowsers,
-  getTrackNames,
-  getCurrentTrack,
-  getLastNote,
-  getInstalledApplications,
-  getLastEmail,
-  getSafariTopSites,
-  getJSONResponse,
-  getWeatherData,
-  getComputerName,
-  getSafariBookmarks,
-  getCurrentDirectory,
-} from "./utils/context-utils";
 import { CommandOptions } from "./utils/types";
 import {
   replaceAppleScriptPlaceholders,
@@ -48,6 +12,7 @@ import {
   runActionScript,
 } from "./utils/command-utils";
 import useModel from "./utils/useModel";
+import { useReplacements } from "./useReplacements";
 
 export default function CommandResponse(props: {
   commandName: string;
@@ -64,163 +29,7 @@ export default function CommandResponse(props: {
       ? useFileContents(options)
       : { selectedFiles: [], contentPrompts: [], loading: false, errorType: undefined };
 
-  const replacements: { [key: string]: () => Promise<string> } = {
-    "{{input}}": async () => {
-      return input || (await getSelectedText()).substring(0, 3000);
-    },
-
-    // File Data
-    "{{files}}": async () => {
-      return selectedFiles ? selectedFiles?.join(", ") : "";
-    },
-    "{{fileNames}}": async () => {
-      return selectedFiles ? selectedFiles.map((path) => path.split("/").at(-1)).join(", ") : "";
-    },
-    "{{metadata}}": async () => {
-      return selectedFiles
-        ? selectedFiles
-            .map(
-              (path) =>
-                `${path}:\n${Object.entries(fs.lstatSync(path))
-                  .map((entry) => `${entry[0]}:entry[1]`)
-                  .join("\n")}`
-            )
-            .join("\n\n")
-        : "";
-    },
-    "{{user}}": async () => {
-      return os.userInfo().username;
-    },
-    "{{homedir}}": async () => {
-      return os.userInfo().homedir;
-    },
-    "{{computerName}}": async () => {
-      return await getComputerName();
-    },
-    "{{hostname}}": async () => {
-      return os.hostname();
-    },
-
-    // Context Data
-    "{{currentApplication}}": async () => {
-      const app = await getFrontmostApplication();
-      return app.name;
-    },
-    "{{currentTabText}}": async () => {
-      const app = await getFrontmostApplication();
-      if (SupportedBrowsers.includes(app.name)) {
-        const URL = await getCurrentURL(app.name);
-        const URLText = await getTextOfWebpage(URL);
-        return filterString(URLText);
-      }
-      return "";
-    },
-    "{{currentURL}}": async () => {
-      const app = await getFrontmostApplication();
-      if (SupportedBrowsers.includes(app.name)) {
-        const URL = await getCurrentURL(app.name);
-        return URL;
-      }
-      return "";
-    },
-    "{{selectedText}}": async () => {
-      try {
-        return (await getSelectedText()).substring(0, 3000);
-      } catch {
-        return "";
-      }
-    },
-    "{{clipboardText}}": async () => {
-      const text = filterString((await Clipboard.readText()) as string);
-      return text;
-    },
-    "{{musicTracks}}": async () => {
-      const tracks = filterString(await getTrackNames());
-      return tracks;
-    },
-    "{{currentTrack}}": async () => {
-      const currentTrack = await getCurrentTrack();
-      return currentTrack;
-    },
-    "{{lastNote}}": async () => {
-      const lastNote = filterString(await getLastNote());
-      return lastNote;
-    },
-    "{{lastEmail}}": async () => {
-      const lastEmail = filterString(await getLastEmail());
-      return lastEmail;
-    },
-    "{{installedApps}}": async () => {
-      const apps = filterString(filterString(await getInstalledApplications()));
-      return apps;
-    },
-    "{{fileAICommands}}": async () => {
-      const storedItems = await LocalStorage.allItems();
-      const commands = filterString(Object.keys(storedItems).join(", "));
-      return commands;
-    },
-    "{{safariTopSites}}": async () => {
-      const topSites = await getSafariTopSites();
-      return topSites;
-    },
-    "{{safariBookmarks}}": async () => {
-      const bookmarks = await getSafariBookmarks();
-      return bookmarks;
-    },
-    "{{currentDirectory}}": async () => {
-      return await getCurrentDirectory();
-    },
-
-    // API Data
-    "{{location}}": async () => {
-      const jsonObj = getJSONResponse("https://get.geojs.io/v1/ip/geo.json");
-      const city = jsonObj["city"];
-      const region = jsonObj["region"];
-      const country = jsonObj["country"];
-      const location = `${city}, ${region}, ${country}`;
-      return location;
-    },
-    "{{todayWeather}}": async () => {
-      const weatherData = getWeatherData(1);
-      return weatherData as unknown as string;
-    },
-    "{{weekWeather}}": async () => {
-      const weatherData = getWeatherData(7);
-      return weatherData as unknown as string;
-    },
-
-    // Calendar Data
-    "{{date}}": async () => {
-      return getCurrentDate();
-    },
-    "{{currentTime}}": async () => {
-      return getCurrentTime();
-    },
-    "{{todayEvents}}": async () => {
-      return filterString(await getUpcomingCalendarEvents(CalendarDuration.DAY));
-    },
-    "{{weekEvents}}": async () => {
-      return filterString(await getUpcomingCalendarEvents(CalendarDuration.WEEK));
-    },
-    "{{monthEvents}}": async () => {
-      return filterString(await getUpcomingCalendarEvents(CalendarDuration.MONTH));
-    },
-    "{{yearEvents}}": async () => {
-      return filterString(await getUpcomingCalendarEvents(CalendarDuration.YEAR));
-    },
-    "{{todayReminders}}": async () => {
-      return filterString(await getUpcomingReminders(CalendarDuration.DAY));
-    },
-    "{{weekReminders}}": async () => {
-      return filterString(await getUpcomingReminders(CalendarDuration.WEEK));
-    },
-    "{{monthReminders}}": async () => {
-      return filterString(await getUpcomingReminders(CalendarDuration.MONTH));
-    },
-    "{{yearReminders}}": async () => {
-      return filterString(await getUpcomingReminders(CalendarDuration.YEAR));
-    },
-  };
+  const replacements = useReplacements(input, selectedFiles);
 
   useEffect(() => {
     if (options.showResponse == false) {

@@ -11,6 +11,14 @@ import {
 } from "@raycast/api";
 import { useState } from "react";
 import { ERRORTYPE, useFileContents } from "./utils/file-utils";
+import { useReplacements } from "./useReplacements";
+import {
+  replaceAppleScriptPlaceholders,
+  replaceFileSelectionPlaceholders,
+  replaceOldAppleScriptPlaceholders,
+  replaceShellScriptPlaceholders,
+  replaceURLPlaceholders,
+} from "./utils/command-utils";
 
 export default function Command(props: { arguments: { initialQuery: string } }) {
   const { initialQuery } = props.arguments;
@@ -29,27 +37,51 @@ export default function Command(props: { arguments: { initialQuery: string } }) 
   const [previousResponse, setPreviousResponse] = useState<string>();
   const [creativity, setCreativity] = useState<number>(0.7);
   const [creativityError, setCreativityError] = useState<string>();
+  const [useFiles, setUseFiles] = useState<boolean>(initialQuery?.length > 0);
 
   // Set up ground rules for the chat
-  const basePrompt = `I want you to act as an interactive information engine. I will provide information about the content of files, and then I will ask questions about those files. When I supply a question, you will respond with an answer based on the information I've provided and your own inferences. Respond in non-technical terms unless otherwise instructed. Only answer questions surrounded by {}, like {this}. Limit your responses to 200 words. Here are the files:\n"""`;
+  const basePrompt = useFiles
+    ? `I want you to act as an interactive information engine. I will provide information about the content of files, and then I will ask questions about those files. When I supply a question, you will respond with an answer based on the information I've provided and your own inferences. Respond in non-technical terms unless otherwise instructed. Limit your responses to 200 words. Here are the files:\n"""`
+    : `I want you to act as an interactive information engine. When I supply a question, you will respond with an answer based on any information I've provided and your own inferences. `;
 
   // Input the file data
-  let fullPrompt = basePrompt + contentPrompts.join("\n");
+  let fullPrompt = basePrompt + (useFiles ? contentPrompts.join("\n") : "");
 
   // Set up for first query, or append the already provided one
-  if (initialQuery == "") {
+  if (initialQuery == "" && !query?.length) {
     fullPrompt = fullPrompt + `""" Reply to this indicating that you are ready for my questions.`;
   } else {
     if (initialQuery.includes("Your last response:")) {
-      fullPrompt = basePrompt + initialQuery.replace("My question: ", "");
+      fullPrompt = basePrompt + initialQuery.replace("\nMy input: ", "");
     } else if (query == undefined) {
-      fullPrompt = fullPrompt + `"""" My question: {${initialQuery}}`;
+      fullPrompt = fullPrompt + `"""\nMy input: ${initialQuery}`;
       setQuery(initialQuery);
     }
   }
 
+  const replacements = useReplacements(undefined, selectedFiles);
+  const runReplacements = async (prompt: string): Promise<string> => {
+    let subbedPrompt = prompt;
+    for (const key in replacements) {
+      if (prompt.includes(key)) {
+        subbedPrompt = subbedPrompt.replaceAll(key, await replacements[key]());
+      }
+    }
+
+    // Replace complex placeholders (i.e. shell scripts, AppleScripts, etc.)
+    subbedPrompt = await replaceOldAppleScriptPlaceholders(subbedPrompt);
+    subbedPrompt = await replaceAppleScriptPlaceholders(subbedPrompt);
+    subbedPrompt = await replaceShellScriptPlaceholders(subbedPrompt);
+    subbedPrompt = await replaceURLPlaceholders(subbedPrompt);
+    subbedPrompt = await replaceFileSelectionPlaceholders(subbedPrompt);
+    return subbedPrompt;
+  };
+
   // Run the first prompt
-  const { data, isLoading } = useUnstableAI(fullPrompt, { execute: contentPrompts.length > 0, creativity: creativity });
+  const { data, isLoading } = useUnstableAI(fullPrompt, {
+    execute: contentPrompts.length > 0 && (!query?.length || (initialQuery.length > 0 && !previousResponse?.length)),
+    creativity: creativity,
+  });
 
   // Report errors in starting up
   if (errorType) {
@@ -85,11 +117,13 @@ export default function Command(props: { arguments: { initialQuery: string } }) 
                 const queryIncludingInitialData =
                   fullPrompt +
                   (prevResponse.trim().length > 0
-                    ? `Your last response: "${prevResponse.substring(0, 4096 - fullPrompt.length - 100)}"}`
+                    ? `\nYour last response: "${prevResponse.substring(0, 3996 - fullPrompt.length)}"`
                     : "") +
-                  `\n{${values.userQueryField}}`;
+                  `\nNext input: ${values.userQueryField}\nYour response:`;
 
-                const stream = unstable_AI.ask(queryIncludingInitialData, { creativity: creativity });
+                const stream = unstable_AI.ask(await runReplacements(queryIncludingInitialData), {
+                  creativity: creativity,
+                });
                 stream.on("data", (theData) => {
                   setResponse((x: string | undefined) => (x == undefined ? theData : x + theData));
                 });
@@ -105,11 +139,13 @@ export default function Command(props: { arguments: { initialQuery: string } }) 
                 const queryIncludingInitialData =
                   fullPrompt +
                   (prevResponse.trim().length > 0
-                    ? `Your last response: "${prevResponse.substring(0, 4096 - fullPrompt.length - 100)}"}`
+                    ? `\nYour last response: "${prevResponse.substring(0, 3996 - fullPrompt.length)}"}`
                     : "") +
-                  `\n{${query}}`;
+                  `\nNext input: ${query}\nYour response:`;
 
-                const stream = unstable_AI.ask(queryIncludingInitialData, { creativity: creativity });
+                const stream = unstable_AI.ask(await runReplacements(queryIncludingInitialData), {
+                  creativity: creativity,
+                });
                 stream.on("data", (theData) => {
                   setResponse((x: string | undefined) => (x == undefined ? theData : x + theData));
                 });
@@ -138,6 +174,14 @@ export default function Command(props: { arguments: { initialQuery: string } }) 
       }
     >
       <Form.Description title="PromptLab Chat" text={selectedFiles ? selectedFiles.join(", ") : ""} />
+
+      <Form.Checkbox
+        label="Use Selected Files As Context"
+        id="useFilesCheckbox"
+        defaultValue={useFiles}
+        onChange={setUseFiles}
+      />
+
       <Form.TextArea id="userQueryField" title="Query" value={query || ""} onChange={(value) => setQuery(value)} />
 
       <Form.TextArea

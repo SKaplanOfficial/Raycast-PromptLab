@@ -168,6 +168,10 @@ export default function CommandForm(props: {
         />
       </Form.Dropdown>
 
+      <Form.Separator />
+
+      <Form.Description title="" text="Learn about placeholders to use in your prompts at promptlab.skaplan.io" />
+
       <Form.TextArea title="Prompt" placeholder="Instructions for Raycast AI to follow" {...itemProps.prompt} />
 
       <Form.TextArea
@@ -190,6 +194,17 @@ export default function CommandForm(props: {
         info="If checked, the AI's output will be display in Raycast. Disabling this is only useful if you provide an action script."
       />
 
+      <Form.Separator />
+
+      <Form.Dropdown
+        title="Output View"
+        info="The view in which the command's output will be rendered. Detail is the most likely to work for any given command, but PromptLab will do its best to give you usable output no matter what."
+        {...itemProps.outputKind}
+      >
+        <Form.Dropdown.Item title="Detail" value="detail" icon={Icon.AppWindow} />
+        <Form.Dropdown.Item title="List" value="list" icon={Icon.List} />
+      </Form.Dropdown>
+
       <Form.TextField
         title="Minimum File Count"
         placeholder="Minimum number of files required"
@@ -201,15 +216,6 @@ export default function CommandForm(props: {
         }}
         {...itemProps.minNumFiles}
       />
-
-      <Form.Dropdown
-        title="Output View"
-        info="The view in which the command's output will be rendered. Detail is the most likely to work for any given command, but PromptLab will do its best to give you usable output no matter what."
-        {...itemProps.outputKind}
-      >
-        <Form.Dropdown.Item title="Detail" value="detail" icon={Icon.AppWindow} />
-        <Form.Dropdown.Item title="List" value="list" icon={Icon.List} />
-      </Form.Dropdown>
 
       <Form.TextArea
         title="Accepted File Extensions"
