@@ -15,7 +15,7 @@ import CommandResponse from "./CommandResponse";
 import CommandForm from "./CommandForm";
 import { Command, StoreCommand } from "./utils/types";
 import { useCachedState, useFetch } from "@raycast/utils";
-import { STORE_ENDPOINT } from "./utils/constants";
+import { STORE_ENDPOINT, STORE_KEY } from "./utils/constants";
 import { getCommandJSON } from "./utils/command-utils";
 
 export default function Discover() {
@@ -33,7 +33,7 @@ export default function Discover() {
   }, []);
 
   // Get available commands from store
-  const { data, isLoading } = useFetch(STORE_ENDPOINT);
+  const { data, isLoading } = useFetch(STORE_ENDPOINT, { headers: { "X-API-KEY": STORE_KEY } });
   useEffect(() => {
     if (data && !isLoading) {
       setAvailableCommands((data as { data: StoreCommand[] })["data"].reverse());

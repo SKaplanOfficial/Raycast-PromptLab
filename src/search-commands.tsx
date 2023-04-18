@@ -18,7 +18,7 @@ import { installDefaults } from "./utils/file-utils";
 import CommandForm from "./CommandForm";
 import { Command, StoreCommand } from "./utils/types";
 import fetch from "node-fetch";
-import { QUICKLINK_URL_BASE, STORE_ENDPOINT } from "./utils/constants";
+import { QUICKLINK_URL_BASE, STORE_ENDPOINT, STORE_KEY } from "./utils/constants";
 import { getCommandJSON } from "./utils/command-utils";
 
 export default function SearchCommand(props: { arguments: { commandName: string; queryInput: string } }) {
@@ -156,7 +156,7 @@ ${command.actionScript}
                   title: "Uploading Command",
                 });
 
-                fetch(STORE_ENDPOINT).then(async (response) => {
+                fetch(STORE_ENDPOINT, { headers: { "X-API-KEY": STORE_KEY } }).then(async (response) => {
                   const storeCommands: StoreCommand[] = ((await response.json()) as { data: StoreCommand[] })["data"];
 
                   const storeCommandPrompts = storeCommands.map((command) => command.prompt);
@@ -172,6 +172,7 @@ ${command.actionScript}
                     method: "POST",
                     headers: {
                       "Content-Type": "application/json",
+                      "X-API-KEY": STORE_KEY,
                     },
                     body: JSON.stringify({
                       data: {
