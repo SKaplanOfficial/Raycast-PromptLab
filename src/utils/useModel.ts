@@ -1,6 +1,8 @@
 import { getPreferenceValues, useUnstableAI } from "@raycast/api";
 import { ExtensionPreferences, modelOutput } from "./types";
 import { useFetch } from "@raycast/utils";
+import { useEffect, useState } from "react";
+import fetch from "node-fetch";
 
 /**
  * Gets the text response from the model endpoint.
@@ -11,6 +13,9 @@ import { useFetch } from "@raycast/utils";
  */
 export default function useModel(prompt: string, execute: boolean) {
   const preferences = getPreferenceValues<ExtensionPreferences>();
+  const [data, setData] = useState<string>("");
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string>();
 
   // We can be a little forgiving of how users specify Raycast AI
   const validRaycastAIReps = ["raycast ai", "raycastai", "raycast", "raycast-ai"];
@@ -20,15 +25,10 @@ export default function useModel(prompt: string, execute: boolean) {
     return useUnstableAI(prompt, { execute: execute });
   } else if (preferences.modelEndpoint.includes(":")) {
     // If the endpoint is a URL, use the fetch hook
-    const { data, isLoading, revalidate, error } = useFetch(preferences.modelEndpoint, {
+    const headers: { [key: string]: string } = {
       method: "POST",
-      headers: {
-        Authorization: `Api-Key ${preferences.apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: preferences.inputSchema.replace("{input}", prompt.replaceAll(/[\n\r\s]+/g, " ").replaceAll('"', '\\"')),
-      execute: execute,
-    });
+      "Content-Type": "application/json",
+    };
 
     // Get the value at the specified key path
     const get = (obj: modelOutput | string, pathString: string, def?: string) => {
@@ -53,19 +53,80 @@ export default function useModel(prompt: string, execute: boolean) {
       return current;
     };
 
-    let output = "";
-    if (typeof data == "object") {
-      // Get the output from the configured key path
-      output = get(data as modelOutput, preferences.outputKeyPath) as string;
-    } else if (typeof data == "string") {
-      // If the output is a string, just use it
-      output = data;
+    // Add the authentication header if necessary
+    if (preferences.authType == "apiKey") {
+      headers["Authorization"] = `Api-Key ${preferences.apiKey}`;
+    } else if (preferences.authType == "bearerToken") {
+      headers["Authorization"] = `Bearer ${preferences.apiKey}`;
     }
 
+    useEffect(() => {
+      if (execute) {
+        if (preferences.outputTiming == "sync") {
+          // Send the request and wait for the complete response
+          fetch(preferences.modelEndpoint, {
+            method: "POST",
+            headers: headers,
+            body: preferences.inputSchema.replace(
+              "{input}",
+              prompt.replaceAll(/[\n\r\s]+/g, " ").replaceAll('"', '\\"')
+            ),
+          }).then(async (response) => {
+            if (response.ok) {
+              try {
+                const jsonData = await response.json();
+                const output = get(jsonData as modelOutput, preferences.outputKeyPath) as string;
+                setData(output);
+                setIsLoading(false);
+              } catch {
+                setError("Couldn't parse model output");
+              }
+            } else {
+              setError(response.statusText);
+            }
+          });
+        } else if (preferences.outputTiming == "async") {
+          // Send the request and parse each data chunk as it arrives
+          fetch(preferences.modelEndpoint, {
+            method: "POST",
+            headers: headers,
+            body: preferences.inputSchema.replace(
+              "{input}",
+              prompt.replaceAll(/[\n\r\s]+/g, " ").replaceAll('"', '\\"')
+            ),
+          }).then(async (response) => {
+            if (response.ok && response.body != null) {
+              let text = "";
+              response.body.on("data", (chunk: string) => {
+                const jsonString = chunk.toString();
+                jsonString.split("\n").forEach((line) => {
+                  if (line.includes("data:")) {
+                    try {
+                      const jsonData = JSON.parse(line.substring(5));
+                      const output = get(jsonData, preferences.outputKeyPath) || "";
+                      text = text + output;
+                      setData(text);
+                    } catch (e) {
+                      console.log("Failed to get JSON from model output");
+                    }
+                  }
+                });
+              });
+              response.body.on("end", () => {
+                setIsLoading(false);
+              });
+            } else {
+              setError(response.statusText);
+            }
+          });
+        }
+      }
+    }, [execute]);
+
     return {
-      data: output,
+      data: data,
       isLoading: isLoading,
-      revalidate: revalidate,
+      revalidate: () => null,
       error: error,
     };
   }

@@ -262,9 +262,11 @@ To use the OpenAI API as the model endpoint, configure the extension as follows:
 | Preference Name | Value |
 | --- | --- |
 | Model Endpoint | https://api.openai.com/v1/chat/completions |
+| API Authorization Type | Bearer Token |
 | API Key | Your API key |
-| Input Schema | { "model": "gpt-4", "messages": [{"role": "user", "content": "{input}"}] }
-| Output Key Path | choices[0].message.content |
+| Input Schema | { "model": "gpt-4", "messages": [{"role": "user", "content": "{input}"}], "stream": true }
+| Output Key Path | choices[0].delta.content |
+| Output Timing | Asynchronous |
 
 ## Useful Resources
 

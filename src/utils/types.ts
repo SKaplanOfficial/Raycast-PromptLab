@@ -1,9 +1,11 @@
 export interface ExtensionPreferences {
   pdfOCR: boolean;
   modelEndpoint: string;
+  authType: string;
   apiKey: string;
   inputSchema: string;
   outputKeyPath: string;
+  outputTiming: string;
 }
 
 /**

@@ -29,6 +29,24 @@
       "description": "The API endpoint of the model used to generate PromptLab command output. Set to 'Raycast AI' to use the Raycast AI API."
     },
     {
+      "name": "authType",
+      "title": "API Authorization Type",
+      "type": "dropdown",
+      "required": false,
+      "default": "bearer",
+      "description": "The authorization type for the model endpoint, e.g. API Key or Bearer. This is only used if the model source is set to something other than Raycast AI.",
+      "data": [
+        {
+          "title": "API Key",
+          "value": "apiKey"
+        },
+        {
+          "title": "Bearer Token",
+          "value": "bearerToken"
+        }
+      ]
+    },
+    {
       "name": "apiKey",
       "title": "API Key",
       "type": "password",
@@ -52,6 +70,24 @@
       "required": false,
       "default": "N/A",
       "description": "The key path to the text output in the JSON response from the model endpoint. For example, choices[0].message.content, for the OpenAI API. This is only used if the model source is set to something other than Raycast AI."
+    },
+    {
+      "name": "outputTiming",
+      "title": "Output Timing",
+      "type": "dropdown",
+      "required": false,
+      "default": "sync",
+      "description": "Whether output from the model endpoint should be processed synchronously or asynchronously. Often, this is also an option on the model API. This is only used if the model source is set to something other than Raycast AI.",
+      "data": [
+        {
+          "title": "Synchronous",
+          "value": "sync"
+        },
+        {
+          "title": "Asynchronous",
+          "value": "async"
+        }
+      ]
     }
   ],
   "commands": [
