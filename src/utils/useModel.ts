@@ -1,6 +1,5 @@
 import { getPreferenceValues, useUnstableAI } from "@raycast/api";
 import { ExtensionPreferences, modelOutput } from "./types";
-import { useFetch } from "@raycast/utils";
 import { useEffect, useState } from "react";
 import fetch from "node-fetch";
 
@@ -11,7 +10,7 @@ import fetch from "node-fetch";
  * @param execute Whether to execute the request immediately or wait until this value becomes true.
  * @returns The string output received from the model endpoint.
  */
-export default function useModel(prompt: string, execute: boolean) {
+export default function useModel(basePrompt: string, prompt: string, input: string, execute: boolean) {
   const preferences = getPreferenceValues<ExtensionPreferences>();
   const [data, setData] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -67,10 +66,10 @@ export default function useModel(prompt: string, execute: boolean) {
           fetch(preferences.modelEndpoint, {
             method: "POST",
             headers: headers,
-            body: preferences.inputSchema.replace(
-              "{input}",
-              prompt.replaceAll(/[\n\r\s]+/g, " ").replaceAll('"', '\\"')
-            ),
+            body: preferences.inputSchema
+              .replace("{prompt}", prompt.replaceAll(/[\n\r\s]+/g, " ").replaceAll('"', '\\"'))
+              .replace("{basePrompt}", basePrompt.replaceAll(/[\n\r\s]+/g, " ").replaceAll('"', '\\"'))
+              .replace("{input}", input.replaceAll(/[\n\r\s]+/g, " ").replaceAll('"', '\\"')),
           }).then(async (response) => {
             if (response.ok) {
               try {
@@ -90,10 +89,10 @@ export default function useModel(prompt: string, execute: boolean) {
           fetch(preferences.modelEndpoint, {
             method: "POST",
             headers: headers,
-            body: preferences.inputSchema.replace(
-              "{input}",
-              prompt.replaceAll(/[\n\r\s]+/g, " ").replaceAll('"', '\\"')
-            ),
+            body: preferences.inputSchema
+              .replace("{prompt}", prompt.replaceAll(/[\n\r\s]+/g, " ").replaceAll('"', '\\"'))
+              .replace("{basePrompt}", basePrompt.replaceAll(/[\n\r\s]+/g, " ").replaceAll('"', '\\"'))
+              .replace("{input}", input.replaceAll(/[\n\r\s]+/g, " ").replaceAll('"', '\\"')),
           }).then(async (response) => {
             if (response.ok && response.body != null) {
               let text = "";

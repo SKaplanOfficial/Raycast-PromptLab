@@ -244,7 +244,7 @@ ${command.actionScript}
               <Action.CreateQuicklink
                 quicklink={{
                   link: `${QUICKLINK_URL_BASE}${encodeURI(command.name)}%22${
-                    command.prompt.includes("{{input}}") ? "%2C%22queryInput%22%3A%22{Input}%22" : ""
+                    command.prompt?.includes("{{input}}") ? "%2C%22queryInput%22%3A%22{Input}%22" : ""
                   }%7D`,
                   name: command.name,
                 }}

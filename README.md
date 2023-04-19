@@ -261,7 +261,7 @@ npm install && npm run dev
 
 When you first run PromptLab, you'll have the option to configure a custom model API endpoint. If you have access to Raycast AI, you can just leave everything as-is, unless you have a particular need for a different model. You can, of course, adjust the configuration via the Raycast preferences at any time.
 
-To use any arbitrary endpoint, put the endpoint URL in the `Model Endpoint` preference field and provide your `API Key`. Then, specify the `Input Schema` in JSON notation, using {input} to indicate where PromptLab should input its prompt. Next, specify the `Output Key` of the output text within the returned JSON object. If the model endpoint returns a string, rather than a JSON object, leave this field empty.
+To use any arbitrary endpoint, put the endpoint URL in the `Model Endpoint` preference field and provide your `API Key` alongside the corresponding `Authorization Type`. Then, specify the `Input Schema` in JSON notation, using `{prompt}` to indicate where PromptLab should input its prompt. Alternatively, you can specify `{basePrompt}` and `{input}` separately, for example if you want to provide content for the user and system roles separately when using the OpenAI API. Next, specify the `Output Key` of the output text within the returned JSON object. If the model endpoint returns a string, rather than a JSON object, leave this field empty. Finally, specify the `Output Timing` of the model endpoint. If the model endpoint returns the output immediately, select `Synchronous`. If the model endpoint returns the output asynchronously, select `Asynchronous`.
 
 ### OpenAI API Example
 
@@ -272,7 +272,7 @@ To use the OpenAI API as the model endpoint, configure the extension as follows:
 | Model Endpoint | https://api.openai.com/v1/chat/completions |
 | API Authorization Type | Bearer Token |
 | API Key | Your API key |
-| Input Schema | { "model": "gpt-4", "messages": [{"role": "user", "content": "{input}"}], "stream": true }
+| Input Schema | { "model": "gpt-4", "messages": [{"role": "user", "content": "{prompt}"}], "stream": true }
 | Output Key Path | choices[0].delta.content |
 | Output Timing | Asynchronous |
 

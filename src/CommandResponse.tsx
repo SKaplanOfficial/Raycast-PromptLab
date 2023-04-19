@@ -72,7 +72,9 @@ export default function CommandResponse(props: {
   );
 
   const { data, isLoading, revalidate, error } = useModel(
+    substitutedPrompt,
     fullPrompt,
+    input || contentPromptString,
     !loadingData && ((options.minNumFiles != undefined && options.minNumFiles == 0) || contentPrompts.length > 0)
   );
 
