@@ -29,6 +29,7 @@ PromptLab also supports "action scripts" -- AppleScripts which run with the AI's
         - [System Data Placeholders](#system-data-placeholders)
         - [Other Placeholders](#other-placeholders)
     - [Action Scripts](#action-scripts)
+        - [Provided Variables](#provided-variables)
         - [Provided Handlers](#provided-handlers)
 - [List Of Useful Prompts](#list-of-useful-prompts)
     - [Default Command Prompts](#default-command-prompts)
@@ -51,8 +52,6 @@ PromptLab also supports "action scripts" -- AppleScripts which run with the AI's
 - Import Custom PromptLab Commands
     - Add custom commands from a JSON string.
 
-View more images in [the gallery](./gallery).
-
 ## Images
 
 ![Preview of Search PromptLab Commands showing the default command 'Split Into Text Files'](./assets/promptlab-1.png)
@@ -61,6 +60,8 @@ View more images in [the gallery](./gallery).
 ![Identify Selected Files example](./assets/promptlab-4.png)
 ![Recent News Headlines Example](./assets/promptlab-5.png)
 ![PromptLab commands as Quicklinks](./assets/promptlab-6.png)
+
+View more images in [the gallery](./gallery).
 
 ## Create Your Own Commands
 
@@ -158,6 +159,13 @@ You can instruct PromptLab to extract text from any webpage by using the {% raw 
 
 When configuring a PromptLab command, you can provide AppleScript code to execute once the AI finishes its response. You can access the response text via the `response` variable in AppleScript. Several convenient handlers for working with the response text are also provided, as listed below. Action Scripts can be used to build complex workflows using AI as a content provider, navigator, or decision-maker.
 
+### Provided Variables
+| Variable | Value | Type |
+| --- | --- | --- |
+| `input` | The selected files or text input provided to the command. | String |
+| `prompt` | The prompt component of the command that was run. | String |
+| `response` | The full response received from the AI. | String |
+
 #### Provided Handlers
 
 | Handler | Purpose | Returns |
@@ -204,7 +212,7 @@ When configuring a PromptLab command, you can provide AppleScript code to execut
 | Meeting Agenda | Create a meeting agenda covering the contents of the following files. Use today's date and time, {% raw %}{{date}}{% endraw %}, to provide headings and structure to the agenda. |
 | Metadata Analysis | I want you to give several insights about files based on their metadata and file type. Do not summarize the file content, but instead relate the metadata to the content in a meaningful way. Use metadata to suggest improvements to the content. Provide detailed explanations for your suggestions. Format your response as a paragraph summary. Use the file names as headings.\nHere's the metadata:{% raw %}{{metadata}}{% endraw %}\n\nHere are the files: |
 | Pattern Analysis | Identify and describe any patterns or trends in the content of the following files. Use the file names as headers. |
-| Performance Summary | Give me a detailed analysis of my CPU and RAM usage based on this data. Output two friendly paragraphs. along with a markdown table. ###{% raw %}{{shell:top -stats command -l 1 -n 10 | grep -iE '(PhysMem|CPU Usage)'}}{% endraw %}### |
+| Performance Summary | Give me a detailed analysis of my CPU and RAM usage based on this data. Output two friendly paragraphs. along with a markdown table. ###{% raw %}{{shell:top -stats command -l 1 -n 10 \| grep -iE '(PhysMem\|CPU Usage)'}}{% endraw %}### |
 | Pros And Cons | List pros and cons for the following files based on the topics mentioned within them. Format the response as a markdown list. Use the file names as headings. Do not provide any other commentary. |
 | Recent Headlines From 68k News | Discuss the recent headlines from 68k News: ###{% raw %}{{http://68k.news}}{% endraw %}### |
 | Recommend Apps | Based on the list of apps I have installed, recommend 10 additional macOS applications that I might enjoy. Explain the significance of the relationship between each recommandation and my installed apps. Use any knowledge you have about the apps to inform your suggestions. Format the output as a markdown list. At the start, provide a paragraph analyzing common themes of my apps, directed at me. Here is the list of apps I have installed: ###{% raw %}{{installedApps}}{% endraw %}### |
@@ -263,7 +271,7 @@ npm install && npm run dev
 
 When you first run PromptLab, you'll have the option to configure a custom model API endpoint. If you have access to Raycast AI, you can just leave everything as-is, unless you have a particular need for a different model. You can, of course, adjust the configuration via the Raycast preferences at any time.
 
-To use any arbitrary endpoint, put the endpoint URL in the `Model Endpoint` preference field and provide your `API Key`. Then, specify the `Input Schema` in JSON notation, using {input} to indicate where PromptLab should input its prompt. Next, specify the `Output Key` of the output text within the returned JSON object. If the model endpoint returns a string, rather than a JSON object, leave this field empty.
+To use any arbitrary endpoint, put the endpoint URL in the `Model Endpoint` preference field and provide your `API Key` alongside the corresponding `Authorization Type`. Then, specify the `Input Schema` in JSON notation, using `{prompt}` to indicate where PromptLab should input its prompt. Alternatively, you can specify `{basePrompt}` and `{input}` separately, for example if you want to provide content for the user and system roles separately when using the OpenAI API. Next, specify the `Output Key` of the output text within the returned JSON object. If the model endpoint returns a string, rather than a JSON object, leave this field empty. Finally, specify the `Output Timing` of the model endpoint. If the model endpoint returns the output immediately, select `Synchronous`. If the model endpoint returns the output asynchronously, select `Asynchronous`.
 
 ### OpenAI API Example
 
