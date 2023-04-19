@@ -197,6 +197,7 @@ ${command.actionScript}
                         showResponse: command.showResponse ? "TRUE" : "FALSE",
                         description: command.description || "None",
                         useSaliencyAnalysis: command.useSaliencyAnalysis ? "TRUE" : "FALSE",
+                        exampleOutput: "",
                       },
                     }),
                   }).then((res) => {
@@ -364,7 +365,7 @@ ${command.actionScript}
         !commands || commands.length == 1 ? "commands..." : `${commands.length} commands...`
       }`}
     >
-      <List.EmptyView title="No Custom PromptLab Commands" />
+      <List.EmptyView title="No Custom Commands" />
       {listItems}
     </List>
   );

@@ -1,6 +1,9 @@
 # PromptLab DevLog - A More Detailed ChangeLog
 
-## [Various Changes] - 2023-04-18
+## 2023-04-19
+- Add example output images to the store
+
+## 2023-04-18
 - Added saliency analysis option in the create command form
 - Adjusted names of PromptLab's built-in commands
     - `Create PromptLab Command` --> `New PromptLab Command`

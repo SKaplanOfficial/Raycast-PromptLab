@@ -62,16 +62,24 @@ export default function Discover() {
   ${command.description || "None"}
   
   ## Prompt
+  \`\`\`
   ${command.prompt}
+  \`\`\`
   
   ## Action Script
   ${
-    command.actionScript
+    command.actionScript?.length
       ? `\`\`\`
   ${command.actionScript}
   \`\`\``
-      : "None"
+      : `\`\`\`
+None
+\`\`\``
   }
+
+${command.exampleOutput ? `## Example Output
+![Example of the command's output](${command.exampleOutput})
+` : ``}
   
   ## Options
   | Option | Value |

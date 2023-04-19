@@ -73,6 +73,7 @@ export interface StoreCommand {
   showResponse?: string;
   description?: string;
   useSaliencyAnalysis?: string;
+  exampleOutput?: string;
 }
 
 /** Output from a model endpoint */
