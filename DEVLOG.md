@@ -1,7 +1,11 @@
 # PromptLab DevLog - A More Detailed ChangeLog
 
 ## 2023-04-19
-- Add example output images to the store
+- Added example output images to the store
+- Added PDF document attributes to file data when metadata is enabled
+- Added page count and number of characters to PDF file data
+- Added metadata info for large files instead of immediately raising an error
+- Added Chat response views, layed groundwork for an improved PromptLab Chat command (coming soon)
 
 ## 2023-04-18
 - Added saliency analysis option in the create command form

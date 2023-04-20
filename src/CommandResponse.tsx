@@ -1,6 +1,5 @@
-import { closeMainWindow, Detail, List, showToast, Toast } from "@raycast/api";
+import { closeMainWindow, showToast, Toast } from "@raycast/api";
 import { ERRORTYPE, useFileContents } from "./utils/file-utils";
-import ResponseActions from "./ResponseActions";
 import { useEffect, useState } from "react";
 import { CommandOptions } from "./utils/types";
 import {
@@ -13,6 +12,9 @@ import {
 } from "./utils/command-utils";
 import useModel from "./utils/useModel";
 import { useReplacements } from "./hooks/useReplacements";
+import CommandDetailView from "./components/CommandDetailView";
+import CommandChatView from "./components/CommandChatView";
+import CommandListView from "./components/CommandListView";
 
 export default function CommandResponse(props: {
   commandName: string;
@@ -142,68 +144,51 @@ export default function CommandResponse(props: {
 
   if (options.outputKind == "list") {
     return (
-      <List
+      <CommandListView
         isLoading={
           loading ||
           isLoading ||
           loadingData ||
           (options.minNumFiles != undefined && options.minNumFiles != 0 && contentPrompts.length == 0)
         }
-        navigationTitle={commandName}
-        actions={
-          <ResponseActions
-            commandSummary="Response"
-            responseText={text}
-            promptText={fullPrompt}
-            reattempt={revalidate}
-            files={selectedFiles}
-          />
+        commandName={commandName}
+        prompt={fullPrompt}
+        response={text}
+        revalidate={revalidate}
+        selectedFiles={selectedFiles}
+      />
+    );
+  } else if (options.outputKind == "chat") {
+    return (
+      <CommandChatView
+        isLoading={
+          loading ||
+          isLoading ||
+          loadingData ||
+          (options.minNumFiles != undefined && options.minNumFiles != 0 && contentPrompts.length == 0)
         }
-      >
-        {text
-          .split("~~~")
-          .filter((item) => {
-            return item.match(/^[\S]*.*$/g) != undefined;
-          })
-          .map((item, index) => (
-            <List.Item
-              title={item.trim()}
-              key={`item${index}`}
-              actions={
-                <ResponseActions
-                  commandSummary="Response"
-                  responseText={text}
-                  promptText={fullPrompt}
-                  reattempt={revalidate}
-                  files={selectedFiles}
-                  listItem={item.trim()}
-                />
-              }
-            />
-          ))}
-      </List>
+        commandName={commandName}
+        options={options}
+        prompt={fullPrompt}
+        response={text}
+        revalidate={revalidate}
+      />
     );
   }
 
   return (
-    <Detail
+    <CommandDetailView
       isLoading={
         loading ||
         isLoading ||
         loadingData ||
         (options.minNumFiles != undefined && options.minNumFiles != 0 && contentPrompts.length == 0)
       }
-      markdown={text}
-      navigationTitle={commandName}
-      actions={
-        <ResponseActions
-          commandSummary="Response"
-          responseText={text}
-          promptText={fullPrompt}
-          reattempt={revalidate}
-          files={selectedFiles}
-        />
-      }
+      commandName={commandName}
+      prompt={fullPrompt}
+      response={text}
+      revalidate={revalidate}
+      selectedFiles={selectedFiles}
     />
   );
 }

@@ -102,15 +102,17 @@ export function useFileContents(options: CommandOptions) {
 
         const fileContents: Promise<string[]> = Promise.all(
           filteredFiles.map(async (file, index) => {
-            if (fs.lstatSync(file).size > 10000000) {
-              setErrorType(ERRORTYPE.INPUT_TOO_LONG);
-              return "";
-            }
-
+            // Init. file contents with file name as header
             let contents = `{File ${index + 1} - ${
               file.endsWith("/") ? file.split("/").at(-2) : file.split("/").at(-1)
             }}:\n`;
 
+            // If the file is too large, just return the metadata
+            if (fs.lstatSync(file).size > 100000) {
+              return contents + getMetadataDetails(file);
+            }
+
+            // Otherwise, get the file's contents (and maybe the metadata)
             const pathLower = file.toLowerCase();
             if (!pathLower.includes(".app") && fs.lstatSync(file).isDirectory()) {
               // Get size, list of contained files within a directory
@@ -118,6 +120,10 @@ export function useFileContents(options: CommandOptions) {
             } else if (pathLower.includes(".pdf")) {
               // Extract text from a PDF
               contents += `"${filterContentString(await getPDFText(file, preferences.pdfOCR, 3))}"`;
+              if (options.useMetadata) {
+                contents += filterContentString(await getPDFAttributes(file));
+                contents += filterContentString(getMetadataDetails(file));
+              }
             } else if (imageFileExtensions.includes(pathLower.split(".").at(-1) as string)) {
               // Extract text, subjects, barcodes, rectangles, and metadata for an image
               contents += await getImageDetails(file, options);
@@ -156,7 +162,6 @@ export function useFileContents(options: CommandOptions) {
               }
               contents += getMetadataDetails(file);
             }
-
             return contents;
           })
         );
@@ -490,8 +495,7 @@ const getPDFText = async (filePath: string, useOCR: boolean, pageLimit: number):
     ? await runAppleScript(`use framework "PDFKit"
     use framework "Vision"
     
-    set theFile to "${filePath}"
-    set theURL to current application's |NSURL|'s fileURLWithPath:theFile
+    set theURL to current application's |NSURL|'s fileURLWithPath:"${filePath}"
     set thePDF to current application's PDFDocument's alloc()'s initWithURL:theURL
     set theText to ""
     set numPages to thePDF's pageCount()
@@ -516,7 +520,7 @@ const getPDFText = async (filePath: string, useOCR: boolean, pageLimit: number):
         set theText to theText & ((first item in (observation's topCandidates:1))'s |string|() as text) & ", "
       end repeat
     end repeat
-    return theText`)
+    return {theText, "NumPages:" & thePDF's pageCount(), "NumCharacters:" & length of theText}`)
     : "";
 
   // Get the raw text of the PDF
@@ -524,10 +528,19 @@ const getPDFText = async (filePath: string, useOCR: boolean, pageLimit: number):
   set thePDF to "${filePath}"
   set theURL to current application's |NSURL|'s fileURLWithPath:thePDF
   set thePDF to current application's PDFDocument's alloc()'s initWithURL:theURL
-  return (thePDF's |string|()) as text`);
+  set theText to thePDF's |string|() as text
+  return {theText, "NumPages:" & thePDF's pageCount(), "NumCharacters:" & length of theText}`);
 
-  return `${rawText} ${imageText}`;
+  return `${imageText} ${rawText}`;
 };
+
+const getPDFAttributes = async (filePath: string): Promise<string> => {
+  return await runAppleScript(`use framework "Foundation"
+  use framework "PDFKit"
+  set theURL to current application's NSURL's fileURLWithPath:"${filePath}"
+  set theDoc to current application's PDFDocument's alloc()'s initWithURL:theURL
+  theDoc's documentAttributes() as record`)
+}
 
 /**
  * Gets the metadata and sound classifications of an audio file.

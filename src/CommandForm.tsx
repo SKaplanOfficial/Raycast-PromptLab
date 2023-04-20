@@ -205,6 +205,7 @@ export default function CommandForm(props: {
       >
         <Form.Dropdown.Item title="Detail" value="detail" icon={Icon.AppWindow} />
         <Form.Dropdown.Item title="List" value="list" icon={Icon.List} />
+        <Form.Dropdown.Item title="Chat" value="chat" icon={Icon.Message} />
       </Form.Dropdown>
 
       <Form.TextField
