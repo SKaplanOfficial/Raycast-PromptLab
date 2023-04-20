@@ -10,7 +10,8 @@ import {
   environment,
 } from "@raycast/api";
 import { useForm, FormValidation } from "@raycast/utils";
-import { Command } from "./utils/types";
+import { Command } from "../utils/types";
+import { useState } from "react";
 
 interface CommandFormValues {
   name: string;
@@ -39,12 +40,19 @@ export default function CommandForm(props: {
   duplicate?: boolean;
 }) {
   const { oldData, setCommands, duplicate } = props;
+  const [showResponse, setShowResponse] = useState<boolean>(
+    oldData != undefined && oldData.showResponse != undefined ? oldData.showResponse : true
+  );
   const { pop } = useNavigation();
 
   let maxPromptLength = oldData?.minNumFiles == "0" ? 3000 : 500;
 
   const { handleSubmit, itemProps } = useForm<CommandFormValues>({
     async onSubmit(values) {
+      if (!values.showResponse) {
+        values["outputKind"] = "none";
+      }
+
       await LocalStorage.setItem(values.name, JSON.stringify(values));
       if (oldData && oldData.name != values.name) {
         await LocalStorage.removeItem(oldData.name);
@@ -193,20 +201,25 @@ export default function CommandForm(props: {
       <Form.Checkbox
         label="Show Response View"
         {...itemProps.showResponse}
+        value={showResponse}
+        onChange={setShowResponse}
         info="If checked, the AI's output will be displayed in Raycast. Disabling this is only useful if you provide an action script."
       />
 
       <Form.Separator />
 
-      <Form.Dropdown
-        title="Output View"
-        info="The view in which the command's output will be rendered. Detail is the most likely to work for any given command, but PromptLab will do its best to give you usable output no matter what."
-        {...itemProps.outputKind}
-      >
-        <Form.Dropdown.Item title="Detail" value="detail" icon={Icon.AppWindow} />
-        <Form.Dropdown.Item title="List" value="list" icon={Icon.List} />
-        <Form.Dropdown.Item title="Chat" value="chat" icon={Icon.Message} />
-      </Form.Dropdown>
+      {showResponse ? (
+        <Form.Dropdown
+          title="Output View"
+          info="The view in which the command's output will be rendered. Detail is the most likely to work for any given command, but PromptLab will do its best to give you usable output no matter what."
+          {...itemProps.outputKind}
+        >
+          <Form.Dropdown.Item title="Detail" value="detail" icon={Icon.AppWindow} />
+          <Form.Dropdown.Item title="List" value="list" icon={Icon.List} />
+          <Form.Dropdown.Item title="Grid" value="grid" icon={Icon.Message} />
+          <Form.Dropdown.Item title="Chat" value="chat" icon={Icon.Message} />
+        </Form.Dropdown>
+      ) : null}
 
       <Form.TextField
         title="Minimum File Count"

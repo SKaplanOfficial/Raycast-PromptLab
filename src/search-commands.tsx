@@ -13,9 +13,9 @@ import {
   Toast,
 } from "@raycast/api";
 import { useEffect, useState } from "react";
-import CommandResponse from "./CommandResponse";
+import CommandResponse from "./components/CommandResponse";
 import { installDefaults } from "./utils/file-utils";
-import CommandForm from "./CommandForm";
+import CommandForm from "./components/CommandForm";
 import { Command, StoreCommand } from "./utils/types";
 import fetch from "node-fetch";
 import { QUICKLINK_URL_BASE, STORE_ENDPOINT, STORE_KEY } from "./utils/constants";

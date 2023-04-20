@@ -6,6 +6,7 @@
 - Added page count and number of characters to PDF file data
 - Added metadata info for large files instead of immediately raising an error
 - Added Chat response views, layed groundwork for an improved PromptLab Chat command (coming soon)
+- Added Grid response views
 
 ## 2023-04-18
 - Added saliency analysis option in the create command form

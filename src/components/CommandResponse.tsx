@@ -1,7 +1,7 @@
 import { closeMainWindow, showToast, Toast } from "@raycast/api";
-import { ERRORTYPE, useFileContents } from "./utils/file-utils";
+import { ERRORTYPE, useFileContents } from "../utils/file-utils";
 import { useEffect, useState } from "react";
-import { CommandOptions } from "./utils/types";
+import { CommandOptions } from "../utils/types";
 import {
   replaceAppleScriptPlaceholders,
   replaceFileSelectionPlaceholders,
@@ -9,12 +9,13 @@ import {
   replaceShellScriptPlaceholders,
   replaceURLPlaceholders,
   runActionScript,
-} from "./utils/command-utils";
-import useModel from "./utils/useModel";
-import { useReplacements } from "./hooks/useReplacements";
-import CommandDetailView from "./components/CommandDetailView";
-import CommandChatView from "./components/CommandChatView";
-import CommandListView from "./components/CommandListView";
+} from "../utils/command-utils";
+import useModel from "../utils/useModel";
+import { useReplacements } from "../hooks/useReplacements";
+import CommandDetailView from "./CommandDetailView";
+import CommandChatView from "./CommandChatView";
+import CommandListView from "./CommandListView";
+import CommandGridView from "./CommandGridView";
 
 export default function CommandResponse(props: {
   commandName: string;
@@ -62,6 +63,9 @@ export default function CommandResponse(props: {
       if (options.outputKind == "list") {
         subbedPrompt +=
           "<Format the output as a single list with each item separated by '~~~'. Do not provide any other commentary, headings, or data.>";
+      } else if (options.outputKind == "grid") {
+        subbedPrompt +=
+          "<Format the output as a single list with each item separated by '~~~'. At the start of each item, put an object emoji or person emoji that represents that item followed by '$$$'. Do not provide any other commentary, headings, or data.>";
       }
 
       setSubstitutedPrompt(subbedPrompt);
@@ -147,6 +151,22 @@ export default function CommandResponse(props: {
   if (options.outputKind == "list") {
     return (
       <CommandListView
+        isLoading={
+          loading ||
+          isLoading ||
+          loadingData ||
+          (options.minNumFiles != undefined && options.minNumFiles != 0 && contentPrompts.length == 0)
+        }
+        commandName={commandName}
+        prompt={fullPrompt}
+        response={text}
+        revalidate={revalidate}
+        selectedFiles={selectedFiles}
+      />
+    );
+  } else if (options.outputKind == "grid") {
+    return (
+      <CommandGridView
         isLoading={
           loading ||
           isLoading ||
