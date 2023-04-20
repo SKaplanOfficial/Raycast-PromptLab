@@ -11,8 +11,9 @@ export default function CommandChatView(props: {
   prompt: string;
   response: string;
   revalidate: () => void;
+  cancel: () => void;
 }) {
-  const { isLoading, commandName, options, prompt, response, revalidate } = props;
+  const { isLoading, commandName, options, prompt, response, revalidate, cancel } = props;
   const [query, setQuery] = useState<string>(prompt);
   const [sentQuery, setSentQuery] = useState<string>("");
   const [currentResponse, setCurrentResponse] = useState<string>(response);
@@ -46,7 +47,7 @@ export default function CommandChatView(props: {
       navigationTitle={commandName}
       actions={
         <ActionPanel>
-          <Action.SubmitForm
+          {isLoading || loading ? <Action title="Cancel" onAction={() => {previousResponse.length > 0 ? setEnableModel(false) : cancel()}} /> : <Action.SubmitForm
             title="Submit Query"
             onSubmit={async (values) => {
               // Ensure query is not empty
@@ -65,13 +66,13 @@ export default function CommandChatView(props: {
               setSentQuery(
                 `${
                   values.responseField.length > 0
-                    ? `You are an interactive chatbot, and I am giving you instructions. ${
+                    ? `You are an interactive chatbot, and I am giving you instructions. You will use this base prompt for context as you consider my next input: ###${prompt}###\n${
                         values.useFilesCheckbox && selectedFiles?.length
-                          ? `You will use the following details about selected files as context as you consider my input. Here are the file details: ###${contentPrompts.join(
+                          ? ` You will also consider the following details about selected files. Here are the file details: ###${contentPrompts.join(
                               "\n"
-                            )}###\n\n`
+                            )}###\n`
                           : ``
-                      }You will also use your previous response as context. Your previous response was: ###${
+                      }\nYou will also use your previous response as context, but do not repeat it. Your previous response was: ###${
                         values.responseField
                       }###\nMy next input is: ###`
                     : ""
@@ -79,7 +80,7 @@ export default function CommandChatView(props: {
               );
               reattempt();
             }}
-          />
+          />}
 
           <Action
             title="Regenerate"

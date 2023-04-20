@@ -91,7 +91,9 @@ export default function SearchCommand(props: { arguments: { commandName: string;
 ${command.description || "None"}
 
 ## Prompt
+\`\`\`
 ${command.prompt}
+\`\`\`
 
 ## Action Script
 ${
@@ -105,7 +107,7 @@ ${command.actionScript}
 ## Options
 | Option | Value |
 | --- | --- |
-| Output View | ${command.outputKind == "list" ? "List" : "Detail"} |
+| Output View | ${(command.outputKind?.at(0)?.toUpperCase() || "") + (command.outputKind?.substring(1) || "")} |
 | Show Response View | ${command.showResponse ? "Yes" : "No"} |
 | Minimum File Count | ${command.minNumFiles} |
 | Use File Metadata? | ${command.useMetadata ? "Yes" : "No"} |

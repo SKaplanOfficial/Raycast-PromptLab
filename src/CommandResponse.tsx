@@ -25,6 +25,7 @@ export default function CommandResponse(props: {
   const { commandName, prompt, input, options } = props;
   const [substitutedPrompt, setSubstitutedPrompt] = useState<string>(prompt);
   const [loadingData, setLoadingData] = useState<boolean>(true);
+  const [shouldCancel, setShouldCancel] = useState<boolean>(false);
 
   const { selectedFiles, contentPrompts, loading, errorType } =
     options.minNumFiles != undefined && options.minNumFiles > 0
@@ -172,6 +173,7 @@ export default function CommandResponse(props: {
         prompt={fullPrompt}
         response={text}
         revalidate={revalidate}
+        cancel={() => setShouldCancel(true)}
       />
     );
   }

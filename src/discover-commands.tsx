@@ -84,7 +84,7 @@ ${command.exampleOutput ? `## Example Output
   ## Options
   | Option | Value |
   | --- | --- |
-  | Output View | ${command.outputKind == "list" ? "List" : "Detail"} |
+  | Output View | ${(command.outputKind?.at(0)?.toUpperCase() || "") + (command.outputKind?.substring(1) || "")} |
   | Show Response View | ${command.showResponse == "TRUE" ? "Yes" : "No"} |
   | Minimum File Count | ${command.minNumFiles} |
   | Use File Metadata? | ${command.useMetadata == "TRUE" ? "Yes" : "No"} |
