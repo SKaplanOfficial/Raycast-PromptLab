@@ -281,3 +281,4 @@ To use the OpenAI API as the model endpoint, configure the extension as follows:
 | Link | Category | Description |
 | --- | --- | --- |
 | [Best practices for prompt engineering with OpenAI API](https://help.openai.com/en/articles/6654000-best-practices-for-prompt-engineering-with-openai-api) | Prompt Engineering | Strategies for creating effective ChatGPT prompts, from OpenAI itself |
+| [Techniques to improve reliability](https://github.com/openai/openai-cookbook/blob/main/techniques_to_improve_reliability.md) | Strategies for improving reliability of GPT responses |

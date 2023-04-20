@@ -539,8 +539,8 @@ const getPDFAttributes = async (filePath: string): Promise<string> => {
   use framework "PDFKit"
   set theURL to current application's NSURL's fileURLWithPath:"${filePath}"
   set theDoc to current application's PDFDocument's alloc()'s initWithURL:theURL
-  theDoc's documentAttributes() as record`)
-}
+  theDoc's documentAttributes() as record`);
+};
 
 /**
  * Gets the metadata and sound classifications of an audio file.

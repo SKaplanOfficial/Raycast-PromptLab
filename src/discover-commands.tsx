@@ -77,9 +77,13 @@ None
 \`\`\``
   }
 
-${command.exampleOutput ? `## Example Output
+${
+  command.exampleOutput
+    ? `## Example Output
 ![Example of the command's output](${command.exampleOutput})
-` : ``}
+`
+    : ``
+}
   
   ## Options
   | Option | Value |
