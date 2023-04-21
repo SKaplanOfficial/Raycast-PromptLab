@@ -129,6 +129,33 @@
           "required": false,
           "type": "text"
         }
+      ],
+      "preferences": [
+        {
+          "title": "Default Chat Settings",
+          "name": "useSelectedFiles",
+          "label": "Selected Files",
+          "type": "checkbox",
+          "default": false,
+          "description": "If checked, the selected files will be used as context for conversations by default.",
+          "required": false
+        },
+        {
+          "name": "useConversationHistory",
+          "label": "Conversation History",
+          "type": "checkbox",
+          "default": true,
+          "description": "If checked, the conversation history will be used as context for conversations by default.",
+          "required": false
+        },
+        {
+          "name": "basePrompt",
+          "title": "Base Prompt",
+          "type": "textfield",
+          "required": false,
+          "default": "I want you to act as an interactive information engine. When I supply a question, you will respond with an answer based on any information I've provided and your own inferences.",
+          "description": "The base prompt that provides the initial context for the conversation."
+        }
       ]
     },
     {

@@ -98,10 +98,12 @@ ${command.prompt}
 ## Action Script
 ${
   command.actionScript
-    ? `\`\`\`
+    ? `\`\`\`applescript
 ${command.actionScript}
 \`\`\``
-    : "None"
+    : `\`\`\`
+None
+\`\`\``
 }
 
 ## Options

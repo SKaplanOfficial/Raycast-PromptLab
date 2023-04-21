@@ -69,7 +69,7 @@ export default function Discover() {
   ## Action Script
   ${
     command.actionScript?.length
-      ? `\`\`\`
+      ? `\`\`\`applescript
   ${command.actionScript}
   \`\`\``
       : `\`\`\`

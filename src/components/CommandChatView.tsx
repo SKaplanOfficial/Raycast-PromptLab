@@ -20,20 +20,50 @@ export default function CommandChatView(props: {
   response: string;
   revalidate: () => void;
   cancel: () => void;
+  initialQuery?: string;
+  useFiles?: boolean;
+  useConversation?: boolean;
 }) {
-  const { isLoading, commandName, options, prompt, response, revalidate, cancel } = props;
-  const [query, setQuery] = useState<string>(prompt);
+  const {
+    isLoading,
+    commandName,
+    options,
+    prompt,
+    response,
+    revalidate,
+    cancel,
+    initialQuery,
+    useFiles,
+    useConversation,
+  } = props;
+  const [query, setQuery] = useState<string>(initialQuery || "");
   const [sentQuery, setSentQuery] = useState<string>("");
   const [currentResponse, setCurrentResponse] = useState<string>(response);
   const [previousResponse, setPreviousResponse] = useState<string>("");
   const [enableModel, setEnableModel] = useState<boolean>(false);
   const [queryError, setQueryError] = useState<string>();
+  const [conversation, setConversation] = useState<string[]>([prompt]);
+
+  useEffect(() => {
+    if (initialQuery?.length) {
+      setPreviousResponse(response);
+      setCurrentResponse("");
+      setConversation([prompt, response]);
+      setSentQuery(initialQuery);
+      setEnableModel(true);
+    }
+  }, []);
 
   useEffect(() => {
     setCurrentResponse(response);
   }, [response]);
 
-  const { selectedFiles, contentPrompts, loading: contentIsLoading } = useFileContents(options);
+  const {
+    selectedFiles,
+    contentPrompts,
+    loading: contentIsLoading,
+    revalidate: revalidateFiles,
+  } = useFileContents(options);
 
   const { data, isLoading: loading, revalidate: reattempt } = useModel(prompt, sentQuery, "", enableModel);
 
@@ -95,23 +125,43 @@ export default function CommandChatView(props: {
                 setPreviousResponse(values.responseField);
                 setCurrentResponse("");
 
+                const convo = [...conversation];
+                convo.push(values.responseField);
+                convo.push(values.queryField);
+                while (values.queryField + convo.join("\n").length > 3900) {
+                  convo.shift();
+                }
+                setConversation(convo);
+
+                await (async () => {
+                  revalidateFiles();
+                  if (!contentIsLoading) {
+                    return true;
+                  }
+                });
+
                 // Enable the model, prepend instructions to the query, and reattempt
                 const subbedPrompt = await runReplacements();
                 setEnableModel(true);
                 setSentQuery(
                   `${
                     values.responseField.length > 0
-                      ? `You are an interactive chatbot, and I am giving you instructions. You will use this base prompt for context as you consider my next input: ###${prompt}###\n${
+                      ? `You are an interactive chatbot, and I am giving you instructions. You will use this base prompt for context as you consider my next input. Here is the prompt: ###${prompt}###\n\n${
                           values.useFilesCheckbox && selectedFiles?.length
                             ? ` You will also consider the following details about selected files. Here are the file details: ###${contentPrompts.join(
                                 "\n"
-                              )}###\n`
+                              )}###\n\n`
                             : ``
-                        }\nYou will also use your previous response as context, but do not repeat it. Your previous response was: ###${
-                          values.responseField
-                        }###\nMy next input is: ###`
+                        }${
+                          values.useConversationCheckbox
+                            ? `You will also consider our conversation history. The history so far: ###${conversation.join(
+                                "\n"
+                              )}`
+                            : `You will also consider your previous response. Your previous response was: ###${values.responseField}`
+                        }###\n\nMy next input is: ###`
                       : ""
-                  }${subbedPrompt}###`
+                  }
+                  ${subbedPrompt}###`
                 );
                 reattempt();
               }}
@@ -150,7 +200,16 @@ export default function CommandChatView(props: {
         </ActionPanel>
       }
     >
-      <Form.Checkbox label="Use Selected Files As Context" id="useFilesCheckbox" defaultValue={false} />
+      <Form.Checkbox
+        label="Use Selected Files As Context"
+        id="useFilesCheckbox"
+        defaultValue={useFiles == undefined ? false : useFiles}
+      />
+      <Form.Checkbox
+        label="Use Conversation As Context"
+        id="useConversationCheckbox"
+        defaultValue={useConversation == undefined ? true : useConversation}
+      />
 
       <Form.TextArea
         id="queryField"
@@ -158,6 +217,7 @@ export default function CommandChatView(props: {
         value={query || ""}
         onChange={(value) => setQuery(value)}
         error={queryError}
+        autoFocus={true}
       />
 
       <Form.Description title="" text="Tip: You can use placeholders in your query." />

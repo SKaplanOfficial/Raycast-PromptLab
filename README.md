@@ -14,6 +14,7 @@ PromptLab also supports "action scripts" -- AppleScripts which run with the AI's
 - [Images](#images)
 - [Create Your Own Commands](#create-your-own-commands)
     - [Placeholders](#placeholders)
+        - [Command Placeholders](#command-placeholders)
         - [Script Placeholders](#script-placeholders)
         - [URL Placeholders](#url-placeholders)
         - [API Data Placeholders](#api-data-placeholders)
@@ -67,6 +68,10 @@ You can create custom PromptLab commands, accessed via the "Search PromptLab Com
 ### Placeholders
 
 When creating custom commands, you can use placeholders in your prompts that will be substituted with relevant information whenever you run the command. These placeholders range from simple information, like the current date, to complex data retrieval operations such as getting the content of the most recent email. Placeholders are a powerful way to add context to your PromptLab prompts. The valid placeholders are as follows:
+
+### Command Placeholders
+
+You can use the name of any PromptLab command you have installed as a placeholder by surrounding it with double curly braces, `{{like this}}`. For example, if you have a command named "Summarize Selected Files", you can use the placeholder `{{Summarize Selected Files}}` to include the output of that command in your prompt for another command. This is useful for chaining commands together, but it also slows down the execution of your command, so use it wisely.
 
 ### Script Placeholders
 

@@ -2,14 +2,7 @@ import { closeMainWindow, showToast, Toast } from "@raycast/api";
 import { ERRORTYPE, useFileContents } from "../utils/file-utils";
 import { useEffect, useState } from "react";
 import { CommandOptions } from "../utils/types";
-import {
-  replaceAppleScriptPlaceholders,
-  replaceFileSelectionPlaceholders,
-  replaceOldAppleScriptPlaceholders,
-  replaceShellScriptPlaceholders,
-  replaceURLPlaceholders,
-  runActionScript,
-} from "../utils/command-utils";
+import { runActionScript, runReplacements } from "../utils/command-utils";
 import useModel from "../utils/useModel";
 import { useReplacements } from "../hooks/useReplacements";
 import CommandDetailView from "./CommandDetailView";
@@ -40,24 +33,7 @@ export default function CommandResponse(props: {
       closeMainWindow();
     }
 
-    const runReplacements = async (): Promise<string> => {
-      let subbedPrompt = prompt;
-      for (const key in replacements) {
-        if (prompt.includes(key)) {
-          subbedPrompt = subbedPrompt.replaceAll(key, await replacements[key]());
-        }
-      }
-
-      // Replace complex placeholders (i.e. shell scripts, AppleScripts, etc.)
-      subbedPrompt = await replaceOldAppleScriptPlaceholders(subbedPrompt);
-      subbedPrompt = await replaceAppleScriptPlaceholders(subbedPrompt);
-      subbedPrompt = await replaceShellScriptPlaceholders(subbedPrompt);
-      subbedPrompt = await replaceURLPlaceholders(subbedPrompt);
-      subbedPrompt = await replaceFileSelectionPlaceholders(subbedPrompt);
-      return subbedPrompt;
-    };
-
-    Promise.resolve(runReplacements()).then((subbedPrompt) => {
+    Promise.resolve(runReplacements(prompt, replacements, [commandName])).then((subbedPrompt) => {
       setLoadingData(false);
 
       if (options.outputKind == "list") {
@@ -158,9 +134,11 @@ export default function CommandResponse(props: {
           (options.minNumFiles != undefined && options.minNumFiles != 0 && contentPrompts.length == 0)
         }
         commandName={commandName}
+        options={options}
         prompt={fullPrompt}
         response={text}
         revalidate={revalidate}
+        cancel={() => setShouldCancel(true)}
         selectedFiles={selectedFiles}
       />
     );
@@ -174,9 +152,11 @@ export default function CommandResponse(props: {
           (options.minNumFiles != undefined && options.minNumFiles != 0 && contentPrompts.length == 0)
         }
         commandName={commandName}
+        options={options}
         prompt={fullPrompt}
         response={text}
         revalidate={revalidate}
+        cancel={() => setShouldCancel(true)}
         selectedFiles={selectedFiles}
       />
     );
@@ -208,9 +188,11 @@ export default function CommandResponse(props: {
         (options.minNumFiles != undefined && options.minNumFiles != 0 && contentPrompts.length == 0)
       }
       commandName={commandName}
+      options={options}
       prompt={fullPrompt}
       response={text}
       revalidate={revalidate}
+      cancel={() => setShouldCancel(true)}
       selectedFiles={selectedFiles}
     />
   );

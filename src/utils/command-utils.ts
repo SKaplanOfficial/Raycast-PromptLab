@@ -12,6 +12,7 @@ import { getTextOfWebpage } from "./context-utils";
 import { exec } from "child_process";
 import * as os from "os";
 import { Command, StoreCommand } from "./types";
+import { LocalStorage, unstable_AI } from "@raycast/api";
 
 /**
  * Runs the action script of a PromptLab command, providing the AI response as the `response` variable.
@@ -149,4 +150,40 @@ export const getCommandJSON = (command: Command | StoreCommand) => {
   const cmdObj: { [key: string]: Command | StoreCommand } = {};
   cmdObj[command.name] = command;
   return JSON.stringify(cmdObj).replaceAll(/\\([^"])/g, "\\\\$1");
+};
+
+export const runReplacements = async (
+  prompt: string,
+  replacements: {
+    [key: string]: () => Promise<string>;
+  },
+  disallowedCommands: string[]
+): Promise<string> => {
+  // Replace simple placeholders (i.e. {{date}})
+  let subbedPrompt = prompt;
+  for (const key in replacements) {
+    if (prompt.includes(key)) {
+      subbedPrompt = subbedPrompt.replaceAll(key, await replacements[key]());
+    }
+  }
+
+  // Replace complex placeholders (i.e. shell scripts, AppleScripts, etc.)
+  subbedPrompt = await replaceOldAppleScriptPlaceholders(subbedPrompt);
+  subbedPrompt = await replaceAppleScriptPlaceholders(subbedPrompt);
+  subbedPrompt = await replaceShellScriptPlaceholders(subbedPrompt);
+  subbedPrompt = await replaceURLPlaceholders(subbedPrompt);
+  subbedPrompt = await replaceFileSelectionPlaceholders(subbedPrompt);
+
+  // Replace command placeholders
+  for (const cmdString of Object.values(await LocalStorage.allItems())) {
+    const cmd = JSON.parse(cmdString) as Command;
+    if (!disallowedCommands.includes(cmd.name) && subbedPrompt.includes(`{{${cmd.name}}}`)) {
+      const cmdResponse = await unstable_AI.ask(
+        await runReplacements(cmd.prompt, replacements, [cmd.name, ...disallowedCommands])
+      );
+      subbedPrompt = subbedPrompt.replaceAll(`{{${cmd.name}}}`, cmdResponse);
+    }
+  }
+
+  return subbedPrompt;
 };

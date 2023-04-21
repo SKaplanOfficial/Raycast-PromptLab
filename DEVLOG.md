@@ -1,5 +1,14 @@
 # PromptLab DevLog - A More Detailed ChangeLog
 
+## 2023-04-20
+- Added syntax highlighting to action script blocks
+- Updated PromptLab Chat command to use the new CommandChatView component
+- Added customizable base prompt for the PromptLab Chat command (see the command's settings)
+    - Also added a setting for using selected files as context by default
+    - Also added a setting for using conversation history as context by default
+- Added command placeholders
+- Fixed bug where only the initially selected files where recognized when using "Use Selected Files As Context" in Chat response views
+
 ## 2023-04-19
 - Added example output images to the store
 - Added PDF document attributes to file data when metadata is enabled

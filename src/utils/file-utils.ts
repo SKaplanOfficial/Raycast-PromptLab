@@ -74,11 +74,13 @@ export function useFileContents(options: CommandOptions) {
   const [contentPrompts, setContentPrompts] = useState<string[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [errorType, setErrorType] = useState<number>();
+  const [shouldRevalidate, setShouldRevalidate] = useState<boolean>(false);
 
   const validExtensions = options.acceptedFileExtensions ? options.acceptedFileExtensions : [];
 
   useEffect(() => {
     const preferences = getPreferenceValues<ExtensionPreferences>();
+    setShouldRevalidate(false);
     getSelectedFiles()
       .then((files) => {
         // Raise error if too few files are selected
@@ -108,7 +110,7 @@ export function useFileContents(options: CommandOptions) {
             }}:\n`;
 
             // If the file is too large, just return the metadata
-            if (fs.lstatSync(file).size > 100000) {
+            if (fs.lstatSync(file).size > 10000000) {
               return contents + getMetadataDetails(file);
             }
 
@@ -154,7 +156,7 @@ export function useFileContents(options: CommandOptions) {
               // Get metadata for an unsupported file type
               try {
                 // Assume file contains readable text
-                if (fs.statSync(file).size < 100000) {
+                if (fs.statSync(file).size < 10000000) {
                   contents += `"${filterContentString(fs.readFileSync(file).toString(), maxCharacters / 2)}"`;
                 }
               } catch (error) {
@@ -179,7 +181,11 @@ export function useFileContents(options: CommandOptions) {
         console.log(error);
         setErrorType(ERRORTYPE.FINDER_INACTIVE);
       });
-  }, []);
+  }, [shouldRevalidate]);
+
+  const revalidate = () => {
+    setShouldRevalidate(true);
+  };
 
   useEffect(() => {
     setLoading(false);
@@ -190,6 +196,7 @@ export function useFileContents(options: CommandOptions) {
     contentPrompts: contentPrompts,
     loading: loading,
     errorType: errorType,
+    revalidate: revalidate,
   };
 }
 
