@@ -5,7 +5,7 @@ import ResponseActions from "./ResponseActions";
 import { imageFileExtensions } from "./utils/file-extensions";
 
 export default function Command() {
-  const { selectedFiles, contentPrompts, loading, errorType } = useFileContents({
+  const options = {
     minNumFiles: 1,
     acceptedFileExtensions: undefined,
     useMetadata: true,
@@ -16,7 +16,9 @@ export default function Command() {
     useBarcodeDetection: true,
     useFaceDetection: true,
     useSaliencyAnalysis: true,
-  });
+  };
+
+  const { selectedFiles, contentPrompts, loading, errorType } = useFileContents(options);
 
   useEffect(() => {
     installDefaults();
@@ -64,10 +66,13 @@ export default function Command() {
       markdown={text}
       actions={
         <ResponseActions
+          commandName="Summarize Selected Files"
+          options={options}
           commandSummary="Summary"
           responseText={text}
           promptText={fullPrompt}
           reattempt={revalidate}
+          cancel={() => null}
           files={selectedFiles}
         />
       }

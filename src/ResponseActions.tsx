@@ -25,7 +25,7 @@ export default function ResponseActions(props: {
         <Action.CopyToClipboard
           title={`Copy ${commandSummary} To Clipboard`}
           content={responseText}
-          shortcut={{ modifiers: ["cmd"], key: "c" }}
+          shortcut={{ modifiers: ["cmd", "shift"], key: "c" }}
         />
         <Action.CopyToClipboard
           title={`Copy Prompt To Clipboard`}
@@ -53,7 +53,7 @@ export default function ResponseActions(props: {
             />
           }
           icon={Icon.Message}
-          shortcut={{ modifiers: ["cmd", "shift"], key: "c" }}
+          shortcut={{ modifiers: ["cmd", "opt"], key: "c" }}
         />
       </ActionPanel.Section>
 

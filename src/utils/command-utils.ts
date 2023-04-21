@@ -152,6 +152,14 @@ export const getCommandJSON = (command: Command | StoreCommand) => {
   return JSON.stringify(cmdObj).replaceAll(/\\([^"])/g, "\\\\$1");
 };
 
+/**
+ * Run placeholder replacements on a prompt.
+ *
+ * @param prompt The prompt to run replacements on.
+ * @param replacements The list of replacements to run.
+ * @param disallowedCommands The list of commands that are not allowed to be run in command placeholders.
+ * @returns A promise resolving to the prompt with all placeholders replaced.
+ */
 export const runReplacements = async (
   prompt: string,
   replacements: {
