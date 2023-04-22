@@ -10,7 +10,7 @@ import {
   replaceShellScriptPlaceholders,
   replaceURLPlaceholders,
 } from "../utils/command-utils";
-import { runAppleScript } from "run-applescript";
+import { runAppleScript, runAppleScriptSync } from "run-applescript";
 
 export default function CommandChatView(props: {
   isLoading: boolean;
@@ -85,14 +85,16 @@ export default function CommandChatView(props: {
   useEffect(() => {
     if (aiControl && !loading && currentResponse == data && enableModel == false) {
       try {
-        runAppleScript(`use scripting additions
+        runAppleScriptSync(`use scripting additions
         try
-        ${currentResponse.trim()}
+          ${currentResponse.trim()}
         on error err
           display dialog "Error: " & err
         end try`);
       } catch (error) {
         console.log(error);
+        runAppleScript(`use scripting additions
+        display dialog "Error: " & "${(error as Error).message.replaceAll('"', '\\"').replaceAll("\n", "\\n")}"`);
       }
     }
   }, [currentResponse]);
@@ -178,7 +180,7 @@ export default function CommandChatView(props: {
                             : `You will also consider your previous response. Your previous response was: ###${values.responseField}###`
                         }${
                           values.useAIControlCheckbox
-                            ? `You will use all of this context to generate an AppleScript which carries out the goal expressed in my next input. Your response must be a valid, complete AppleScript script. Do not provide any commentary or discussion other than the code.`
+                            ? `You will use all of this context to generate an AppleScript which carries out the goal expressed in my next input and shows me the result. Your response must be a valid, complete AppleScript script. Do not provide any commentary or discussion other than the code.`
                             : ``
                         }\n\nMy next input is: ###`
                       : ""
