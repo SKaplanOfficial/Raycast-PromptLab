@@ -33,6 +33,8 @@ PromptLab also supports "action scripts" -- AppleScripts which run with the AI's
 - [Installation](#installation)
     - [Manual Installation](#manual-installation)
 - [Custom Model Endpoints](#custom-model-endpoints)
+- [Autonomous Agent Features](#autonomous-agent-features)
+- [Contributing](#contributing)
 - [Useful Resources](#useful-resources)
 
 ## Top-Level Commands
@@ -280,6 +282,14 @@ To use the OpenAI API as the model endpoint, configure the extension as follows:
 | Input Schema | { "model": "gpt-4", "messages": [{"role": "user", "content": "{prompt}"}], "stream": true }
 | Output Key Path | choices[0].delta.content |
 | Output Timing | Asynchronous |
+
+## Autonomous Agent Features
+
+When using PromptLab Chat, or any command that uses a chat view, you can choose to enable autonomous agent features by checking the "Allow AI To Control Computer" checkbox. When enabled, PromptLab will execute responses received from the model endpoint as AppleScript scripts. This allows the AI to perform actions on your computer, such as opening applications, sending messages, and more, in response to your input. For example, you might chat with the AI and have it write an email, then enable AI control and ask it to send the email for you.
+
+## Contributing
+
+Contributions are welcome! Please see the [contributing guidelines](./CONTRIBUTING.md) for more information.
 
 ## Useful Resources
 
