@@ -76,7 +76,8 @@ export default function CommandResponse(props: {
           options.actionScript,
           substitutedPrompt.replaceAll("{{contents}}", contentPromptString),
           input || contentPromptString,
-          data
+          data,
+          options.scriptKind
         )
       );
     }

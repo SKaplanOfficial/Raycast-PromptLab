@@ -103,13 +103,19 @@ ${command.prompt}
 
 ## Action Script
 ${
-  command.actionScript
-    ? `\`\`\`applescript
+  command.actionScript?.length
+    ? `\`\`\`${command.scriptKind}
 ${command.actionScript}
 \`\`\``
     : `\`\`\`
 None
 \`\`\``
+}
+
+${
+  command.actionScript?.length && command.actionScript != "None"
+    ? `Script Kind: ${command.scriptKind == undefined ? "AppleScript" : command.scriptKind}`
+    : ``
 }
 
 ## Requirements
@@ -164,6 +170,7 @@ None
                     actionScript: command.actionScript,
                     showResponse: command.showResponse,
                     useSaliencyAnalysis: command.useSaliencyAnalysis,
+                    scriptKind: command.scriptKind,
                   }}
                 />
               }
@@ -224,6 +231,7 @@ None
                         website: command.website,
                         version: command.version,
                         requirements: command.requirements,
+                        scriptKind: command.scriptKind,
                       },
                     }),
                   }).then((res) => {
@@ -303,6 +311,7 @@ None
                       website: command.website,
                       version: command.version,
                       requirements: command.requirements,
+                      scriptKind: command.scriptKind,
                     }}
                     setCommands={setCommands}
                   />
@@ -337,6 +346,7 @@ None
                       website: command.website,
                       version: "1.0.0",
                       requirements: command.requirements,
+                      scriptKind: command.scriptKind,
                     }}
                     setCommands={setCommands}
                     duplicate={true}

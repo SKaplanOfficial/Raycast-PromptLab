@@ -36,7 +36,7 @@ interface CommandFormValues {
   website?: string;
   version?: string;
   requirements?: string;
-  // scriptKind?: string;
+  scriptKind?: string;
 }
 
 export default function CommandForm(props: {
@@ -99,7 +99,7 @@ export default function CommandForm(props: {
       website: "",
       version: "1.0.0",
       requirements: "",
-      // scriptKind: "applescript",
+      scriptKind: "applescript",
     },
     validation: {
       name: FormValidation.Required,
@@ -200,18 +200,17 @@ export default function CommandForm(props: {
 
       <Form.TextArea title="Prompt" placeholder="Instructions for AI to follow" {...itemProps.prompt} />
 
-      {/* 
-      <Form.Dropdown title="Script Kind" info="The type of script used in the Script field." {...itemProps.scriptKind}>
-        <Form.Dropdown.Item title="AppleScript" value="applescript" icon={Icon.AppWindow} />
-        <Form.Dropdown.Item title="Shell (ZSH)" value="zsh" icon={Icon.List} />
-      </Form.Dropdown> */}
-
       <Form.TextArea
         title="Script"
-        placeholder="AppleScript code to run after response"
+        placeholder="Script to run after response is received"
         info="Code for the script to run after receiving a response to the prompt. Use the `response` variable to access the text of the response."
         {...itemProps.actionScript}
       />
+
+      <Form.Dropdown title="Script Kind" info="The type of script used in the Script field." {...itemProps.scriptKind}>
+        <Form.Dropdown.Item title="AppleScript" value="applescript" icon={Icon.AppWindow} />
+        <Form.Dropdown.Item title="Shell (ZSH)" value="zsh" icon={Icon.List} />
+      </Form.Dropdown>
 
       <Form.Separator />
 

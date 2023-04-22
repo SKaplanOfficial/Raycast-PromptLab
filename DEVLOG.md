@@ -1,6 +1,7 @@
 # PromptLab DevLog - A More Detailed ChangeLog
 
 # 2023-04-21
+- Added option to choose action script type, either AppleScript or Shell (ZSH), might add other options in the future
 - Restructured command creation/edit form and added support for more command metadata
 - Removed old-style AppleScript placeholders (using three brackets) in order to fix using AS placeholders inside other placeholders yielding an error
 - Changed max prompt length behavior so that it now ignores characters that are part of a placeholder

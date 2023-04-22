@@ -57,7 +57,7 @@ export default function Discover() {
       detail={
         <List.Item.Detail
           markdown={`# ${command.name}${knownPrompts?.includes(command.prompt) ? " _(Installed)_" : ""}
-          
+
 Version: ${command.version || "1.0.0"}
 
 ${command.author?.length ? `Author: ${command.author}` : ``}
@@ -78,12 +78,18 @@ ${command.prompt}
 
 ${
   command.actionScript?.length
-    ? `\`\`\`applescript
+    ? `\`\`\`${command.scriptKind}
 ${command.actionScript}
 \`\`\``
     : `\`\`\`
 None
 \`\`\``
+}
+
+${
+  command.actionScript?.length && command.actionScript != "None"
+    ? `Script Kind: ${command.scriptKind == undefined ? "AppleScript" : command.scriptKind}`
+    : ``
 }
 
 ## Requirements
@@ -162,6 +168,7 @@ ${
                 website: command.website,
                 version: command.version,
                 requirements: command.requirements,
+                scriptKind: command.scriptKind,
               };
               LocalStorage.setItem(cmdName, JSON.stringify(commandData)).then(() => {
                 showToast({ title: "Command Installed", message: `${command.name}" has been installed.` });
@@ -197,6 +204,7 @@ ${
                   actionScript: command.actionScript,
                   showResponse: command.showResponse == "TRUE" ? true : false,
                   useSaliencyAnalysis: command.useSaliencyAnalysis == "TRUE" ? true : false,
+                  scriptKind: command.scriptKind,
                 }}
               />
             }
@@ -258,6 +266,7 @@ ${
                     website: command.website,
                     version: command.version,
                     requirements: command.requirements,
+                    scriptKind: command.scriptKind,
                   }}
                   setCommands={setMyCommands}
                   duplicate={true}

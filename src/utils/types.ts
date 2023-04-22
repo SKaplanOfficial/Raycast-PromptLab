@@ -25,6 +25,7 @@ export interface CommandOptions {
   actionScript?: string;
   showResponse?: boolean;
   useSaliencyAnalysis?: boolean;
+  scriptKind?: string;
 }
 
 /**
@@ -53,6 +54,7 @@ export interface Command {
   website?: string;
   version?: string;
   requirements?: string;
+  scriptKind?: string;
 }
 
 /**
@@ -82,6 +84,7 @@ export interface StoreCommand {
   website?: string;
   version?: string;
   requirements?: string;
+  scriptKind?: string;
 }
 
 /** Output from a model endpoint */

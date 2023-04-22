@@ -26,17 +26,43 @@ import { LocalStorage, unstable_AI } from "@raycast/api";
  * @param script The AppleScript script to execute.
  * @param response The PromptLab AI response.
  */
-export const runActionScript = async (script: string, prompt: string, input: string, response: string) => {
+export const runActionScript = async (
+  script: string,
+  prompt: string,
+  input: string,
+  response: string,
+  type?: string
+) => {
   try {
-    await runAppleScript(`${objcImports}
-    ${splitHandler}
-    ${trimHandler}
-    ${replaceAllHandler}
-    ${rselectHandler}
-    set prompt to "${prompt.replaceAll('"', '\\"')}"
-    set input to "${input.replaceAll('"', '\\"')}"
-    set response to "${response.replaceAll('"', '\\"')}"
-    ${script}`);
+    if (type == "applescript" || type == undefined) {
+      await runAppleScript(`${objcImports}
+      ${splitHandler}
+      ${trimHandler}
+      ${replaceAllHandler}
+      ${rselectHandler}
+      set prompt to "${prompt.replaceAll('"', '\\"')}"
+      set input to "${input.replaceAll('"', '\\"')}"
+      set response to "${response.replaceAll('"', '\\"')}"
+      ${script}`);
+    } else if (type == "zsh") {
+      const runScript = (script: string): Promise<string> => {
+        const shellScript = `response="${response.trim().replaceAll('"', '\\"').replaceAll("\n", " && ")}"
+        prompt="${prompt.trim().replaceAll('"', '\\"').replaceAll("\n", " && ")}"
+        input="${input.trim().replaceAll('"', '\\"').replaceAll("\n", " && ")}"
+        ${script.replaceAll("\n", " && ")}`;
+
+        return new Promise((resolve, reject) => {
+          exec(shellScript, (error, stdout) => {
+            if (error) {
+              reject(error);
+              return;
+            }
+            resolve(stdout);
+          });
+        });
+      };
+      await runScript(script);
+    }
   } catch (error) {
     console.error(error);
   }
