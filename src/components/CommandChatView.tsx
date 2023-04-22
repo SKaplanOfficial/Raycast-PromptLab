@@ -10,6 +10,7 @@ import {
   replaceShellScriptPlaceholders,
   replaceURLPlaceholders,
 } from "../utils/command-utils";
+import { runAppleScript } from "run-applescript";
 
 export default function CommandChatView(props: {
   isLoading: boolean;
@@ -22,6 +23,7 @@ export default function CommandChatView(props: {
   initialQuery?: string;
   useFiles?: boolean;
   useConversation?: boolean;
+  useAIControl?: boolean;
 }) {
   const {
     isLoading,
@@ -34,6 +36,7 @@ export default function CommandChatView(props: {
     initialQuery,
     useFiles,
     useConversation,
+    useAIControl,
   } = props;
   const [query, setQuery] = useState<string>(initialQuery || "");
   const [sentQuery, setSentQuery] = useState<string>("");
@@ -42,6 +45,7 @@ export default function CommandChatView(props: {
   const [enableModel, setEnableModel] = useState<boolean>(false);
   const [queryError, setQueryError] = useState<string>();
   const [conversation, setConversation] = useState<string[]>([prompt]);
+  const [aiControl, setAIControl] = useState<boolean>(false);
 
   useEffect(() => {
     if (initialQuery?.length) {
@@ -77,6 +81,21 @@ export default function CommandChatView(props: {
       setEnableModel(false);
     }
   }, [enableModel, loading]);
+
+  useEffect(() => {
+    if (aiControl && !loading && currentResponse == data && enableModel == false) {
+      try {
+        runAppleScript(`use scripting additions
+        try
+        ${currentResponse.trim()}
+        on error err
+          display dialog "Error: " & err
+        end try`);
+      } catch (error) {
+        console.log(error);
+      }
+    }
+  }, [currentResponse]);
 
   const replacements = useReplacements(undefined, selectedFiles);
   const runReplacements = async (): Promise<string> => {
@@ -118,6 +137,7 @@ export default function CommandChatView(props: {
                   return;
                 }
                 setQueryError(undefined);
+                setAIControl(values.useAIControlCheckbox);
 
                 // Store the previous response and clear the response field
                 setPreviousResponse(values.responseField);
@@ -154,9 +174,13 @@ export default function CommandChatView(props: {
                           values.useConversationCheckbox
                             ? `You will also consider our conversation history. The history so far: ###${conversation.join(
                                 "\n"
-                              )}`
-                            : `You will also consider your previous response. Your previous response was: ###${values.responseField}`
-                        }###\n\nMy next input is: ###`
+                              )}###`
+                            : `You will also consider your previous response. Your previous response was: ###${values.responseField}###`
+                        }${
+                          values.useAIControlCheckbox
+                            ? `You will use all of this context to generate an AppleScript which carries out the goal expressed in my next input. Your response must be a valid, complete AppleScript script. Do not provide any commentary or discussion other than the code.`
+                            : ``
+                        }\n\nMy next input is: ###`
                       : ""
                   }
                   ${subbedPrompt}###`
@@ -198,17 +222,6 @@ export default function CommandChatView(props: {
         </ActionPanel>
       }
     >
-      <Form.Checkbox
-        label="Use Selected Files As Context"
-        id="useFilesCheckbox"
-        defaultValue={useFiles == undefined ? false : useFiles}
-      />
-      <Form.Checkbox
-        label="Use Conversation As Context"
-        id="useConversationCheckbox"
-        defaultValue={useConversation == undefined ? true : useConversation}
-      />
-
       <Form.TextArea
         id="queryField"
         title="Query"
@@ -221,6 +234,22 @@ export default function CommandChatView(props: {
       <Form.Description title="" text="Tip: You can use placeholders in your query." />
 
       <Form.TextArea id="responseField" title="Response" value={currentResponse.trim()} onChange={() => null} />
+
+      <Form.Checkbox
+        label="Use Selected Files As Context"
+        id="useFilesCheckbox"
+        defaultValue={useFiles == undefined ? false : useFiles}
+      />
+      <Form.Checkbox
+        label="Use Conversation As Context"
+        id="useConversationCheckbox"
+        defaultValue={useConversation == undefined ? true : useConversation}
+      />
+      <Form.Checkbox
+        label="Allow AI To Control Computer (Experimental)"
+        id="useAIControlCheckbox"
+        defaultValue={useAIControl == undefined ? false : useAIControl}
+      />
 
       <Form.Description title="Base Prompt" text={prompt} />
     </Form>

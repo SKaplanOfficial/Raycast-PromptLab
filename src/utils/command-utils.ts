@@ -20,10 +20,12 @@ import { LocalStorage, unstable_AI } from "@raycast/api";
  * The following handlers are provided:
  *  - `split(theString, theDelimiter)` - Splits text around a delimiter
  *  - `trim(theString)` - Removes leading and trailing spaces from text
+ *  - `replaceAll(theString, theTarget, theReplacement)` - Replaces all instances of a target string with a replacement string
+ *  - `rselect(theString, theDelimiter)` - Randomly selects a string from a list of strings
  *
  * The following AppleScriptObjC frameworks are supported and automatically imported: `AVFoundation`, `CoreLocation`, `CoreMedia`, `EventKit`, `Foundation`, `GamePlayKit`, `LatentSemanticMapping`, `MapKit`, `PDFKit`, `Photos`, `Quartz`, `SafariServices`, `ScreenCaptureKit`, `ScreenSaver`, `SoundAnalysis`, `Speech`, `Vision`, and `Webkit`
  *
- * @param script The AppleScript script to execute.
+ * @param script The script to execute.
  * @param response The PromptLab AI response.
  */
 export const runActionScript = async (
@@ -46,9 +48,9 @@ export const runActionScript = async (
       ${script}`);
     } else if (type == "zsh") {
       const runScript = (script: string): Promise<string> => {
-        const shellScript = `response="${response.trim().replaceAll('"', '\\"').replaceAll("\n", " && ")}"
-        prompt="${prompt.trim().replaceAll('"', '\\"').replaceAll("\n", " && ")}"
-        input="${input.trim().replaceAll('"', '\\"').replaceAll("\n", " && ")}"
+        const shellScript = `response="${response.trim().replaceAll('"', '\\"').replaceAll("\n", "\\n")}"
+        prompt="${prompt.trim().replaceAll('"', '\\"').replaceAll("\n", "\\n")}"
+        input="${input.trim().replaceAll('"', '\\"').replaceAll("\n", "\\n")}"
         ${script.replaceAll("\n", " && ")}`;
 
         return new Promise((resolve, reject) => {

@@ -208,8 +208,8 @@ export default function CommandForm(props: {
       />
 
       <Form.Dropdown title="Script Kind" info="The type of script used in the Script field." {...itemProps.scriptKind}>
-        <Form.Dropdown.Item title="AppleScript" value="applescript" icon={Icon.AppWindow} />
-        <Form.Dropdown.Item title="Shell (ZSH)" value="zsh" icon={Icon.List} />
+        <Form.Dropdown.Item title="AppleScript" value="applescript" icon={Icon.Paragraph} />
+        <Form.Dropdown.Item title="Shell (ZSH)" value="zsh" icon={Icon.Terminal} />
       </Form.Dropdown>
 
       <Form.Separator />
