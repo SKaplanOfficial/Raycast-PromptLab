@@ -49,6 +49,10 @@ export interface Command {
   showResponse?: boolean;
   description?: string;
   useSaliencyAnalysis?: boolean;
+  author?: string;
+  website?: string;
+  version?: string;
+  requirements?: string;
 }
 
 /**
@@ -74,6 +78,10 @@ export interface StoreCommand {
   description?: string;
   useSaliencyAnalysis?: string;
   exampleOutput?: string;
+  author?: string;
+  website?: string;
+  version?: string;
+  requirements?: string;
 }
 
 /** Output from a model endpoint */

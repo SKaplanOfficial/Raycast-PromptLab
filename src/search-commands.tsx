@@ -86,6 +86,12 @@ export default function SearchCommand(props: { arguments: { commandName: string;
         detail={
           <List.Item.Detail
             markdown={`# ${command.name}
+          
+Version: ${command.version || "1.0.0"}
+
+${command.author?.length ? `Author: ${command.author}` : ``}
+
+${command.website?.length ? `Website: [${command.website}](${command.website})` : ``}
 
 ## Description
 ${command.description || "None"}
@@ -100,6 +106,18 @@ ${
   command.actionScript
     ? `\`\`\`applescript
 ${command.actionScript}
+\`\`\``
+    : `\`\`\`
+None
+\`\`\``
+}
+
+## Requirements
+
+${
+  command.requirements?.length
+    ? `\`\`\`
+${command.requirements}
 \`\`\``
     : `\`\`\`
 None
@@ -202,6 +220,10 @@ None
                         description: command.description || "None",
                         useSaliencyAnalysis: command.useSaliencyAnalysis ? "TRUE" : "FALSE",
                         exampleOutput: "",
+                        author: command.author,
+                        website: command.website,
+                        version: command.version,
+                        requirements: command.requirements,
                       },
                     }),
                   }).then((res) => {
@@ -277,6 +299,10 @@ None
                       showResponse: command.showResponse,
                       description: command.description,
                       useSaliencyAnalysis: command.useSaliencyAnalysis,
+                      author: command.author,
+                      website: command.website,
+                      version: command.version,
+                      requirements: command.requirements,
                     }}
                     setCommands={setCommands}
                   />
@@ -307,6 +333,10 @@ None
                       showResponse: command.showResponse,
                       description: command.description,
                       useSaliencyAnalysis: command.useSaliencyAnalysis,
+                      author: command.author,
+                      website: command.website,
+                      version: "1.0.0",
+                      requirements: command.requirements,
                     }}
                     setCommands={setCommands}
                     duplicate={true}

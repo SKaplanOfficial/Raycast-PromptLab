@@ -46,23 +46,6 @@ export const runActionScript = async (script: string, prompt: string, input: str
  * Replaces AppleScript placeholders with the output of the AppleScript.
  *
  * @param prompt The prompt to operate on.
- * @returns A promise resolving to the prompt with the `{{{...}}}` placeholders replaced.
- */
-export const replaceOldAppleScriptPlaceholders = async (prompt: string) => {
-  let subbedPrompt = prompt;
-  const codeMatches = prompt.match(/{{{(.*?[\s\n\r]*)*?}}}/g) || [];
-  for (const m of codeMatches) {
-    const script = m.substring(3, m.length - 3);
-    const output = await runAppleScript(script);
-    subbedPrompt = filterString(subbedPrompt.replaceAll(m, output));
-  }
-  return subbedPrompt;
-};
-
-/**
- * Replaces AppleScript placeholders with the output of the AppleScript.
- *
- * @param prompt The prompt to operate on.
  * @returns A promise resolving to the prompt with the `{{as:...}}` placeholders replaced.
  */
 export const replaceAppleScriptPlaceholders = async (prompt: string) => {
@@ -176,7 +159,6 @@ export const runReplacements = async (
   }
 
   // Replace complex placeholders (i.e. shell scripts, AppleScripts, etc.)
-  subbedPrompt = await replaceOldAppleScriptPlaceholders(subbedPrompt);
   subbedPrompt = await replaceAppleScriptPlaceholders(subbedPrompt);
   subbedPrompt = await replaceShellScriptPlaceholders(subbedPrompt);
   subbedPrompt = await replaceURLPlaceholders(subbedPrompt);

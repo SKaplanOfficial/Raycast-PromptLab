@@ -7,7 +7,6 @@ import { useReplacements } from "../hooks/useReplacements";
 import {
   replaceAppleScriptPlaceholders,
   replaceFileSelectionPlaceholders,
-  replaceOldAppleScriptPlaceholders,
   replaceShellScriptPlaceholders,
   replaceURLPlaceholders,
 } from "../utils/command-utils";
@@ -89,7 +88,6 @@ export default function CommandChatView(props: {
     }
 
     // Replace complex placeholders (i.e. shell scripts, AppleScripts, etc.)
-    subbedPrompt = await replaceOldAppleScriptPlaceholders(subbedPrompt);
     subbedPrompt = await replaceAppleScriptPlaceholders(subbedPrompt);
     subbedPrompt = await replaceShellScriptPlaceholders(subbedPrompt);
     subbedPrompt = await replaceURLPlaceholders(subbedPrompt);

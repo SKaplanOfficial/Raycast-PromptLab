@@ -1,5 +1,12 @@
 # PromptLab DevLog - A More Detailed ChangeLog
 
+# 2023-04-21
+- Restructured command creation/edit form and added support for more command metadata
+- Removed old-style AppleScript placeholders (using three brackets) in order to fix using AS placeholders inside other placeholders yielding an error
+- Changed max prompt length behavior so that it now ignores characters that are part of a placeholder
+- Fixed bug where running commands from Quicklinks would show a "Copied To Clipboard" HUD due to having a shortcut bound to `cmd+c`
+- Fixed bug where multi-line command prompts would display incorrectly in the command store
+
 ## 2023-04-20
 - Added syntax highlighting to action script blocks
 - Updated PromptLab Chat command to use the new CommandChatView component

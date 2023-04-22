@@ -57,25 +57,46 @@ export default function Discover() {
       detail={
         <List.Item.Detail
           markdown={`# ${command.name}${knownPrompts?.includes(command.prompt) ? " _(Installed)_" : ""}
+          
+Version: ${command.version || "1.0.0"}
+
+${command.author?.length ? `Author: ${command.author}` : ``}
+
+${command.website?.length ? `Website: [${command.website}](${command.website})` : ``}
   
-  ## Description
-  ${command.description || "None"}
+## Description
+
+${command.description || "None"}
   
-  ## Prompt
-  \`\`\`
-  ${command.prompt}
-  \`\`\`
+## Prompt
+
+\`\`\`
+${command.prompt}
+\`\`\`
   
-  ## Action Script
-  ${
-    command.actionScript?.length
-      ? `\`\`\`applescript
-  ${command.actionScript}
-  \`\`\``
-      : `\`\`\`
+## Action Script
+
+${
+  command.actionScript?.length
+    ? `\`\`\`applescript
+${command.actionScript}
+\`\`\``
+    : `\`\`\`
 None
 \`\`\``
-  }
+}
+
+## Requirements
+
+${
+  command.requirements?.length
+    ? `\`\`\`
+${command.requirements}
+\`\`\``
+    : `\`\`\`
+None
+\`\`\``
+}
 
 ${
   command.exampleOutput
@@ -137,6 +158,10 @@ ${
                 showResponse: command.showResponse == "TRUE" ? true : false,
                 description: command.description,
                 useSaliencyAnalysis: command.useSaliencyAnalysis == "TRUE" ? true : false,
+                author: command.author,
+                website: command.website,
+                version: command.version,
+                requirements: command.requirements,
               };
               LocalStorage.setItem(cmdName, JSON.stringify(commandData)).then(() => {
                 showToast({ title: "Command Installed", message: `${command.name}" has been installed.` });
@@ -229,6 +254,10 @@ ${
                     showResponse: command.showResponse == "TRUE" ? true : false,
                     description: command.description,
                     useSaliencyAnalysis: command.useSaliencyAnalysis == "TRUE" ? true : false,
+                    author: command.author,
+                    website: command.website,
+                    version: command.version,
+                    requirements: command.requirements,
                   }}
                   setCommands={setMyCommands}
                   duplicate={true}

@@ -104,6 +104,11 @@ export function useFileContents(options: CommandOptions) {
 
         const fileContents: Promise<string[]> = Promise.all(
           filteredFiles.map(async (file, index) => {
+            if (file.trim().length == 0) {
+              setErrorType(ERRORTYPE.MIN_SELECTION_NOT_MET);
+              return "";
+            }
+
             // Init. file contents with file name as header
             let contents = `{File ${index + 1} - ${
               file.endsWith("/") ? file.split("/").at(-2) : file.split("/").at(-1)
