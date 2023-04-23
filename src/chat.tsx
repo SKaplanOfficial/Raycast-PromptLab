@@ -5,6 +5,7 @@ interface CommandPreferences {
   basePrompt: string;
   useSelectedFiles: boolean;
   useConversationHistory: boolean;
+  autonomousFeatures: boolean;
 }
 
 export default function Command(props: { arguments: { initialQuery: string } }) {
@@ -36,6 +37,7 @@ export default function Command(props: { arguments: { initialQuery: string } }) 
       cancel={() => null}
       useFiles={preferences.useSelectedFiles}
       useConversation={preferences.useConversationHistory}
+      autonomousFeatures={preferences.autonomousFeatures}
     />
   );
 }

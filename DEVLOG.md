@@ -1,6 +1,14 @@
 # PromptLab DevLog - A More Detailed ChangeLog
 
-# 2023-04-21
+# 2023-04-23
+
+- Add "Allow AI To Run Commands" checkbox in chat views
+    - The AI will run other PromptLab commands to fulfil the user's request
+- Remove "Allow AI To Control Computer" checkbox in chat views, at least for now
+    - It was too unreliable, and the commands approach is more understandable to users
+
+## 2023-04-21
+
 - Added experimental "Allow AI To Control Computer" checkbox in chat views
 - Added option to choose action script type, either AppleScript or Shell (ZSH), might add other options in the future
 - Restructured command creation/edit form and added support for more command metadata
@@ -10,6 +18,7 @@
 - Fixed bug where multi-line command prompts would display incorrectly in the command store
 
 ## 2023-04-20
+
 - Added syntax highlighting to action script blocks
 - Updated PromptLab Chat command to use the new CommandChatView component
 - Added customizable base prompt for the PromptLab Chat command (see the command's settings)
@@ -19,6 +28,7 @@
 - Fixed bug where only the initially selected files where recognized when using "Use Selected Files As Context" in Chat response views
 
 ## 2023-04-19
+
 - Added example output images to the store
 - Added PDF document attributes to file data when metadata is enabled
 - Added page count and number of characters to PDF file data
@@ -27,6 +37,7 @@
 - Added Grid response views
 
 ## 2023-04-18
+
 - Added saliency analysis option in the create command form
 - Adjusted names of PromptLab's built-in commands
     - `Create PromptLab Command` --> `New PromptLab Command`

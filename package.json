@@ -149,6 +149,14 @@
           "required": false
         },
         {
+          "name": "autonomousFeatures",
+          "label": "Autonomous Agent Features",
+          "type": "checkbox",
+          "default": false,
+          "description": "If checked, autonomous agent features such as 'Allow AI To Run Commands' will be enabled by default.",
+          "required": false
+        },
+        {
           "name": "basePrompt",
           "title": "Base Prompt",
           "type": "textfield",

@@ -1,16 +1,10 @@
-import { Action, ActionPanel, Form, Icon } from "@raycast/api";
+import { Action, ActionPanel, Form, Icon, LocalStorage } from "@raycast/api";
 import { useEffect, useState } from "react";
 import useModel from "../utils/useModel";
 import { CommandOptions } from "../utils/types";
 import { useFileContents } from "../utils/file-utils";
 import { useReplacements } from "../hooks/useReplacements";
-import {
-  replaceAppleScriptPlaceholders,
-  replaceFileSelectionPlaceholders,
-  replaceShellScriptPlaceholders,
-  replaceURLPlaceholders,
-} from "../utils/command-utils";
-import { runAppleScript, runAppleScriptSync } from "run-applescript";
+import { runReplacements } from "../utils/command-utils";
 
 export default function CommandChatView(props: {
   isLoading: boolean;
@@ -23,7 +17,7 @@ export default function CommandChatView(props: {
   initialQuery?: string;
   useFiles?: boolean;
   useConversation?: boolean;
-  useAIControl?: boolean;
+  autonomousFeatures?: boolean;
 }) {
   const {
     isLoading,
@@ -36,7 +30,6 @@ export default function CommandChatView(props: {
     initialQuery,
     useFiles,
     useConversation,
-    useAIControl,
   } = props;
   const [query, setQuery] = useState<string>(initialQuery || "");
   const [sentQuery, setSentQuery] = useState<string>("");
@@ -45,9 +38,11 @@ export default function CommandChatView(props: {
   const [enableModel, setEnableModel] = useState<boolean>(false);
   const [queryError, setQueryError] = useState<string>();
   const [conversation, setConversation] = useState<string[]>([prompt]);
-  const [aiControl, setAIControl] = useState<boolean>(false);
+  const [useAutonomousFeatures, setUseAutonomousFeatures] = useState<boolean>(props.autonomousFeatures || false);
+  const [input, setInput] = useState<string>();
 
   useEffect(() => {
+    // If the initial query is not empty, run the query and start the conversation
     if (initialQuery?.length) {
       setPreviousResponse(response);
       setCurrentResponse("");
@@ -58,63 +53,67 @@ export default function CommandChatView(props: {
   }, []);
 
   useEffect(() => {
+    // Update the response field if the response from props changes
     setCurrentResponse(response);
   }, [response]);
 
+  // Get files, set up prompt replacements, and run the model
   const {
     selectedFiles,
     contentPrompts,
     loading: contentIsLoading,
     revalidate: revalidateFiles,
   } = useFileContents(options);
-
+  const replacements = useReplacements(input, selectedFiles);
   const { data, isLoading: loading, revalidate: reattempt } = useModel(prompt, sentQuery, "", enableModel);
 
   useEffect(() => {
     if (data.length > 0) {
+      // Update the response field as the model generates text
       setCurrentResponse(data);
+    }
+
+    // If the model returns a command number and input, set the input
+    // This will trigger running the command if autonomous features are enabled
+    const cmdMatch = data.match(/.*{{cmd:(.*?):(.*?)}}.*/);
+    if (cmdMatch && useAutonomousFeatures) {
+      const commandInput = cmdMatch[2];
+      setInput(commandInput);
     }
   }, [data]);
 
   useEffect(() => {
-    if (!loading && enableModel == true) {
-      setEnableModel(false);
+    // When the input changes, run specified command if autonomous features are enabled
+    const cmdMatch = data.match(/.*{{cmd:(.*?):(.*?)}}.*/);
+    if (cmdMatch && useAutonomousFeatures) {
+      // Get the command prompt
+      LocalStorage.allItems().then((commands) => {
+        const commandPrompts = Object.entries(commands)
+          .filter(([key]) => key != "--defaults-installed")
+          .sort(([a], [b]) => (a > b ? 1 : -1))
+          .map(([, value], index) => `${index}:${JSON.parse(value)["prompt"]}`);
+        const nameIndex = parseInt(cmdMatch[1]);
+        if (nameIndex != undefined) {
+          // Run the command
+          setCurrentResponse("");
+          setEnableModel(false);
+          const prompt = commandPrompts[nameIndex];
+          runReplacements(prompt, replacements, []).then((subbedPrompt) => {
+            // Run the model again
+            setSentQuery(subbedPrompt);
+            setEnableModel(true);
+          });
+        }
+      });
     }
-  }, [enableModel, loading]);
+  }, [input]);
 
   useEffect(() => {
-    if (aiControl && !loading && currentResponse == data && enableModel == false) {
-      try {
-        runAppleScriptSync(`use scripting additions
-        try
-          ${currentResponse.trim()}
-        on error err
-          display dialog "Error: " & err
-        end try`);
-      } catch (error) {
-        console.log(error);
-        runAppleScript(`use scripting additions
-        display dialog "Error: " & "${(error as Error).message.replaceAll('"', '\\"').replaceAll("\n", "\\n")}"`);
-      }
+    if (!loading && enableModel == true && currentResponse == data) {
+      // Disable the model once the response is generated
+      setEnableModel(false);
     }
-  }, [currentResponse]);
-
-  const replacements = useReplacements(undefined, selectedFiles);
-  const runReplacements = async (): Promise<string> => {
-    let subbedPrompt = query;
-    for (const key in replacements) {
-      if (query.includes(key)) {
-        subbedPrompt = subbedPrompt.replaceAll(key, await replacements[key]());
-      }
-    }
-
-    // Replace complex placeholders (i.e. shell scripts, AppleScripts, etc.)
-    subbedPrompt = await replaceAppleScriptPlaceholders(subbedPrompt);
-    subbedPrompt = await replaceShellScriptPlaceholders(subbedPrompt);
-    subbedPrompt = await replaceURLPlaceholders(subbedPrompt);
-    subbedPrompt = await replaceFileSelectionPlaceholders(subbedPrompt);
-    return subbedPrompt;
-  };
+  }, [enableModel, loading, currentResponse, data]);
 
   return (
     <Form
@@ -139,12 +138,12 @@ export default function CommandChatView(props: {
                   return;
                 }
                 setQueryError(undefined);
-                setAIControl(values.useAIControlCheckbox);
 
                 // Store the previous response and clear the response field
                 setPreviousResponse(values.responseField);
                 setCurrentResponse("");
 
+                // Log the conversation
                 const convo = [...conversation];
                 convo.push(values.responseField);
                 convo.push(values.queryField);
@@ -153,6 +152,7 @@ export default function CommandChatView(props: {
                 }
                 setConversation(convo);
 
+                // Get the most up-to-date file selection
                 await (async () => {
                   revalidateFiles();
                   if (!contentIsLoading) {
@@ -160,9 +160,15 @@ export default function CommandChatView(props: {
                   }
                 });
 
-                // Enable the model, prepend instructions to the query, and reattempt
-                const subbedPrompt = await runReplacements();
-                setEnableModel(true);
+                // Get command descriptions
+                const commands = await LocalStorage.allItems();
+                const commandDescriptions = Object.entries(commands)
+                  .filter(([key]) => key != "--defaults-installed")
+                  .sort(([a], [b]) => (a > b ? 1 : -1))
+                  .map(([, value], index) => `${index}:${JSON.parse(value)["description"]}`);
+
+                // Prepend instructions to the query, enable the model, and reattempt
+                const subbedPrompt = await runReplacements(values.queryField, replacements, []);
                 setSentQuery(
                   `${
                     values.responseField.length > 0
@@ -179,14 +185,17 @@ export default function CommandChatView(props: {
                               )}###`
                             : `You will also consider your previous response. Your previous response was: ###${values.responseField}###`
                         }${
-                          values.useAIControlCheckbox
-                            ? `You will use all of this context to generate an AppleScript which carries out the goal expressed in my next input and shows me the result. Your response must be a valid, complete AppleScript script. Do not provide any commentary or discussion other than the code.`
+                          values.useAICommandsCheckbox
+                            ? `Try to answer my next query using your knowledge. If and only if you cannot provide an answer, choose the command from the following list that is most likely to carries out the goal expressed in my next query, and then respond with the number of the command you want to run in the format {{cmd:commandNumber:input}}. Replace the input with a short string according to my query. For example, if I say 'search google for AI', the input would be 'AI'. Here are the commands: ###${commandDescriptions.join(
+                                "\n"
+                              )}### Try to answer without using a command, unless the command asks for new information (e.g. latest news, weather, etc.). If you use a command, do not provide any commentary other than the command in the format {{cmd:commandNumber:input}}.`
                             : ``
                         }\n\nMy next input is: ###`
                       : ""
                   }
                   ${subbedPrompt}###`
                 );
+                setEnableModel(true);
                 reattempt();
               }}
             />
@@ -242,15 +251,18 @@ export default function CommandChatView(props: {
         id="useFilesCheckbox"
         defaultValue={useFiles == undefined ? false : useFiles}
       />
+
       <Form.Checkbox
         label="Use Conversation As Context"
         id="useConversationCheckbox"
         defaultValue={useConversation == undefined ? true : useConversation}
       />
+
       <Form.Checkbox
-        label="Allow AI To Control Computer (Experimental)"
-        id="useAIControlCheckbox"
-        defaultValue={useAIControl == undefined ? false : useAIControl}
+        label="Allow AI To Run Commands (Experimental)"
+        id="useAICommandsCheckbox"
+        value={useAutonomousFeatures}
+        onChange={(value) => setUseAutonomousFeatures(value)}
       />
 
       <Form.Description title="Base Prompt" text={prompt} />

@@ -60,6 +60,7 @@ PromptLab also supports "action scripts" -- AppleScripts which run with the AI's
 ![Recent News Headlines Example](./examples/promptlab-5.png)
 ![PromptLab commands as Quicklinks](./examples/promptlab-6.png)
 ![Navigating the PromptLab Command Store](./examples/promptlab-7.png)
+![PromptLab Chat + Autonomous Agent Features](./examples/promptlab-8.png)
 
 View more images in [the gallery](https://skaplanofficial.github.io/Raycast-PromptLab/gallery).
 
@@ -285,7 +286,7 @@ To use the OpenAI API as the model endpoint, configure the extension as follows:
 
 ## Autonomous Agent Features
 
-When using PromptLab Chat, or any command that uses a chat view, you can choose to enable autonomous agent features by checking the "Allow AI To Control Computer" checkbox. When enabled, PromptLab will execute responses received from the model endpoint as AppleScript scripts. This allows the AI to perform actions on your computer, such as opening applications, sending messages, and more, in response to your input. For example, you might chat with the AI and have it write an email, then enable AI control and ask it to send the email for you.
+When using PromptLab Chat, or any command that uses a chat view, you can choose to enable autonomous agent features by checking the "Allow AI To Run Commands" checkbox. This will allow the AI to run PromptLab commands on your behalf, supplying input as needed, in order to answer your queries. For example, if you ask the AI "What's the latest news?", it might run the "Recent Headlines From 68k News" command to fulfil your request, then return the results to you. This feature is disabled by default, and can be enabled or disabled at any time.
 
 ## Contributing
 
