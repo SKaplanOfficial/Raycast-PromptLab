@@ -19,6 +19,7 @@ PromptLab also supports "action scripts" -- AppleScripts which run with the AI's
 - [Images](#images)
 - [Create Your Own Commands](#create-your-own-commands)
     - [Placeholders](#placeholders)
+        - [Command Placeholders](#command-placeholders)
         - [Script Placeholders](#script-placeholders)
         - [URL Placeholders](#url-placeholders)
         - [API Data Placeholders](#api-data-placeholders)
@@ -37,19 +38,22 @@ PromptLab also supports "action scripts" -- AppleScripts which run with the AI's
 - [Installation](#installation)
     - [Manual Installation](#manual-installation)
 - [Custom Model Endpoints](#custom-model-endpoints)
+- [Autonomous Agent Features](#autonomous-agent-features)
 - [Useful Resources](#useful-resources)
 
 ## Top-Level Commands
 
-- Create PromptLab Command
+- New PromptLab Command
     - Create a custom PromptLab command accessible via 'Search PromptLab Commands'
-- Search PromptLab Commands
-    - Search and run custom PromptLab commands
+- My PromptLab Commands
+    - Search and run custom PromptLab commands that you've installed or created
+- PromptLab Command Store
+    - Explore and search commands uploaded to the store by other PromptLab users
 - Summarize Selected Files
     - Summarize the contents of selected text files, PDFs, images, audio files, and more.
 - PromptLab Chat
     - Start a back-and-forth conversation with AI with selected files provided as context.       
-- Import Custom PromptLab Commands
+- Import PromptLab Commands
     - Add custom commands from a JSON string.
 
 ## Images
@@ -72,6 +76,10 @@ You can create custom PromptLab commands, accessed via the "Search PromptLab Com
 ### Placeholders
 
 When creating custom commands, you can use placeholders in your prompts that will be substituted with relevant information whenever you run the command. These placeholders range from simple information, like the current date, to complex data retrieval operations such as getting the content of the most recent email. Placeholders are a powerful way to add context to your PromptLab prompts. The valid placeholders are as follows:
+
+### Command Placeholders
+
+You can use the name of any PromptLab command you have installed as a placeholder by surrounding it with double curly braces, `{% raw %}{{like this}}{% endraw %}`. For example, if you have a command named "Summarize Selected Files", you can use the placeholder `{% raw %}{{Summarize Selected Files}}{% endraw %}` to include the output of that command in your prompt for another command. This is useful for chaining commands together, but it also slows down the execution of your command, so use it wisely.
 
 ### Script Placeholders
 
@@ -139,6 +147,7 @@ You can instruct PromptLab to extract text from any webpage by using the {% raw 
 | --- | --- |
 | `{% raw %}{{contents}}{% endraw %}` | The contents of the selected files |
 | `{% raw %}{{fileNames}}{% endraw %}` | Replaced with the list of selected file names |
+| `{% raw %}{{file:path}}{% endraw %}` | The contents of a specific file on the disk. Adds the file to your current selection. |
 | `{% raw %}{{files}}{% endraw %}` | Replaced with the list of selected file paths |
 | `{% raw %}{{metadata}}{% endraw %}` | Replaced with the metadata of each file as a list below the file path |
 
@@ -284,12 +293,17 @@ To use the OpenAI API as the model endpoint, configure the extension as follows:
 | Model Endpoint | https://api.openai.com/v1/chat/completions |
 | API Authorization Type | Bearer Token |
 | API Key | Your API key |
-| Input Schema | { "model": "gpt-4", "messages": [{"role": "user", "content": "{input}"}], "stream": true }
+| Input Schema | {% raw %}{ "model": "gpt-4", "messages": [{"role": "user", "content": "{input}"}], "stream": true }{% endraw %}
 | Output Key Path | choices[0].delta.content |
 | Output Timing | Asynchronous |
+
+## Autonomous Agent Features
+
+When using PromptLab Chat, or any command that uses a chat view, you can choose to enable autonomous agent features by checking the "Allow AI To Run Commands" checkbox. This will allow the AI to run PromptLab commands on your behalf, supplying input as needed, in order to answer your queries. For example, if you ask the AI "What's the latest news?", it might run the "Recent Headlines From 68k News" command to fulfil your request, then return the results to you. This feature is disabled by default, and can be enabled or disabled at any time.
 
 ## Useful Resources
 
 | Link | Category | Description |
 | --- | --- | --- |
 | [Best practices for prompt engineering with OpenAI API](https://help.openai.com/en/articles/6654000-best-practices-for-prompt-engineering-with-openai-api) | Prompt Engineering | Strategies for creating effective ChatGPT prompts, from OpenAI itself |
+| [Techniques to improve reliability](https://github.com/openai/openai-cookbook/blob/main/techniques_to_improve_reliability.md) | Prompt Engineering | Strategies for improving reliability of GPT responses |
