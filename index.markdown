@@ -60,6 +60,8 @@ PromptLab also supports "action scripts" -- AppleScripts which run with the AI's
 ![Identify Selected Files example](./assets/promptlab-4.png)
 ![Recent News Headlines Example](./assets/promptlab-5.png)
 ![PromptLab commands as Quicklinks](./assets/promptlab-6.png)
+![Demo of the PromptLab Command Store](./assets/promptlab-7.png)
+![Demo of PromptLab Chat with Autonomous Agent Features](./assets/promptlab-8.png)
 
 View more images in [the gallery](./gallery).
 
