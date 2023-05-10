@@ -1,4 +1,5 @@
-import { getPreferenceValues, useUnstableAI } from "@raycast/api";
+import { AI, environment, getPreferenceValues } from "@raycast/api";
+import { useAI } from "@raycast/utils";
 import { ExtensionPreferences, modelOutput } from "./types";
 import { useEffect, useState } from "react";
 import fetch from "node-fetch";
@@ -20,8 +21,16 @@ export default function useModel(basePrompt: string, prompt: string, input: stri
   const validRaycastAIReps = ["raycast ai", "raycastai", "raycast", "raycast-ai"];
 
   if (validRaycastAIReps.includes(preferences.modelEndpoint.toLowerCase())) {
-    // If the endpoint is Raycast AI, use the unstable AI hook
-    return useUnstableAI(prompt, { execute: execute });
+    // If the endpoint is Raycast AI, use the AI hook
+    if (!environment.canAccess(AI)) {
+      return {
+        data: "",
+        isLoading: false,
+        revalidate: () => null,
+        error: "Raycast AI is not available — Upgrade to Pro or use a different model endpoint.",
+      };
+    }
+    return useAI(prompt, { execute: execute });
   } else if (preferences.modelEndpoint.includes(":")) {
     // If the endpoint is a URL, use the fetch hook
     const headers: { [key: string]: string } = {

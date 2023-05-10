@@ -180,8 +180,8 @@
     }
   ],
   "dependencies": {
-    "@raycast/api": "^1.48.9",
-    "@raycast/utils": "^1.5.2",
+    "@raycast/api": "^1.51.0",
+    "@raycast/utils": "^1.6.1",
     "run-applescript": "^6.1.0",
     "exifr": "^7.1.3",
     "node-fetch": "^3.3.1"

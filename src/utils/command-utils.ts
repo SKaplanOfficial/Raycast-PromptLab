@@ -12,7 +12,7 @@ import { getTextOfWebpage } from "./context-utils";
 import { exec } from "child_process";
 import * as os from "os";
 import { Command, StoreCommand } from "./types";
-import { LocalStorage, unstable_AI } from "@raycast/api";
+import { LocalStorage, AI } from "@raycast/api";
 
 /**
  * Runs the action script of a PromptLab command, providing the AI response as the `response` variable.
@@ -196,7 +196,7 @@ export const runReplacements = async (
   for (const cmdString of Object.values(await LocalStorage.allItems())) {
     const cmd = JSON.parse(cmdString) as Command;
     if (!disallowedCommands.includes(cmd.name) && subbedPrompt.includes(`{{${cmd.name}}}`)) {
-      const cmdResponse = await unstable_AI.ask(
+      const cmdResponse = await AI.ask(
         await runReplacements(cmd.prompt, replacements, [cmd.name, ...disallowedCommands])
       );
       subbedPrompt = subbedPrompt.replaceAll(`{{${cmd.name}}}`, cmdResponse);

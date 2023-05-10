@@ -40,7 +40,7 @@ PromptLab also supports "action scripts" -- AppleScripts which run with the AI's
 ## Top-Level Commands
 
 - New PromptLab Command
-    - Create a custom PromptLab command accessible via 'Search PromptLab Commands'
+    - Create a custom PromptLab command accessible via 'My PromptLab Commands'
 - My PromptLab Commands
     - Search and run custom PromptLab commands that you've installed or created
 - PromptLab Command Store
@@ -66,7 +66,7 @@ View more images in [the gallery](https://skaplanofficial.github.io/Raycast-Prom
 
 ## Create Your Own Commands
 
-You can create custom PromptLab commands, accessed via the "Search PromptLab Commands" command, to execute your own prompts acting on the contents of selected files. A variety of useful defaults are provided, as listed under [Default Commands](#default-commands).
+You can create custom PromptLab commands, accessed via the "My PromptLab Commands" command, to execute your own prompts acting on the contents of selected files. A variety of useful defaults are provided, as listed under [Default Commands](#default-commands).
 
 ### Placeholders
 
