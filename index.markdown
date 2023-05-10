@@ -171,6 +171,7 @@ You can instruct PromptLab to extract text from any webpage by using the {% raw 
 When configuring a PromptLab command, you can provide AppleScript code to execute once the AI finishes its response. You can access the response text via the `response` variable in AppleScript. Several convenient handlers for working with the response text are also provided, as listed below. Action Scripts can be used to build complex workflows using AI as a content provider, navigator, or decision-maker.
 
 ### Provided Variables
+
 | Variable | Value | Type |
 | --- | --- | --- |
 | `input` | The selected files or text input provided to the command. | String |
