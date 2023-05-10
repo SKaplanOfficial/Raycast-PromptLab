@@ -273,7 +273,7 @@ This extension is not yet published to the Raycast store. In the meantime, you c
 
 ### Manual Installation
 ```bash
-git clone https://github.com/SKaplanOfficial/Raycast-PromptLab.git && cd Raycast-File-AI
+git clone https://github.com/SKaplanOfficial/Raycast-PromptLab.git && cd Raycast-PromptLab
 
 npm install && npm run dev
 ```
