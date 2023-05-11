@@ -60,9 +60,9 @@ export default function Discover() {
 
 Version: ${command.version || "1.0.0"}
 
-${command.author?.length ? `Author: ${command.author}` : ``}
+${command.author?.length && command.author !== "None" ? `Author: ${command.author}` : ``}
 
-${command.website?.length ? `Website: [${command.website}](${command.website})` : ``}
+${command.website?.length && command.website !== "None" ? `Website: [${command.website}](${command.website})` : ``}
   
 ## Description
 
@@ -118,6 +118,13 @@ ${
   | Output View | ${(command.outputKind?.at(0)?.toUpperCase() || "") + (command.outputKind?.substring(1) || "")} |
   | Show Response View | ${command.showResponse == "TRUE" ? "Yes" : "No"} |
   | Minimum File Count | ${command.minNumFiles} |
+  | Accepted File Extensions | ${
+    command.minNumFiles == "0"
+      ? "N/A"
+      : command.acceptedFileExtensions?.length && command.acceptedFileExtensions !== "None"
+      ? command.acceptedFileExtensions
+      : "Any"
+  } |
   | Use File Metadata? | ${command.useMetadata == "TRUE" ? "Yes" : "No"} |
   | Use Sound Classification? | ${command.useSoundClassification == "TRUE" ? "Yes" : "No"} |
   | Use Subject Classification? | ${command.useSubjectClassification == "TRUE" ? "Yes" : "No"} |
@@ -149,9 +156,10 @@ ${
                 icon: command.icon,
                 iconColor: command.iconColor,
                 minNumFiles: parseInt(command.minNumFiles as string),
-                acceptedFileExtensions: command.acceptedFileExtensions?.length
-                  ? command.acceptedFileExtensions?.split(",").map((item) => item.trim())
-                  : undefined,
+                acceptedFileExtensions:
+                  command.acceptedFileExtensions?.length && command.acceptedFileExtensions !== "None"
+                    ? command.acceptedFileExtensions?.split(",").map((item) => item.trim())
+                    : undefined,
                 useMetadata: command.useMetadata == "TRUE" ? true : false,
                 useSoundClassification: command.useSoundClassification == "TRUE" ? true : false,
                 useAudioDetails: command.useAudioDetails == "TRUE" ? true : false,

@@ -89,9 +89,9 @@ export default function SearchCommand(props: { arguments: { commandName: string;
           
 Version: ${command.version || "1.0.0"}
 
-${command.author?.length ? `Author: ${command.author}` : ``}
+${command.author?.length && command.author !== "None" ? `Author: ${command.author}` : ``}
 
-${command.website?.length ? `Website: [${command.website}](${command.website})` : ``}
+${command.website?.length && command.website !== "None" ? `Website: [${command.website}](${command.website})` : ``}
 
 ## Description
 ${command.description || "None"}
@@ -136,6 +136,13 @@ None
 | Output View | ${(command.outputKind?.at(0)?.toUpperCase() || "") + (command.outputKind?.substring(1) || "")} |
 | Show Response View | ${command.showResponse ? "Yes" : "No"} |
 | Minimum File Count | ${command.minNumFiles} |
+| Accepted File Extensions | ${
+              command.minNumFiles == "0"
+                ? "N/A"
+                : command.acceptedFileExtensions?.length && command.acceptedFileExtensions !== "None"
+                ? command.acceptedFileExtensions
+                : "Any"
+            } |
 | Use File Metadata? | ${command.useMetadata ? "Yes" : "No"} |
 | Use Sound Classification? | ${command.useSoundClassification ? "Yes" : "No"} |
 | Use Subject Classification? | ${command.useSubjectClassification ? "Yes" : "No"} |
@@ -213,7 +220,7 @@ None
                         icon: command.icon,
                         iconColor: command.iconColor,
                         minNumFiles: command.minNumFiles?.toString(),
-                        acceptedFileExtensions: command.acceptedFileExtensions,
+                        acceptedFileExtensions: command.acceptedFileExtensions || "None",
                         useMetadata: command.useMetadata ? "TRUE" : "FALSE",
                         useAudioDetails: command.useAudioDetails ? "TRUE" : "FALSE",
                         useSoundClassification: command.useSoundClassification ? "TRUE" : "FALSE",
@@ -221,17 +228,17 @@ None
                         useRectangleDetection: command.useRectangleDetection ? "TRUE" : "FALSE",
                         useBarcodeDetection: command.useBarcodeDetection ? "TRUE" : "FALSE",
                         useFaceDetection: command.useFaceDetection ? "TRUE" : "FALSE",
-                        outputKind: command.outputKind,
+                        outputKind: command.outputKind || "Detaiil",
                         actionScript: command.actionScript || "None",
                         showResponse: command.showResponse ? "TRUE" : "FALSE",
                         description: command.description || "None",
                         useSaliencyAnalysis: command.useSaliencyAnalysis ? "TRUE" : "FALSE",
-                        exampleOutput: "",
-                        author: command.author,
-                        website: command.website,
-                        version: command.version,
-                        requirements: command.requirements,
-                        scriptKind: command.scriptKind,
+                        exampleOutput: "None",
+                        author: command.author || "None",
+                        website: command.website || "None",
+                        version: command.version || "1.0.0",
+                        requirements: command.requirements || "None",
+                        scriptKind: command.scriptKind || "applescript",
                       },
                     }),
                   }).then((res) => {

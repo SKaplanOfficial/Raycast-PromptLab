@@ -1,6 +1,17 @@
 # PromptLab DevLog - A More Detailed ChangeLog
 
-# 2023-04-23
+## 2023-05-11
+
+- Tweaked autonomous agent features to be more reliable
+- Fix bug where commands could not be uploaded to the PromptLab store due to missing fields
+- Add accepted file extensions to command option tables
+
+# 2023-05-10
+
+- Upgraded to the new useAI API
+- Fix compatibility with latest version of Raycast
+
+## 2023-04-23
 
 - Add "Allow AI To Run Commands" checkbox in chat views
     - The AI will run other PromptLab commands to fulfil the user's request
