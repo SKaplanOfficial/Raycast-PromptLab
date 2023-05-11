@@ -20,10 +20,12 @@ import { Command, StoreCommand } from "./utils/types";
 import fetch from "node-fetch";
 import { QUICKLINK_URL_BASE, STORE_ENDPOINT, STORE_KEY } from "./utils/constants";
 import { getCommandJSON } from "./utils/command-utils";
+import CategoryDropdown from "./components/CategoryDropdown";
 
 export default function SearchCommand(props: { arguments: { commandName: string; queryInput: string } }) {
   const { commandName, queryInput } = props.arguments;
   const [commands, setCommands] = useState<Command[]>();
+  const [targetCategory, setTargetCategory] = useState<string>("All");
   const [searchText, setSearchText] = useState<string | undefined>(
     commandName == undefined || queryInput ? undefined : commandName.trim()
   );
@@ -74,7 +76,8 @@ export default function SearchCommand(props: { arguments: { commandName: string;
   }
 
   const listItems = commands
-    ?.sort((a, b) => (a.name > b.name ? 1 : -1))
+    ?.filter((command) => command.categories?.includes(targetCategory) || targetCategory == "All")
+    .sort((a, b) => (a.name > b.name ? 1 : -1))
     .map((command) => (
       <List.Item
         title={command.name}
@@ -130,7 +133,12 @@ None
 \`\`\``
 }
 
+## Categor${command.categories?.length && command.categories.length > 1 ? "ies" : "y"}
+
+${command.categories?.sort((a, b) => (a > b ? 1 : -1)).join(", ") || "Other"}
+
 ## Options
+
 | Option | Value |
 | --- | --- |
 | Output View | ${(command.outputKind?.at(0)?.toUpperCase() || "") + (command.outputKind?.substring(1) || "")} |
@@ -239,6 +247,7 @@ None
                         version: command.version || "1.0.0",
                         requirements: command.requirements || "None",
                         scriptKind: command.scriptKind || "applescript",
+                        categories: command.categories?.join(", ") || "Other",
                       },
                     }),
                   }).then((res) => {
@@ -415,6 +424,7 @@ None
       searchBarPlaceholder={`Search ${
         !commands || commands.length == 1 ? "commands..." : `${commands.length} commands...`
       }`}
+      searchBarAccessory={<CategoryDropdown onSelection={setTargetCategory} />}
     >
       <List.EmptyView title="No Custom Commands" />
       {listItems}

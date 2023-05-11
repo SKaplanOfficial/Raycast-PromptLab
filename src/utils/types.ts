@@ -55,6 +55,7 @@ export interface Command {
   version?: string;
   requirements?: string;
   scriptKind?: string;
+  categories?: string[];
 }
 
 /**
@@ -85,6 +86,7 @@ export interface StoreCommand {
   version?: string;
   requirements?: string;
   scriptKind?: string;
+  categories?: string;
 }
 
 /** Output from a model endpoint */

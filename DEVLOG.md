@@ -5,6 +5,8 @@
 - Tweaked autonomous agent features to be more reliable
 - Fix bug where commands could not be uploaded to the PromptLab store due to missing fields
 - Add accepted file extensions to command option tables
+- Added command categories field
+- Added ability to sort commands by category
 
 # 2023-05-10
 

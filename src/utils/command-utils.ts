@@ -124,10 +124,10 @@ export const replaceShellScriptPlaceholders = async (prompt: string) => {
  * @returns A promise resolving to the prompt with the `{{url:...}}` placeholders replaced.
  */
 export const replaceURLPlaceholders = async (prompt: string) => {
-  let subbedPrompt = encodeURI(prompt);
-  const urlMatches = prompt.match(/{{(https?:.*?)}}/g) || [];
+  let subbedPrompt = prompt;
+  const urlMatches = prompt.match(/{{(https?:[. ]*?)}}/g) || [];
   for (const m of urlMatches) {
-    const url = m.substring(2, m.length - 2);
+    const url = encodeURI(m.substring(2, m.length - 2));
     const text = await getTextOfWebpage(url);
     subbedPrompt = subbedPrompt.replaceAll(m, filterString(text));
   }
