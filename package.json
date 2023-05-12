@@ -126,12 +126,19 @@
       ],
       "preferences": [
         {
-          "title": "Sorting Preferences",
           "name": "groupByCategory",
           "label": "Group Commands By Category",
           "type": "checkbox",
           "default": false,
           "description": "If checked, each command category will have its own section in the search results.",
+          "required": false
+        },
+        {
+          "title": "Export Location",
+          "name": "exportLocation",
+          "type": "directory",
+          "default": "~/Downloads",
+          "description": "The folder where exported commands will be saved.",
           "required": false
         }
       ]

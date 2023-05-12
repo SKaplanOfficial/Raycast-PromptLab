@@ -17,6 +17,7 @@ export interface ExtensionPreferences {
  */
 export interface searchPreferences {
   groupByCategory: boolean;
+  exportLocation: string;
 }
 
 /**

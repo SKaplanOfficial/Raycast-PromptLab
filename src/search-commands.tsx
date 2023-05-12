@@ -2,14 +2,12 @@ import {
   Action,
   ActionPanel,
   Alert,
-  Clipboard,
   Color,
   confirmAlert,
   getPreferenceValues,
   Icon,
   List,
   LocalStorage,
-  showHUD,
   showToast,
   Toast,
 } from "@raycast/api";
@@ -22,6 +20,8 @@ import fetch from "node-fetch";
 import { QUICKLINK_URL_BASE, STORE_ENDPOINT, STORE_KEY } from "./utils/constants";
 import { getCommandJSON } from "./utils/command-utils";
 import CategoryDropdown from "./components/CategoryDropdown";
+import * as fs from "fs";
+import path from "path";
 
 export default function SearchCommand(props: { arguments: { commandName: string; queryInput: string } }) {
   const { commandName, queryInput } = props.arguments;
@@ -38,7 +38,8 @@ export default function SearchCommand(props: { arguments: { commandName: string;
     Promise.resolve(installDefaults()).then(() => {
       Promise.resolve(LocalStorage.allItems()).then((commandData) => {
         const commandDataFiltered = Object.values(commandData).filter(
-          (cmd, index) => Object.keys(commandData)[index] != "--defaults-installed"
+          (cmd, index) =>
+            Object.keys(commandData)[index] != "--defaults-installed" && !Object.keys(cmd)[index].startsWith("id-")
         );
         setCommands(commandDataFiltered.map((data) => JSON.parse(data)));
 
@@ -285,12 +286,34 @@ ${command.categories?.sort((a, b) => (a > b ? 1 : -1)).join(", ") || "Other"}
                   icon={Icon.CopyClipboard}
                   shortcut={{ modifiers: ["cmd", "shift"], key: "a" }}
                   onAction={async () => {
-                    Promise.resolve(
-                      LocalStorage.allItems().then((items) => {
-                        delete items["--defaults-installed"];
-                        Clipboard.copy(JSON.stringify(items)).then(() => showHUD("Copied All PromptLab Commands"));
-                      })
-                    );
+                    const toast = await showToast({ title: "Exporting Commands", style: Toast.Style.Animated });
+
+                    const items = await LocalStorage.allItems();
+                    delete items["--defaults-installed"];
+                    const identifiers = Object.keys(items).filter((key) => key.startsWith("id-"));
+                    identifiers.forEach((identifier) => {
+                      delete items[identifier];
+                    });
+
+                    const fileName = "promptlab-commands";
+                    let filePath = path.resolve(preferences.exportLocation, fileName);
+                    let i = 2;
+                    while (fs.existsSync(filePath + ".json")) {
+                      filePath = path.resolve(preferences.exportLocation, fileName + "-" + i);
+                      i += 1;
+                    }
+
+                    fs.writeFile(filePath + ".json", JSON.stringify(items), (err) => {
+                      if (err) {
+                        toast.style = Toast.Style.Failure;
+                        toast.title = "Error";
+                        toast.message = "Couldn't export commands";
+                        throw err;
+                      }
+
+                      toast.style = Toast.Style.Success;
+                      toast.title = "Successfully Exported Commands";
+                    });
                   }}
                 />
               </ActionPanel.Section>

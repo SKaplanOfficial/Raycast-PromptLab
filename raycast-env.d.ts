@@ -36,8 +36,10 @@ declare namespace Preferences {
   export type CreateCommand = ExtensionPreferences & {}
   /** Preferences accessible in the `search-commands` command */
   export type SearchCommands = ExtensionPreferences & {
-  /** Sorting Preferences - If checked, each command category will have its own section in the search results. */
-  "groupByCategory"?: boolean
+  /**  - If checked, each command category will have its own section in the search results. */
+  "groupByCategory"?: boolean,
+  /** Export Location - The folder where exported commands will be saved. */
+  "exportLocation"?: string
 }
   /** Preferences accessible in the `chat` command */
   export type Chat = ExtensionPreferences & {

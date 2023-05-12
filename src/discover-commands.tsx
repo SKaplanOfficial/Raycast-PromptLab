@@ -1,15 +1,4 @@
-import {
-  Action,
-  ActionPanel,
-  Clipboard,
-  Color,
-  Icon,
-  List,
-  LocalStorage,
-  Toast,
-  showHUD,
-  showToast,
-} from "@raycast/api";
+import { Action, ActionPanel, Color, Icon, List, LocalStorage, Toast, showToast } from "@raycast/api";
 import { useEffect, useState } from "react";
 import CommandResponse from "./components/CommandResponse";
 import CommandForm from "./components/CommandForm";
@@ -28,7 +17,8 @@ export default function Discover() {
     // Get installed commands from local storage
     Promise.resolve(LocalStorage.allItems()).then((commandData) => {
       const commandDataFiltered = Object.values(commandData).filter(
-        (cmd, index) => Object.keys(commandData)[index] != "--defaults-installed"
+        (cmd, index) =>
+          Object.keys(commandData)[index] != "--defaults-installed" && !Object.keys(cmd)[index].startsWith("id-")
       );
       setMyCommands(commandDataFiltered.map((data) => JSON.parse(data)));
     });
@@ -196,7 +186,9 @@ ${
                   showToast({ title: "Command Installed", message: `${command.name}" has been installed.` });
                   Promise.resolve(LocalStorage.allItems()).then((commandData) => {
                     const commandDataFiltered = Object.values(commandData).filter(
-                      (cmd, index) => Object.keys(commandData)[index] != "--defaults-installed"
+                      (cmd, index) =>
+                        Object.keys(commandData)[index] != "--defaults-installed" &&
+                        !Object.keys(cmd)[index].startsWith("id-")
                     );
                     setMyCommands(commandDataFiltered.map((data) => JSON.parse(data)));
                   });
@@ -244,19 +236,6 @@ ${
                 title="Copy Command JSON"
                 content={getCommandJSON(command)}
                 shortcut={{ modifiers: ["cmd", "shift"], key: "j" }}
-              />
-              <Action
-                title="Export All Commands"
-                icon={Icon.CopyClipboard}
-                shortcut={{ modifiers: ["cmd", "shift"], key: "a" }}
-                onAction={async () => {
-                  Promise.resolve(
-                    LocalStorage.allItems().then((items) => {
-                      delete items["--defaults-installed"];
-                      Clipboard.copy(JSON.stringify(items)).then(() => showHUD("Copied All PromptLab Commands"));
-                    })
-                  );
-                }}
               />
             </ActionPanel.Section>
 

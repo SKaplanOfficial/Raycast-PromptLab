@@ -4,6 +4,7 @@
 
 - Added setting to group commands by category
 - Added setting for prompt length limit
+- Added setting for export location to use when exporting all commands
 
 ## 2023-05-11
 
