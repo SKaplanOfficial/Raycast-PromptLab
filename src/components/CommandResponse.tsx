@@ -1,4 +1,4 @@
-import { closeMainWindow, showToast, Toast, useNavigation } from "@raycast/api";
+import { closeMainWindow, showHUD, showToast, Toast, useNavigation } from "@raycast/api";
 import { ERRORTYPE, useFileContents } from "../utils/file-utils";
 import { useEffect, useState } from "react";
 import { CommandOptions } from "../utils/types";
@@ -139,7 +139,16 @@ export default function CommandResponse(props: {
 
   // Don't show the response if the user has disabled it
   if (options.showResponse == false) {
-    pop();
+    if (options.showResponse == false) {
+      Promise.resolve(showHUD(`Running '${commandName}'...`));
+    }
+
+    if (!loadingData && !loading && !isLoading && data.length) {
+      if (options.showResponse == false) {
+        Promise.resolve(showHUD("Done!"));
+      }
+      pop();
+    }
     return null;
   }
 

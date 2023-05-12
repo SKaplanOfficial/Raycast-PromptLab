@@ -35,6 +35,7 @@ PromptLab also supports "action scripts" -- AppleScripts which run with the AI's
     - [Manual Installation](#manual-installation)
 - [Custom Model Endpoints](#custom-model-endpoints)
 - [Autonomous Agent Features](#autonomous-agent-features)
+- [Troubleshooting](#troubleshooting)
 - [Contributing](#contributing)
 - [Useful Resources](#useful-resources)
 
@@ -297,6 +298,16 @@ To use the OpenAI API as the model endpoint, configure the extension as follows:
 ## Autonomous Agent Features
 
 When using PromptLab Chat, or any command that uses a chat view, you can choose to enable autonomous agent features by checking the "Allow AI To Run Commands" checkbox. This will allow the AI to run PromptLab commands on your behalf, supplying input as needed, in order to answer your queries. For example, if you ask the AI "What's the latest news?", it might run the "Recent Headlines From 68k News" command to fulfil your request, then return the results to you. This feature is disabled by default, and can be enabled or disabled at any time.
+
+## Troubleshooting
+
+If you encounter any issues with the extension, you can try the following steps to resolve them:
+
+1. Make sure you're running the latest version of Raycast and PromptLab. I'm always working to improve the extension, so it's possible that your issue has already been fixed.
+2. If you're having trouble with a command not outputting the desired response, try adjusting the command's configuration. You might just need to make small adjustments to the wording of the prompt. See the [Useful Resources](#useful-resources) section below for help with prompt engineering. You can also try adjusting the included information settings to add or remove context from the prompt and guide the AI towards the desired response.
+3. If you're having trouble with PromptLab Chat responding in unexpected ways, make sure the chat settings are configured correctly. If you are trying to reference selected files, you need to enable "Use Selected Files As Context". Likewise, to run other PromptLab commands automatically, you need to enable "Allow AI To Run Commands". To have the AI remember information about your conversation, you'll need to enable "Use Conversation As Context". Having multiple of these settings enabled can sometimes cause unexpected behavior, so try disabling them one at a time to see if that resolves the issue.
+4. Check the [PromptLab Wiki](https://github.com/SKaplanOfficial/Raycast-PromptLab/wiki) to see if a solution to your problem is provided there.
+5. If you're still having trouble, [create a new issue](https://github.com/SKaplanOfficial/Raycast-PromptLab/issues/new/choose) on GitHub with a detailed description of the issue and any relevant screenshots or information. I'll do my best to help you out!
 
 ## Contributing
 
