@@ -131,6 +131,9 @@ You can instruct PromptLab to extract text from any webpage by using the {{URL}}
 | `{{currentURL}}` | The current URL of the active tab of the active browser |
 | `{{fileAICommands}}` | The list of all custom PromptLab commands |
 | `{{input}}` | An input string provided by either Quicklink input or the currently selected text |
+| `{{previousCommand}}` | The name of the last PromptLab command executed |
+| `{{previousPrompt}}` | The full prompt used by the last PromptLab command executed |
+| `{{previousResponse}}` | The response text of the last PromptLab command executed |
 | `{{selectedText}}` | The currently selected text |
 
 #### Persistent Data Placeholders

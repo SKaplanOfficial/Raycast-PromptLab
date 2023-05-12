@@ -5,25 +5,29 @@
 - Added setting to group commands by category
 - Added setting for prompt length limit
 - Added setting for export location to use when exporting all commands
+- Added previousCommand, previousPrompt, and previousResponse placeholders
+- Fixed allocation error when analyzing images with a dimension < 100px
+- Fixed bug where placeholder replacements were run multiple times
+- Fixed bug where no-view commands would not pop to root view after being run
 
 ## 2023-05-11
 
 - Tweaked autonomous agent features to be more reliable
-- Fix bug where commands could not be uploaded to the PromptLab store due to missing fields
-- Add accepted file extensions to command option tables
+- Fixed bug where commands could not be uploaded to the PromptLab store due to missing fields
+- Added accepted file extensions to command option tables
 - Added command categories field
 - Added ability to sort commands by category
 
 # 2023-05-10
 
 - Upgraded to the new useAI API
-- Fix compatibility with latest version of Raycast
+- Fixed compatibility with latest version of Raycast
 
 ## 2023-04-23
 
-- Add "Allow AI To Run Commands" checkbox in chat views
+- Added "Allow AI To Run Commands" checkbox in chat views
     - The AI will run other PromptLab commands to fulfil the user's request
-- Remove "Allow AI To Control Computer" checkbox in chat views, at least for now
+- Removed "Allow AI To Control Computer" checkbox in chat views, at least for now
     - It was too unreliable, and the commands approach is more understandable to users
 
 ## 2023-04-21

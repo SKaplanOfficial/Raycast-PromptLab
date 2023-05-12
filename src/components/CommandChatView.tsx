@@ -97,7 +97,7 @@ export default function CommandChatView(props: {
           .sort(([a], [b]) => (a > b ? 1 : -1))
           .map(([, value], index) => `${index}:${JSON.parse(value)["prompt"]}`);
         const nameIndex = parseInt(cmdMatch[1]);
-        if (nameIndex != undefined) {
+        if (nameIndex != undefined && nameIndex < commandPrompts.length) {
           // Run the command
           setCurrentResponse("");
           setEnableModel(false);
@@ -167,7 +167,7 @@ export default function CommandChatView(props: {
                 // Get command descriptions
                 const commands = await LocalStorage.allItems();
                 const commandDescriptions = Object.entries(commands)
-                  .filter(([key]) => key != "--defaults-installed")
+                  .filter(([key]) => key != "--defaults-installed" && !key.startsWith("id-"))
                   .sort(([a], [b]) => (a > b ? 1 : -1))
                   .map(([, value], index) => `${index}:${JSON.parse(value)["description"]}`);
 
