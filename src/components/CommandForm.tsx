@@ -68,7 +68,8 @@ export default function CommandForm(props: {
         const commandData = await LocalStorage.allItems();
         const commandDataFiltered = Object.values(commandData).filter(
           (cmd, index) =>
-            Object.keys(commandData)[index] != "--defaults-installed" || (oldData && oldData.name == cmd.name)
+            Object.keys(commandData)[index] != "--defaults-installed" &&
+            !Object.keys(commandData)[index].startsWith("id-")
         );
         setCommands(commandDataFiltered.map((data) => JSON.parse(data)));
       }

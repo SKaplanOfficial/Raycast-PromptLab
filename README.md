@@ -21,6 +21,7 @@ PromptLab also supports "action scripts" -- AppleScripts which run with the AI's
         - [Application Data Placeholders](#application-data-placeholders)
         - [Calendar Data Placeholders](#calendar-data-placeholders)
         - [Context Data Placeholders](#context-data-placeholders)
+        - [Persistent Data Placeholders](#persistent-data-placeholders)
         - [File Data Placeholders](#file-data-placeholders)
         - [System Data Placeholders](#system-data-placeholders)
         - [Other Placeholders](#other-placeholders)
@@ -131,6 +132,12 @@ You can instruct PromptLab to extract text from any webpage by using the {{URL}}
 | `{{fileAICommands}}` | The list of all custom PromptLab commands |
 | `{{input}}` | An input string provided by either Quicklink input or the currently selected text |
 | `{{selectedText}}` | The currently selected text |
+
+#### Persistent Data Placeholders
+| Placeholder | Replaced With |
+| --- | --- |
+| `{{increment:identifier}}` | The value of the local storage entry whose key is `identifier`, increased by 1 |
+| `{{decrement:identifier}}` | The value of the local storage entry whose key is `identifier`, decreased by 1 |
 
 #### File Data Placeholders
 | Placeholder | Replaced With |

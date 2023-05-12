@@ -332,6 +332,7 @@ ${command.categories?.sort((a, b) => (a > b ? 1 : -1)).join(", ") || "Other"}
                         version: command.version,
                         requirements: command.requirements,
                         scriptKind: command.scriptKind,
+                        categories: command.categories || [],
                       }}
                       setCommands={setCommands}
                     />
@@ -367,6 +368,7 @@ ${command.categories?.sort((a, b) => (a > b ? 1 : -1)).join(", ") || "Other"}
                         version: "1.0.0",
                         requirements: command.requirements,
                         scriptKind: command.scriptKind,
+                        categories: command.categories || [],
                       }}
                       setCommands={setCommands}
                       duplicate={true}
@@ -424,7 +426,7 @@ ${command.categories?.sort((a, b) => (a > b ? 1 : -1)).join(", ") || "Other"}
     categories.forEach((category) => {
       const categoryCommands = commands?.filter((command) => {
         // If a command has no categories, it is considered to be in the "Other" category
-        return (!command.categories && category == "Other") || command.categories?.includes(category);
+        return (!command.categories?.length && category == "Other") || command.categories?.includes(category);
       });
       const categoryListItems = listItems.filter((item) => {
         // Add list items for commands in the current category

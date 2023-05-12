@@ -15,7 +15,7 @@ export const filterString = (str: string, cutoff?: number): string => {
   return str
     .replaceAll(/[^A-Za-z0-9,.?!\-()/[\]{}@: \n\r<>]/g, "")
     .replaceAll('"', "'")
-    .substring(0, cutoff || parseInt(preferences.lengthLimit + 500) || 3000);
+    .substring(0, cutoff || parseInt(preferences.lengthLimit) + 500 || 3000);
 };
 
 /**
