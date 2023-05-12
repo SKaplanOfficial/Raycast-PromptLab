@@ -43,7 +43,7 @@ export default function useModel(basePrompt: string, prompt: string, input: stri
       const path: string[] = [];
 
       // Split the key path string into an array of keys
-      pathString.split(".").forEach(function (item) {
+      pathString.trim.split(".").forEach(function (item) {
         item.split(/\[([^}]+)\]/g).forEach(function (key) {
           if (key.length > 0) {
             path.push(key);
