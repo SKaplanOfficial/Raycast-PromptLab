@@ -5,6 +5,7 @@ import {
   Clipboard,
   Color,
   confirmAlert,
+  getPreferenceValues,
   Icon,
   List,
   LocalStorage,
@@ -16,7 +17,7 @@ import { useEffect, useState } from "react";
 import CommandResponse from "./components/CommandResponse";
 import { installDefaults } from "./utils/file-utils";
 import CommandForm from "./components/CommandForm";
-import { Command, StoreCommand } from "./utils/types";
+import { categories, Command, searchPreferences, StoreCommand } from "./utils/types";
 import fetch from "node-fetch";
 import { QUICKLINK_URL_BASE, STORE_ENDPOINT, STORE_KEY } from "./utils/constants";
 import { getCommandJSON } from "./utils/command-utils";
@@ -29,6 +30,8 @@ export default function SearchCommand(props: { arguments: { commandName: string;
   const [searchText, setSearchText] = useState<string | undefined>(
     commandName == undefined || queryInput ? undefined : commandName.trim()
   );
+
+  const preferences = getPreferenceValues<searchPreferences>();
 
   useEffect(() => {
     /* Add default commands if necessary, then get all commands */
@@ -75,20 +78,21 @@ export default function SearchCommand(props: { arguments: { commandName: string;
     );
   }
 
-  const listItems = commands
-    ?.filter((command) => command.categories?.includes(targetCategory) || targetCategory == "All")
-    .sort((a, b) => (a.name > b.name ? 1 : -1))
-    .map((command) => (
-      <List.Item
-        title={command.name}
-        icon={{
-          source: command.icon,
-          tintColor: command.iconColor == undefined ? Color.PrimaryText : command.iconColor,
-        }}
-        key={command.name}
-        detail={
-          <List.Item.Detail
-            markdown={`# ${command.name}
+  let listItems =
+    commands
+      ?.filter((command) => command.categories?.includes(targetCategory) || targetCategory == "All")
+      .sort((a, b) => (a.name > b.name ? 1 : -1))
+      .map((command) => (
+        <List.Item
+          title={command.name}
+          icon={{
+            source: command.icon,
+            tintColor: command.iconColor == undefined ? Color.PrimaryText : command.iconColor,
+          }}
+          key={command.name}
+          detail={
+            <List.Item.Detail
+              markdown={`# ${command.name}
           
 Version: ${command.version || "1.0.0"}
 
@@ -145,12 +149,12 @@ ${command.categories?.sort((a, b) => (a > b ? 1 : -1)).join(", ") || "Other"}
 | Show Response View | ${command.showResponse ? "Yes" : "No"} |
 | Minimum File Count | ${command.minNumFiles} |
 | Accepted File Extensions | ${
-              command.minNumFiles == "0"
-                ? "N/A"
-                : command.acceptedFileExtensions?.length && command.acceptedFileExtensions !== "None"
-                ? command.acceptedFileExtensions
-                : "Any"
-            } |
+                command.minNumFiles == "0"
+                  ? "N/A"
+                  : command.acceptedFileExtensions?.length && command.acceptedFileExtensions !== "None"
+                  ? command.acceptedFileExtensions
+                  : "Any"
+              } |
 | Use File Metadata? | ${command.useMetadata ? "Yes" : "No"} |
 | Use Sound Classification? | ${command.useSoundClassification ? "Yes" : "No"} |
 | Use Subject Classification? | ${command.useSubjectClassification ? "Yes" : "No"} |
@@ -159,260 +163,288 @@ ${command.categories?.sort((a, b) => (a > b ? 1 : -1)).join(", ") || "Other"}
 | Use Face Detection? | ${command.useFaceDetection ? "Yes" : "No"} |
 | Use Rectangle Detection? | ${command.useRectangleDetection ? "Yes" : "No"} |
 | Use Saliency Analysis? | ${command.useSaliencyAnalysis ? "Yes" : "No"} |`}
-          />
-        }
-        actions={
-          <ActionPanel>
-            <Action.Push
-              title="Run PromptLab Command"
-              target={
-                <CommandResponse
-                  commandName={command.name}
-                  prompt={command.prompt}
-                  options={{
-                    minNumFiles: parseInt(command.minNumFiles as string),
-                    acceptedFileExtensions: command.acceptedFileExtensions?.length
-                      ? command.acceptedFileExtensions?.split(",").map((item) => item.trim())
-                      : undefined,
-                    useMetadata: command.useMetadata,
-                    useSoundClassification: command.useSoundClassification,
-                    useAudioDetails: command.useAudioDetails,
-                    useBarcodeDetection: command.useBarcodeDetection,
-                    useFaceDetection: command.useFaceDetection,
-                    useRectangleDetection: command.useRectangleDetection,
-                    useSubjectClassification: command.useSubjectClassification,
-                    outputKind: command.outputKind,
-                    actionScript: command.actionScript,
-                    showResponse: command.showResponse,
-                    useSaliencyAnalysis: command.useSaliencyAnalysis,
-                    scriptKind: command.scriptKind,
+            />
+          }
+          actions={
+            <ActionPanel>
+              <Action.Push
+                title="Run PromptLab Command"
+                target={
+                  <CommandResponse
+                    commandName={command.name}
+                    prompt={command.prompt}
+                    options={{
+                      minNumFiles: parseInt(command.minNumFiles as string),
+                      acceptedFileExtensions: command.acceptedFileExtensions?.length
+                        ? command.acceptedFileExtensions?.split(",").map((item) => item.trim())
+                        : undefined,
+                      useMetadata: command.useMetadata,
+                      useSoundClassification: command.useSoundClassification,
+                      useAudioDetails: command.useAudioDetails,
+                      useBarcodeDetection: command.useBarcodeDetection,
+                      useFaceDetection: command.useFaceDetection,
+                      useRectangleDetection: command.useRectangleDetection,
+                      useSubjectClassification: command.useSubjectClassification,
+                      outputKind: command.outputKind,
+                      actionScript: command.actionScript,
+                      showResponse: command.showResponse,
+                      useSaliencyAnalysis: command.useSaliencyAnalysis,
+                      scriptKind: command.scriptKind,
+                    }}
+                  />
+                }
+                icon={Icon.ArrowRight}
+                shortcut={{ modifiers: ["cmd"], key: "r" }}
+              />
+
+              <Action
+                title="Share To PromptLab Store"
+                icon={Icon.Upload}
+                shortcut={{ modifiers: ["cmd", "shift"], key: "s" }}
+                onAction={async () => {
+                  const toast = await showToast({
+                    style: Toast.Style.Animated,
+                    title: "Uploading Command",
+                  });
+
+                  fetch(STORE_ENDPOINT, { headers: { "X-API-KEY": STORE_KEY } }).then(async (response) => {
+                    const storeCommands: StoreCommand[] = ((await response.json()) as { data: StoreCommand[] })["data"];
+
+                    const storeCommandPrompts = storeCommands.map((command) => command.prompt);
+
+                    if (storeCommandPrompts.includes(command.prompt)) {
+                      toast.style = Toast.Style.Failure;
+                      toast.title = "Error";
+                      toast.message = "Command already exists in PromptLab Store";
+                      return;
+                    }
+
+                    fetch(STORE_ENDPOINT, {
+                      method: "POST",
+                      headers: {
+                        "Content-Type": "application/json",
+                        "X-API-KEY": STORE_KEY,
+                      },
+                      body: JSON.stringify({
+                        data: {
+                          name: command.name,
+                          prompt: command.prompt,
+                          icon: command.icon,
+                          iconColor: command.iconColor,
+                          minNumFiles: command.minNumFiles?.toString(),
+                          acceptedFileExtensions: command.acceptedFileExtensions || "None",
+                          useMetadata: command.useMetadata ? "TRUE" : "FALSE",
+                          useAudioDetails: command.useAudioDetails ? "TRUE" : "FALSE",
+                          useSoundClassification: command.useSoundClassification ? "TRUE" : "FALSE",
+                          useSubjectClassification: command.useSubjectClassification ? "TRUE" : "FALSE",
+                          useRectangleDetection: command.useRectangleDetection ? "TRUE" : "FALSE",
+                          useBarcodeDetection: command.useBarcodeDetection ? "TRUE" : "FALSE",
+                          useFaceDetection: command.useFaceDetection ? "TRUE" : "FALSE",
+                          outputKind: command.outputKind || "Detaiil",
+                          actionScript: command.actionScript || "None",
+                          showResponse: command.showResponse ? "TRUE" : "FALSE",
+                          description: command.description || "None",
+                          useSaliencyAnalysis: command.useSaliencyAnalysis ? "TRUE" : "FALSE",
+                          exampleOutput: "None",
+                          author: command.author || "None",
+                          website: command.website || "None",
+                          version: command.version || "1.0.0",
+                          requirements: command.requirements || "None",
+                          scriptKind: command.scriptKind || "applescript",
+                          categories: command.categories?.join(", ") || "Other",
+                        },
+                      }),
+                    }).then((res) => {
+                      if (res.statusText == "OK") {
+                        toast.style = Toast.Style.Success;
+                        toast.title = "Success";
+                        toast.message = `Added ${command.name} to the PromptLab Store`;
+                      } else {
+                        toast.style = Toast.Style.Failure;
+                        toast.title = "Error";
+                        toast.message = "Couldn't upload command";
+                      }
+                    });
+                  });
+                }}
+              />
+
+              <ActionPanel.Section title="Copy Actions">
+                <Action.CopyToClipboard
+                  title="Copy Prompt"
+                  content={command.prompt}
+                  shortcut={{ modifiers: ["cmd", "shift"], key: "p" }}
+                />
+                <Action.CopyToClipboard
+                  title="Copy Command JSON"
+                  content={getCommandJSON(command)}
+                  shortcut={{ modifiers: ["cmd", "shift"], key: "j" }}
+                />
+                <Action
+                  title="Export All Commands"
+                  icon={Icon.CopyClipboard}
+                  shortcut={{ modifiers: ["cmd", "shift"], key: "a" }}
+                  onAction={async () => {
+                    Promise.resolve(
+                      LocalStorage.allItems().then((items) => {
+                        delete items["--defaults-installed"];
+                        Clipboard.copy(JSON.stringify(items)).then(() => showHUD("Copied All PromptLab Commands"));
+                      })
+                    );
                   }}
                 />
-              }
-              icon={Icon.ArrowRight}
-              shortcut={{ modifiers: ["cmd"], key: "r" }}
-            />
+              </ActionPanel.Section>
 
-            <Action
-              title="Share To PromptLab Store"
-              icon={Icon.Upload}
-              shortcut={{ modifiers: ["cmd", "shift"], key: "s" }}
-              onAction={async () => {
-                const toast = await showToast({
-                  style: Toast.Style.Animated,
-                  title: "Uploading Command",
-                });
-
-                fetch(STORE_ENDPOINT, { headers: { "X-API-KEY": STORE_KEY } }).then(async (response) => {
-                  const storeCommands: StoreCommand[] = ((await response.json()) as { data: StoreCommand[] })["data"];
-
-                  const storeCommandPrompts = storeCommands.map((command) => command.prompt);
-
-                  if (storeCommandPrompts.includes(command.prompt)) {
-                    toast.style = Toast.Style.Failure;
-                    toast.title = "Error";
-                    toast.message = "Command already exists in PromptLab Store";
-                    return;
-                  }
-
-                  fetch(STORE_ENDPOINT, {
-                    method: "POST",
-                    headers: {
-                      "Content-Type": "application/json",
-                      "X-API-KEY": STORE_KEY,
-                    },
-                    body: JSON.stringify({
-                      data: {
+              <ActionPanel.Section title="Command Controls">
+                <Action.CreateQuicklink
+                  quicklink={{
+                    link: `${QUICKLINK_URL_BASE}${encodeURI(command.name)}%22${
+                      command.prompt?.includes("{{input}}") ? "%2C%22queryInput%22%3A%22{Input}%22" : ""
+                    }%7D`,
+                    name: command.name,
+                  }}
+                />
+                <Action.Push
+                  title="Edit Command"
+                  target={
+                    <CommandForm
+                      oldData={{
                         name: command.name,
                         prompt: command.prompt,
                         icon: command.icon,
                         iconColor: command.iconColor,
                         minNumFiles: command.minNumFiles?.toString(),
-                        acceptedFileExtensions: command.acceptedFileExtensions || "None",
-                        useMetadata: command.useMetadata ? "TRUE" : "FALSE",
-                        useAudioDetails: command.useAudioDetails ? "TRUE" : "FALSE",
-                        useSoundClassification: command.useSoundClassification ? "TRUE" : "FALSE",
-                        useSubjectClassification: command.useSubjectClassification ? "TRUE" : "FALSE",
-                        useRectangleDetection: command.useRectangleDetection ? "TRUE" : "FALSE",
-                        useBarcodeDetection: command.useBarcodeDetection ? "TRUE" : "FALSE",
-                        useFaceDetection: command.useFaceDetection ? "TRUE" : "FALSE",
-                        outputKind: command.outputKind || "Detaiil",
-                        actionScript: command.actionScript || "None",
-                        showResponse: command.showResponse ? "TRUE" : "FALSE",
-                        description: command.description || "None",
-                        useSaliencyAnalysis: command.useSaliencyAnalysis ? "TRUE" : "FALSE",
-                        exampleOutput: "None",
-                        author: command.author || "None",
-                        website: command.website || "None",
-                        version: command.version || "1.0.0",
-                        requirements: command.requirements || "None",
-                        scriptKind: command.scriptKind || "applescript",
-                        categories: command.categories?.join(", ") || "Other",
-                      },
-                    }),
-                  }).then((res) => {
-                    if (res.statusText == "OK") {
-                      toast.style = Toast.Style.Success;
-                      toast.title = "Success";
-                      toast.message = `Added ${command.name} to the PromptLab Store`;
-                    } else {
-                      toast.style = Toast.Style.Failure;
-                      toast.title = "Error";
-                      toast.message = "Couldn't upload command";
+                        acceptedFileExtensions: command.acceptedFileExtensions,
+                        useMetadata: command.useMetadata,
+                        useAudioDetails: command.useAudioDetails,
+                        useSoundClassification: command.useSoundClassification,
+                        useSubjectClassification: command.useSubjectClassification,
+                        useRectangleDetection: command.useRectangleDetection,
+                        useBarcodeDetection: command.useBarcodeDetection,
+                        useFaceDetection: command.useFaceDetection,
+                        outputKind: command.outputKind,
+                        actionScript: command.actionScript,
+                        showResponse: command.showResponse,
+                        description: command.description,
+                        useSaliencyAnalysis: command.useSaliencyAnalysis,
+                        author: command.author,
+                        website: command.website,
+                        version: command.version,
+                        requirements: command.requirements,
+                        scriptKind: command.scriptKind,
+                      }}
+                      setCommands={setCommands}
+                    />
+                  }
+                  icon={Icon.Pencil}
+                  shortcut={{ modifiers: ["cmd"], key: "e" }}
+                />
+                <Action.Push
+                  title="Create Derivative"
+                  target={
+                    <CommandForm
+                      oldData={{
+                        name: command.name + " Copy",
+                        prompt: command.prompt,
+                        icon: command.icon,
+                        iconColor: command.iconColor,
+                        minNumFiles: command.minNumFiles?.toString(),
+                        acceptedFileExtensions: command.acceptedFileExtensions,
+                        useMetadata: command.useMetadata,
+                        useAudioDetails: command.useAudioDetails,
+                        useSoundClassification: command.useSoundClassification,
+                        useSubjectClassification: command.useSubjectClassification,
+                        useRectangleDetection: command.useRectangleDetection,
+                        useBarcodeDetection: command.useBarcodeDetection,
+                        useFaceDetection: command.useFaceDetection,
+                        outputKind: command.outputKind,
+                        actionScript: command.actionScript,
+                        showResponse: command.showResponse,
+                        description: command.description,
+                        useSaliencyAnalysis: command.useSaliencyAnalysis,
+                        author: command.author,
+                        website: command.website,
+                        version: "1.0.0",
+                        requirements: command.requirements,
+                        scriptKind: command.scriptKind,
+                      }}
+                      setCommands={setCommands}
+                      duplicate={true}
+                    />
+                  }
+                  icon={Icon.EyeDropper}
+                  shortcut={{ modifiers: ["ctrl"], key: "c" }}
+                />
+                <Action
+                  title="Delete Command"
+                  onAction={async () => {
+                    if (
+                      await confirmAlert({
+                        title: "Delete Command",
+                        message: "Are you sure?",
+                        primaryAction: { title: "Delete", style: Alert.ActionStyle.Destructive },
+                      })
+                    ) {
+                      const newCommands = commands.filter((cmd) => cmd.name != command.name);
+                      await LocalStorage.removeItem(command.name);
+                      setCommands(newCommands);
                     }
-                  });
-                });
-              }}
-            />
+                  }}
+                  icon={Icon.Trash}
+                  style={Action.Style.Destructive}
+                  shortcut={{ modifiers: ["cmd"], key: "d" }}
+                />
+                <Action
+                  title="Delete All Commands"
+                  onAction={async () => {
+                    if (
+                      await confirmAlert({
+                        title: "Delete All Commands",
+                        message: "Are you sure?",
+                        primaryAction: { title: "Delete All", style: Alert.ActionStyle.Destructive },
+                      })
+                    ) {
+                      commands.forEach(async (cmd) => await LocalStorage.removeItem(cmd.name));
+                      setCommands([]);
+                    }
+                  }}
+                  icon={Icon.Trash}
+                  style={Action.Style.Destructive}
+                  shortcut={{ modifiers: ["cmd", "opt", "shift"], key: "d" }}
+                />
+              </ActionPanel.Section>
+            </ActionPanel>
+          }
+        />
+      )) || [];
 
-            <ActionPanel.Section title="Copy Actions">
-              <Action.CopyToClipboard
-                title="Copy Prompt"
-                content={command.prompt}
-                shortcut={{ modifiers: ["cmd", "shift"], key: "p" }}
-              />
-              <Action.CopyToClipboard
-                title="Copy Command JSON"
-                content={getCommandJSON(command)}
-                shortcut={{ modifiers: ["cmd", "shift"], key: "j" }}
-              />
-              <Action
-                title="Export All Commands"
-                icon={Icon.CopyClipboard}
-                shortcut={{ modifiers: ["cmd", "shift"], key: "a" }}
-                onAction={async () => {
-                  Promise.resolve(
-                    LocalStorage.allItems().then((items) => {
-                      delete items["--defaults-installed"];
-                      Clipboard.copy(JSON.stringify(items)).then(() => showHUD("Copied All PromptLab Commands"));
-                    })
-                  );
-                }}
-              />
-            </ActionPanel.Section>
+  // Group commands by category, if enabled
+  if (preferences.groupByCategory && targetCategory == "All") {
+    const sections: JSX.Element[] = [];
+    categories.forEach((category) => {
+      const categoryCommands = commands?.filter((command) => {
+        // If a command has no categories, it is considered to be in the "Other" category
+        return (!command.categories && category == "Other") || command.categories?.includes(category);
+      });
+      const categoryListItems = listItems.filter((item) => {
+        // Add list items for commands in the current category
+        return categoryCommands?.map((command) => command.name).includes(item.props.title);
+      });
 
-            <ActionPanel.Section title="Command Controls">
-              <Action.CreateQuicklink
-                quicklink={{
-                  link: `${QUICKLINK_URL_BASE}${encodeURI(command.name)}%22${
-                    command.prompt?.includes("{{input}}") ? "%2C%22queryInput%22%3A%22{Input}%22" : ""
-                  }%7D`,
-                  name: command.name,
-                }}
-              />
-              <Action.Push
-                title="Edit Command"
-                target={
-                  <CommandForm
-                    oldData={{
-                      name: command.name,
-                      prompt: command.prompt,
-                      icon: command.icon,
-                      iconColor: command.iconColor,
-                      minNumFiles: command.minNumFiles?.toString(),
-                      acceptedFileExtensions: command.acceptedFileExtensions,
-                      useMetadata: command.useMetadata,
-                      useAudioDetails: command.useAudioDetails,
-                      useSoundClassification: command.useSoundClassification,
-                      useSubjectClassification: command.useSubjectClassification,
-                      useRectangleDetection: command.useRectangleDetection,
-                      useBarcodeDetection: command.useBarcodeDetection,
-                      useFaceDetection: command.useFaceDetection,
-                      outputKind: command.outputKind,
-                      actionScript: command.actionScript,
-                      showResponse: command.showResponse,
-                      description: command.description,
-                      useSaliencyAnalysis: command.useSaliencyAnalysis,
-                      author: command.author,
-                      website: command.website,
-                      version: command.version,
-                      requirements: command.requirements,
-                      scriptKind: command.scriptKind,
-                    }}
-                    setCommands={setCommands}
-                  />
-                }
-                icon={Icon.Pencil}
-                shortcut={{ modifiers: ["cmd"], key: "e" }}
-              />
-              <Action.Push
-                title="Create Derivative"
-                target={
-                  <CommandForm
-                    oldData={{
-                      name: command.name + " Copy",
-                      prompt: command.prompt,
-                      icon: command.icon,
-                      iconColor: command.iconColor,
-                      minNumFiles: command.minNumFiles?.toString(),
-                      acceptedFileExtensions: command.acceptedFileExtensions,
-                      useMetadata: command.useMetadata,
-                      useAudioDetails: command.useAudioDetails,
-                      useSoundClassification: command.useSoundClassification,
-                      useSubjectClassification: command.useSubjectClassification,
-                      useRectangleDetection: command.useRectangleDetection,
-                      useBarcodeDetection: command.useBarcodeDetection,
-                      useFaceDetection: command.useFaceDetection,
-                      outputKind: command.outputKind,
-                      actionScript: command.actionScript,
-                      showResponse: command.showResponse,
-                      description: command.description,
-                      useSaliencyAnalysis: command.useSaliencyAnalysis,
-                      author: command.author,
-                      website: command.website,
-                      version: "1.0.0",
-                      requirements: command.requirements,
-                      scriptKind: command.scriptKind,
-                    }}
-                    setCommands={setCommands}
-                    duplicate={true}
-                  />
-                }
-                icon={Icon.EyeDropper}
-                shortcut={{ modifiers: ["ctrl"], key: "c" }}
-              />
-              <Action
-                title="Delete Command"
-                onAction={async () => {
-                  if (
-                    await confirmAlert({
-                      title: "Delete Command",
-                      message: "Are you sure?",
-                      primaryAction: { title: "Delete", style: Alert.ActionStyle.Destructive },
-                    })
-                  ) {
-                    const newCommands = commands.filter((cmd) => cmd.name != command.name);
-                    await LocalStorage.removeItem(command.name);
-                    setCommands(newCommands);
-                  }
-                }}
-                icon={Icon.Trash}
-                style={Action.Style.Destructive}
-                shortcut={{ modifiers: ["cmd"], key: "d" }}
-              />
-              <Action
-                title="Delete All Commands"
-                onAction={async () => {
-                  if (
-                    await confirmAlert({
-                      title: "Delete All Commands",
-                      message: "Are you sure?",
-                      primaryAction: { title: "Delete All", style: Alert.ActionStyle.Destructive },
-                    })
-                  ) {
-                    commands.forEach(async (cmd) => await LocalStorage.removeItem(cmd.name));
-                    setCommands([]);
-                  }
-                }}
-                icon={Icon.Trash}
-                style={Action.Style.Destructive}
-                shortcut={{ modifiers: ["cmd", "opt", "shift"], key: "d" }}
-              />
-            </ActionPanel.Section>
-          </ActionPanel>
-        }
-      />
-    ));
+      // Only add a section if there are commands in the current category
+      if (categoryListItems.length) {
+        sections.push(
+          <List.Section title={category} key={category}>
+            {categoryListItems}
+          </List.Section>
+        );
+      }
+    });
+    listItems = sections;
+  }
+
+  const shownCommands =
+    commands?.filter((command) => command.categories?.includes(targetCategory) || targetCategory == "All") || [];
 
   return (
     <List
@@ -422,7 +454,9 @@ ${command.categories?.sort((a, b) => (a > b ? 1 : -1)).join(", ") || "Other"}
       filtering={true}
       isShowingDetail={commands != undefined}
       searchBarPlaceholder={`Search ${
-        !commands || commands.length == 1 ? "commands..." : `${commands.length} commands...`
+        !commands || commands.length == 1
+          ? "commands..."
+          : `${shownCommands.length} command${shownCommands.length > 1 ? "s" : ""}...`
       }`}
       searchBarAccessory={<CategoryDropdown onSelection={setTargetCategory} />}
     >

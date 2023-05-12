@@ -1,5 +1,10 @@
 # PromptLab DevLog - A More Detailed ChangeLog
 
+## 2023-05-12
+
+- Added setting to group commands by category
+- Added setting for prompt length limit
+
 ## 2023-05-11
 
 - Tweaked autonomous agent features to be more reliable

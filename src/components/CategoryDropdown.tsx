@@ -10,7 +10,6 @@ export default function CategoryDropdown(props: { onSelection: (newValue: string
       }}
     >
       <List.Dropdown.Item key="All" title="All" value="All" />
-
       <List.Dropdown.Item title="Other" value="Other" icon={{ source: Icon.Circle, tintColor: Color.SecondaryText }} />
       <List.Dropdown.Item title="Data" value="Data" icon={{ source: Icon.List, tintColor: Color.Blue }} />
       <List.Dropdown.Item
