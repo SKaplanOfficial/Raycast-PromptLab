@@ -9,7 +9,7 @@ PromptLab is a Raycast extension for creating and sharing powerful, contextually
 
 PromptLab allows you to create custom AI commands with prompts that utilize contextual placeholders such as {% raw %}`{{selectedText}}`, `{{todayEvents}}`, or `{{currentApplication}}`{% endraw %} to vastly expand the capabilities of Raycast AI. PromptLab can also extract information from selected files, if you choose, so that it can tell you about the subjects in an image, summarize a PDF, and more.
 
-PromptLab also supports "action scripts" -- AppleScripts which run with the AI's response as input. This opens a whole new world of capabilities such as allowing the AI to generate and modify files.
+PromptLab also supports "action scripts" -- AppleScripts which run with the AI's response as input, as well as experimental autonomous agent features that allow the AI to run commands on your behalf. These capabilities, paired with PromptLab's extensive customization options, open a whole new world of possibilities for enhancing your workflows with AI.
 
 [GitHub Repo](https://github.com/SKaplanOfficial/Raycast-PromptLab) | [My Other Extensions](https://www.raycast.com/HelloImSteven) | [Donate](https://www.paypal.com/donate/?hosted_button_id=2XFX5UXXR8M6J)
 
@@ -26,6 +26,7 @@ PromptLab also supports "action scripts" -- AppleScripts which run with the AI's
         - [Application Data Placeholders](#application-data-placeholders)
         - [Calendar Data Placeholders](#calendar-data-placeholders)
         - [Context Data Placeholders](#context-data-placeholders)
+        - [Persistent Data Placeholders](#persistent-data-placeholders)
         - [File Data Placeholders](#file-data-placeholders)
         - [System Data Placeholders](#system-data-placeholders)
         - [Other Placeholders](#other-placeholders)
@@ -39,6 +40,7 @@ PromptLab also supports "action scripts" -- AppleScripts which run with the AI's
     - [Manual Installation](#manual-installation)
 - [Custom Model Endpoints](#custom-model-endpoints)
 - [Autonomous Agent Features](#autonomous-agent-features)
+- [Troubleshooting](#troubleshooting)
 - [Useful Resources](#useful-resources)
 
 ## Top-Level Commands
@@ -141,6 +143,12 @@ You can instruct PromptLab to extract text from any webpage by using the {% raw 
 | `{% raw %}{{input}}{% endraw %}` | An input string provided by either Quicklink input or the currently selected text |
 | `{% raw %}{{selectedText}}{% endraw %}` | The currently selected text |
 
+#### Persistent Data Placeholders
+| Placeholder | Replaced With |
+| --- | --- |
+| `{% raw %}{{increment:identifier}}{% endraw %}`` | The value of the local storage entry whose key is `identifier`, increased by 1 |
+| `{% raw %}{{decrement:identifier}}{% endraw %}`` | The value of the local storage entry whose key is `identifier`, decreased by 1 |
+
 #### File Data Placeholders
 
 | Placeholder | Replaced With |
@@ -227,7 +235,7 @@ When configuring a PromptLab command, you can provide AppleScript code to execut
 | Performance Summary | Give me a detailed analysis of my CPU and RAM usage based on this data. Output two friendly paragraphs. along with a markdown table. ###{% raw %}{{shell:top -stats command -l 1 -n 10 \| grep -iE '(PhysMem\|CPU Usage)'}}{% endraw %}### |
 | Pros And Cons | List pros and cons for the following files based on the topics mentioned within them. Format the response as a markdown list. Use the file names as headings. Do not provide any other commentary. |
 | Recent Headlines From 68k News | Discuss the recent headlines from 68k News: ###{% raw %}{{http://68k.news}}{% endraw %}### |
-| Recommend Apps | Based on the list of apps I have installed, recommend 10 additional macOS applications that I might enjoy. Explain the significance of the relationship between each recommandation and my installed apps. Use any knowledge you have about the apps to inform your suggestions. Format the output as a markdown list. At the start, provide a paragraph analyzing common themes of my apps, directed at me. Here is the list of apps I have installed: ###{% raw %}{{installedApps}}{% endraw %}### |
+| Recommend Apps | Based on the list of apps I have installed, recommend 10 additional macOS applications that I might enjoy. Explain the significance of the relationship between each recommendation and my installed apps. Use any knowledge you have about the apps to inform your suggestions. Format the output as a markdown list. At the start, provide a paragraph analyzing common themes of my apps, directed at me. Here is the list of apps I have installed: ###{% raw %}{{installedApps}}{% endraw %}### |
 | Response To last Email | Generate a response to the following email:###{% raw %}{{lastEmail}}{% endraw %}### |
 | Split Into Text Files | Split the content of the following file into multiple logical sections. Do not put headings in their own section. Output the text of each section. Write "$$$$$" between each section. |
 | Suggest PromptLab Commands | Based on my current commands for the PromptLab extension, suggest new commands to create. Provide suggestions for titles as well prompts. The prompts must be relevant to an AI that can read the content of files, get information about the system, and get outside  data such as calendar events. The commands must be unique. Format the response as a single markdown list. Here are the commands I currently have: {% raw %}{{fileAICommands}}{% endraw %} |
@@ -301,6 +309,16 @@ To use the OpenAI API as the model endpoint, configure the extension as follows:
 ## Autonomous Agent Features
 
 When using PromptLab Chat, or any command that uses a chat view, you can choose to enable autonomous agent features by checking the "Allow AI To Run Commands" checkbox. This will allow the AI to run PromptLab commands on your behalf, supplying input as needed, in order to answer your queries. For example, if you ask the AI "What's the latest news?", it might run the "Recent Headlines From 68k News" command to fulfil your request, then return the results to you. This feature is disabled by default, and can be enabled or disabled at any time.
+
+## Troubleshooting
+
+If you encounter any issues with the extension, you can try the following steps to resolve them:
+
+1. Make sure you're running the latest version of Raycast and PromptLab. I'm always working to improve the extension, so it's possible that your issue has already been fixed.
+2. If you're having trouble with a command not outputting the desired response, try adjusting the command's configuration. You might just need to make small adjustments to the wording of the prompt. See the [Useful Resources](#useful-resources) section below for help with prompt engineering. You can also try adjusting the included information settings to add or remove context from the prompt and guide the AI towards the desired response.
+3. If you're having trouble with PromptLab Chat responding in unexpected ways, make sure the chat settings are configured correctly. If you are trying to reference selected files, you need to enable "Use Selected Files As Context". Likewise, to run other PromptLab commands automatically, you need to enable "Allow AI To Run Commands". To have the AI remember information about your conversation, you'll need to enable "Use Conversation As Context". Having multiple of these settings enabled can sometimes cause unexpected behavior, so try disabling them one at a time to see if that resolves the issue.
+4. Check the [PromptLab Wiki](https://github.com/SKaplanOfficial/Raycast-PromptLab/wiki) to see if a solution to your problem is provided there.
+5. If you're still having trouble, [create a new issue](https://github.com/SKaplanOfficial/Raycast-PromptLab/issues/new/choose) on GitHub with a detailed description of the issue and any relevant screenshots or information. I'll do my best to help you out!
 
 ## Useful Resources
 
