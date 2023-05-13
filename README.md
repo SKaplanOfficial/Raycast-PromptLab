@@ -1,5 +1,7 @@
 # PromptLab
 
+![PromptLab Logo](./assets/promptlab-logo.png)
+
 PromptLab is a Raycast extension for creating and sharing powerful, contextually-aware AI commands using placeholders, action scripts, and more.
 
 PromptLab allows you to create custom AI commands with prompts that utilize contextual placeholders such as `{{selectedText}}`, `{{todayEvents}}`, or `{{currentApplication}}` to vastly expand the capabilities of Raycast AI. PromptLab can also extract information from selected files, if you choose, so that it can tell you about the subjects in an image, summarize a PDF, and more.
