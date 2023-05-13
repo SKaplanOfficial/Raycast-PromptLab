@@ -96,6 +96,8 @@ You can instruct PromptLab to extract text from any webpage by using the {{URL}}
 | `{{location}}` | Your current location in city, region, country format, obtained from [geojs.io](https://get.geojs.io) |
 | `{{todayWeather}}` | The weather forecast for today, obtained from [open-meteo.com](https://open-meteo.com) |
 | `{{weekWeather}}` | The weather forecast for the next week, obtained from [open-meteo.com](https://open-meteo.com) |
+| `{{youtube:searchText}}` | The transcript of the first YouTube video matching the search text |
+| `{{youtube:URL}}` | The transcript of the YouTube video at the specified URL |
 
 #### Application Data Placeholders
 | Placeholder | Replaced With |

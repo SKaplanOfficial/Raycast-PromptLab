@@ -1,5 +1,11 @@
 # PromptLab DevLog - A More Detailed ChangeLog
 
+## 2023-05-13
+
+- Added {{youtube:URL}} and {{youtube:searchTerm}} placeholders
+    - Both placeholders will return the transcript of the first matching video result
+    - Transcript text is limited to the configured prompt length limit
+
 ## 2023-05-12
 
 - Added setting to group commands by category
