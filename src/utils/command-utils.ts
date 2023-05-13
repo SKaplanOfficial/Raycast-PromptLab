@@ -228,6 +228,9 @@ export const runReplacements = async (
       const cmdResponse = await AI.ask(
         await runReplacements(cmd.prompt, replacements, [cmd.name, ...disallowedCommands])
       );
+      if (cmd.actionScript != undefined && cmd.actionScript.trim().length > 0 && cmd.actionScript != "None") {
+        await runActionScript(cmd.actionScript, cmd.prompt, "", cmdResponse, cmd.scriptKind);
+      }
       subbedPrompt = subbedPrompt.replaceAll(`{{${cmd.name}}}`, cmdResponse);
     }
   }

@@ -1,10 +1,10 @@
 import { Action, ActionPanel, Form, Icon, LocalStorage } from "@raycast/api";
 import { useEffect, useState } from "react";
 import useModel from "../utils/useModel";
-import { CommandOptions } from "../utils/types";
+import { Command, CommandOptions } from "../utils/types";
 import { useFileContents } from "../utils/file-utils";
 import { useReplacements } from "../hooks/useReplacements";
-import { runReplacements } from "../utils/command-utils";
+import { runActionScript, runReplacements } from "../utils/command-utils";
 
 export default function CommandChatView(props: {
   isLoading: boolean;
@@ -40,6 +40,7 @@ export default function CommandChatView(props: {
   const [conversation, setConversation] = useState<string[]>([prompt]);
   const [useAutonomousFeatures, setUseAutonomousFeatures] = useState<boolean>(props.autonomousFeatures || false);
   const [input, setInput] = useState<string>();
+  const [currentCommand, setCurrentCommand] = useState<Command>();
 
   useEffect(() => {
     // If the initial query is not empty, run the query and start the conversation
@@ -106,6 +107,13 @@ export default function CommandChatView(props: {
             // Run the model again
             setSentQuery(subbedPrompt);
             setEnableModel(true);
+            setCurrentCommand(
+              JSON.parse(
+                Object.entries(commands)
+                  .filter(([key]) => key != "--defaults-installed" && !key.startsWith("id-"))
+                  .filter(([, cmd]) => cmd.prompt == undefined)[0][1]
+              )
+            );
           });
         }
       });
@@ -115,9 +123,28 @@ export default function CommandChatView(props: {
   useEffect(() => {
     if (!loading && enableModel == true && currentResponse == data) {
       // Disable the model once the response is generated
+      if (currentCommand != undefined) {
+        if (
+          currentCommand.actionScript != undefined &&
+          currentCommand.actionScript.trim().length > 0 &&
+          currentCommand.actionScript != "None"
+        ) {
+          Promise.resolve(
+            runActionScript(
+              currentCommand.actionScript,
+              currentCommand.prompt,
+              input || "",
+              currentResponse,
+              currentCommand.scriptKind
+            )
+          ).then(() => {
+            setCurrentCommand(undefined);
+          });
+        }
+      }
       setEnableModel(false);
     }
-  }, [enableModel, loading, currentResponse, data]);
+  }, [enableModel, loading, currentResponse, data, currentCommand, input]);
 
   return (
     <Form

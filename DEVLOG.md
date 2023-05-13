@@ -9,6 +9,7 @@
 - Fixed allocation error when analyzing images with a dimension < 100px
 - Fixed bug where placeholder replacements were run multiple times
 - Fixed bug where no-view commands would not pop to root view after being run
+- Fixed bug where action scripts would not run if the command was executed by the AI
 
 ## 2023-05-11
 
