@@ -2,9 +2,8 @@
 
 ## 2023-05-13
 
-- Added {{youtube:URL}} and {{youtube:searchTerm}} placeholders
-    - Both placeholders will return the transcript of the first matching video result
-    - Transcript text is limited to the configured prompt length limit
+- Added {{nearbyLocations:searchTerm}} placeholder
+    - Returns a list of nearby location addresses matching the search term
 
 ## 2023-05-12
 
@@ -12,6 +11,9 @@
 - Added setting for prompt length limit
 - Added setting for export location to use when exporting all commands
 - Added previousCommand, previousPrompt, and previousResponse placeholders
+- Added {{youtube:URL}} and {{youtube:searchTerm}} placeholders
+    - Both placeholders will return the transcript of the first matching video result
+    - Transcript text is limited to the configured prompt length limit
 - Fixed allocation error when analyzing images with a dimension < 100px
 - Fixed bug where placeholder replacements were run multiple times
 - Fixed bug where no-view commands would not pop to root view after being run

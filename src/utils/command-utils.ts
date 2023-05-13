@@ -4,6 +4,7 @@ import {
   objcImports,
   replaceAllHandler,
   rselectHandler,
+  searchNearbyLocations,
   splitHandler,
   trimHandler,
 } from "./scripts";
@@ -168,14 +169,14 @@ export const replaceCounterPlaceholders = async (prompt: string) => {
   const decrementMatches = prompt.match(/{{decrement:.*?}}/g) || [];
 
   for (const m of incrementMatches) {
-    const identifier = "id-" + m.substring(10, m.length - 2);
+    const identifier = "id-" + m.substring(12, m.length - 2);
     const value = parseInt((await LocalStorage.getItem(identifier)) || "0") + 1;
     await LocalStorage.setItem(identifier, value.toString());
     subbedPrompt = subbedPrompt.replaceAll(m, value.toString());
   }
 
   for (const m of decrementMatches) {
-    const identifier = "id-" + m.substring(10, m.length - 2);
+    const identifier = "id-" + m.substring(12, m.length - 2);
     const value = parseInt((await LocalStorage.getItem(identifier)) || "0") - 1;
     await LocalStorage.setItem(identifier, value.toString());
     subbedPrompt = subbedPrompt.replaceAll(m, value.toString());
@@ -184,7 +185,12 @@ export const replaceCounterPlaceholders = async (prompt: string) => {
   return subbedPrompt;
 };
 
-export const replaceYouTubePlaceholders = async (prompt: string) => {
+/**
+ * Replaces YouTube placeholders with the transcript of the corresponding YouTube video.
+ * @param prompt The URL of a YouTube video or a search query to use to find a YouTube video.
+ * @returns A promise resolving to the prompt with the YouTube placeholders replaced.
+ */
+export const replaceYouTubePlaceholders = async (prompt: string): Promise<string> => {
   let subbedPrompt = prompt;
   const youtubeMatches = prompt.match(/{{youtube:(.*?[\s\n\r]*)*?}}/g) || [];
   for (const m of youtubeMatches) {
@@ -196,6 +202,17 @@ export const replaceYouTubePlaceholders = async (prompt: string) => {
   }
   return subbedPrompt;
 };
+
+export const replaceLocationsSearchPlaceholders = async (prompt: string): Promise<string> => {
+  let subbedPrompt = prompt;
+  const searchNearbyMatches = prompt.match(/{{nearbyLocations:(.*?[\s\n\r]*)*?}}/g) || [];
+  for (const m of searchNearbyMatches) {
+    const query = m.substring(18, m.length - 2);
+    const nearbyLocations = await searchNearbyLocations(query);
+    subbedPrompt = subbedPrompt.replaceAll(m, filterString(nearbyLocations));
+  }
+  return subbedPrompt;
+}
 
 /**
  * Gets the importable JSON string representation of a command.
@@ -235,6 +252,7 @@ export const runReplacements = async (
   // Replace complex placeholders (i.e. shell scripts, AppleScripts, etc.)
   subbedPrompt = await replaceCounterPlaceholders(subbedPrompt);
   subbedPrompt = await replaceYouTubePlaceholders(subbedPrompt);
+  subbedPrompt = await replaceLocationsSearchPlaceholders(subbedPrompt);
   subbedPrompt = await replaceAppleScriptPlaceholders(subbedPrompt);
   subbedPrompt = await replaceShellScriptPlaceholders(subbedPrompt);
   subbedPrompt = await replaceURLPlaceholders(subbedPrompt);

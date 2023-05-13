@@ -58,10 +58,51 @@ end rselect`;
  * @returns A promise that resolves to void when the AppleScript has finished running.
  */
 export const addFileToSelection = async (filePath: string) => {
-  await runAppleScript(`tell application "Finder"
+    await runAppleScript(`tell application "Finder"
         set theSelection to selection as alias list
         set targetPath to POSIX file "${filePath}"
         copy targetPath to end of theSelection
         select theSelection
     end tell`);
 };
+
+/**
+ * Searches for nearby locations matching the provided query.
+ * @param query The query to search for.
+ * @returns A promise that resolves to a new-line-separated list of addresses.
+ */
+export const searchNearbyLocations = async (query: string) => {
+    return runAppleScript(`set jxa to "(() => {
+        ObjC.import('MapKit');
+      
+        const searchRequest = $.MKLocalSearchRequest.alloc.init;
+        searchRequest.naturalLanguageQuery = '${query}';
+      
+        const search = $.MKLocalSearch.alloc.initWithRequest(searchRequest);
+        let addresses = [];
+        search.startWithCompletionHandler((response, error) => {
+          if (error.localizedDescription) {
+            console.log(error.localizedDescription.js);
+          } else {
+            const numItems = response.mapItems.count > 10 ? 10 : response.mapItems.count;
+            for (let i = 0; i < numItems; i++) {
+              const item = response.mapItems.objectAtIndex(i);
+              const placemark = item.placemark;
+              addresses.push(\`\${item.name.js}, \${placemark.subThoroughfare.js} \${placemark.thoroughfare.js}, \${placemark.locality.js}, \${placemark.administrativeArea.js}\`);
+            }
+          }
+        });
+      
+        const startDate = $.NSDate.date;
+        while (startDate.timeIntervalSinceNow > -2) {
+          runLoop = $.NSRunLoop.currentRunLoop;
+          today = $.NSDate.dateWithTimeIntervalSinceNow(0.1);
+          runLoop.runUntilDate(today);
+        }
+
+        return addresses.join(\`
+        \`);
+      })();"
+      
+      return run script jxa in "JavaScript"`)
+}
