@@ -5,6 +5,8 @@
 - Added {{youtube:URL}} and {{youtube:searchTerm}} placeholders
     - Both placeholders will return the transcript of the first matching video result
     - Transcript text is limited to the configured prompt length limit
+- Fixed bug where selected files containing "," in their name would yield an error
+- Fixed bug where commands whose acceptedFileExtensions fields were empty would yield an error
 
 ## 2023-05-12
 
