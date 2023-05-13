@@ -39,6 +39,7 @@ PromptLab also supports "action scripts" -- AppleScripts which run with the AI's
 - [Autonomous Agent Features](#autonomous-agent-features)
 - [Troubleshooting](#troubleshooting)
 - [Contributing](#contributing)
+- [Privacy Policy](./PRIVACY.md)
 - [Useful Resources](#useful-resources)
 
 ## Top-Level Commands
