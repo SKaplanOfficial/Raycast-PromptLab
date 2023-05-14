@@ -2,12 +2,15 @@
 
 ## 2023-05-13
 
-- Added {{youtube:URL}} and {{youtube:searchTerm}} placeholders
-    - Both placeholders will return the transcript of the first matching video result
-    - Transcript text is limited to the configured prompt length limit
+- Added chat history and selection to chat views
+- Added export chat action
+- Added delete chat action
 
 ## 2023-05-12
 
+- Added {{youtube:URL}} and {{youtube:searchTerm}} placeholders
+    - Both placeholders will return the transcript of the first matching video result
+    - Transcript text is limited to the configured prompt length limit
 - Added setting to group commands by category
 - Added setting for prompt length limit
 - Added setting for export location to use when exporting all commands

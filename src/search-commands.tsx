@@ -15,7 +15,7 @@ import { useEffect, useState } from "react";
 import CommandResponse from "./components/CommandResponse";
 import { installDefaults } from "./utils/file-utils";
 import CommandForm from "./components/CommandForm";
-import { categories, Command, searchPreferences, StoreCommand } from "./utils/types";
+import { categories, Command, ExtensionPreferences, searchPreferences, StoreCommand } from "./utils/types";
 import fetch from "node-fetch";
 import { QUICKLINK_URL_BASE, STORE_ENDPOINT, STORE_KEY } from "./utils/constants";
 import { getCommandJSON } from "./utils/command-utils";
@@ -31,7 +31,7 @@ export default function SearchCommand(props: { arguments: { commandName: string;
     commandName == undefined || queryInput ? undefined : commandName.trim()
   );
 
-  const preferences = getPreferenceValues<searchPreferences>();
+  const preferences = getPreferenceValues<searchPreferences & ExtensionPreferences>();
 
   useEffect(() => {
     /* Add default commands if necessary, then get all commands */

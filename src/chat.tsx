@@ -34,7 +34,7 @@ export default function Command(props: { arguments: { initialQuery: string } }) 
       initialQuery={initialQuery}
       response={"Ready for your query."}
       revalidate={() => null}
-      cancel={() => null}
+      cancel={null}
       useFiles={preferences.useSelectedFiles}
       useConversation={preferences.useConversationHistory}
       autonomousFeatures={preferences.autonomousFeatures}

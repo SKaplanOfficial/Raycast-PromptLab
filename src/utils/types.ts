@@ -10,6 +10,7 @@ export interface ExtensionPreferences {
   outputKeyPath: string;
   outputTiming: string;
   lengthLimit: string;
+  exportLocation: string;
 }
 
 /**
@@ -17,7 +18,6 @@ export interface ExtensionPreferences {
  */
 export interface searchPreferences {
   groupByCategory: boolean;
-  exportLocation: string;
 }
 
 /**

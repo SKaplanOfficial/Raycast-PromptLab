@@ -10,6 +10,8 @@
 type ExtensionPreferences = {
   /**  - If checked, PromptLab will use OCR to extract text from PDFs. This takes longer but enables analysis of more PDF content types. */
   "pdfOCR"?: boolean,
+  /** Export Location - The folder where exported commands and chats will be saved. */
+  "exportLocation"?: string,
   /** Model Endpoint - The API endpoint of the model used to generate PromptLab command output. Set to 'Raycast AI' to use the Raycast AI API. */
   "modelEndpoint"?: string,
   /** API Authorization Type - The authorization type for the model endpoint, e.g. API Key or Bearer. This is only used if the model source is set to something other than Raycast AI. */
@@ -37,9 +39,7 @@ declare namespace Preferences {
   /** Preferences accessible in the `search-commands` command */
   export type SearchCommands = ExtensionPreferences & {
   /**  - If checked, each command category will have its own section in the search results. */
-  "groupByCategory"?: boolean,
-  /** Export Location - The folder where exported commands will be saved. */
-  "exportLocation"?: string
+  "groupByCategory"?: boolean
 }
   /** Preferences accessible in the `chat` command */
   export type Chat = ExtensionPreferences & {

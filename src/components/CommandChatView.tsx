@@ -1,10 +1,25 @@
-import { Action, ActionPanel, Form, Icon, LocalStorage } from "@raycast/api";
+import {
+  Action,
+  ActionPanel,
+  Alert,
+  Form,
+  Icon,
+  LocalStorage,
+  Toast,
+  confirmAlert,
+  environment,
+  getPreferenceValues,
+  preferences,
+  showToast,
+} from "@raycast/api";
 import { useEffect, useState } from "react";
 import useModel from "../utils/useModel";
-import { Command, CommandOptions } from "../utils/types";
+import { Command, CommandOptions, ExtensionPreferences } from "../utils/types";
 import { useFileContents } from "../utils/file-utils";
 import { useReplacements } from "../hooks/useReplacements";
 import { runActionScript, runReplacements } from "../utils/command-utils";
+import * as fs from "fs";
+import path from "path";
 
 export default function CommandChatView(props: {
   isLoading: boolean;
@@ -13,7 +28,7 @@ export default function CommandChatView(props: {
   prompt: string;
   response: string;
   revalidate: () => void;
-  cancel: () => void;
+  cancel: null | (() => void);
   initialQuery?: string;
   useFiles?: boolean;
   useConversation?: boolean;
@@ -41,22 +56,195 @@ export default function CommandChatView(props: {
   const [useAutonomousFeatures, setUseAutonomousFeatures] = useState<boolean>(props.autonomousFeatures || false);
   const [input, setInput] = useState<string>();
   const [currentCommand, setCurrentCommand] = useState<Command>();
+  const [previousChat, setPreviousChat] = useState<string>("");
+  const [selectedChat, setSelectedChat] = useState<string>("new");
+  const [updatingFile, setUpdatingFile] = useState<boolean>(false);
+  const [chats, setChats] = useState<string[]>([]);
+
+  const preferences = getPreferenceValues<ExtensionPreferences>();
+  const supportPath = environment.supportPath;
+  const chatsDir = `${supportPath}/chats`;
 
   useEffect(() => {
-    // If the initial query is not empty, run the query and start the conversation
-    if (initialQuery?.length) {
-      setPreviousResponse(response);
-      setCurrentResponse("");
-      setConversation([prompt, response]);
-      setSentQuery(initialQuery);
-      setEnableModel(true);
+    // Create the chats directory if it doesn't exist
+    if (!fs.existsSync(chatsDir)) {
+      fs.mkdirSync(chatsDir);
+    } else {
+      // Get the chats
+      fs.readdir(chatsDir, (err, files) => {
+        if (err) throw err;
+        setChats(files.filter((file) => !file.startsWith(".")).map((file) => file.replace(".txt", "")));
+      });
     }
   }, []);
 
+  const loadConversation = (chatFile: string) => {
+    const convo: string[] = [];
+    const chatContents = fs.readFileSync(chatFile, "utf8");
+    const entries = chatContents.split(/\[(?=USER_QUERY|MODEL_RESPONSE\]:)/g);
+    entries.forEach((entry) => {
+      if (entry.startsWith("USER_QUERY")) {
+        convo.push(entry.replace("USER_QUERY]:", "").trim());
+      } else {
+        convo.push(entry.replace("MODEL_RESPONSE]:", "").trim());
+      }
+    });
+
+    while (convo.join("\n").length > 3900) {
+      convo.shift();
+    }
+
+    setConversation(convo);
+  };
+
+  const deleteChat = (chatName: string) => {
+    const chatFile = `${chatsDir}/${chatName}.txt`;
+    fs.unlink(chatFile, (err) => {
+      if (err) throw err;
+      const newChats = [...chats];
+      newChats.splice(chats.indexOf(chatName), 1);
+      setChats(newChats);
+      setSelectedChat("new");
+    });
+  };
+
+  const logQuery = (query: string, chatName: string, attemptNumber?: number): string => {
+    let newChatName = chatName;
+    if (chatName == "new") {
+      newChatName = new Date().toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "numeric",
+        minute: "numeric",
+        second: "numeric",
+      });
+
+      const newChats = [...chats];
+      newChats.push(newChatName);
+      setChats(newChats);
+
+      setSelectedChat(newChatName);
+    }
+
+    if (updatingFile) {
+      setTimeout(() => logQuery(query, newChatName, attemptNumber == undefined ? 2 : attemptNumber + 1), 1000);
+    }
+
+    setUpdatingFile(true);
+    const chatFile = `${chatsDir}/${newChatName}.txt`;
+
+    fs.appendFile(chatFile, `\n[USER_QUERY]:${query}\n`, (err) => {
+      if (err) throw err;
+      setUpdatingFile(false);
+    });
+
+    return newChatName;
+  };
+
+  const logResponse = (response: string, chatName: string, attemptNumber?: number): string => {
+    let newChatName = chatName;
+    if (chatName == "new") {
+      newChatName = new Date().toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "numeric",
+        minute: "numeric",
+        second: "numeric",
+      });
+
+      const newChats = [...chats];
+      newChats.push(newChatName);
+      setChats(newChats);
+
+      setSelectedChat(newChatName);
+    }
+
+    if (updatingFile) {
+      setTimeout(() => logResponse(response, newChatName, attemptNumber == undefined ? 2 : attemptNumber + 1), 1000);
+    }
+
+    setUpdatingFile(true);
+    const chatFile = `${chatsDir}/${newChatName}.txt`;
+
+    fs.appendFile(chatFile, `\n[MODEL_RESPONSE]:${response}\n`, (err) => {
+      if (err) throw err;
+      setUpdatingFile(false);
+    });
+
+    return newChatName;
+  };
+
+  useEffect(() => {
+    if (selectedChat == "new") {
+      if (initialQuery?.length && previousResponse.length == 0) {
+        setQuery(initialQuery);
+        setConversation([prompt, response]);
+        setSentQuery(initialQuery);
+        logResponse(response, logQuery(initialQuery, selectedChat));
+        setEnableModel(true);
+      } else {
+        setEnableModel(false);
+        setQuery("");
+        setConversation([]);
+      }
+    } else {
+      const chatFile = `${chatsDir}/${selectedChat}.txt`;
+
+      if (!fs.existsSync(chatFile)) {
+        showToast({ title: "Chat File Not Found", style: Toast.Style.Failure });
+        const newChats = [...chats];
+        newChats.splice(chats.indexOf(selectedChat), 1);
+        setChats(newChats);
+        setSelectedChat("new");
+        return;
+      }
+
+      const chatContents = fs.readFileSync(chatFile, "utf8");
+      const chatContentsReversed = chatContents.split("").reverse().join("");
+      loadConversation(chatFile);
+      if (chatContents.includes("[USER_QUERY]:") && chatContents.includes("[MODEL_RESPONSE]:")) {
+        const lastQuery = chatContents
+          .matchAll(
+            /(?<!\[USER_QUERY\]:)(?:(?:.|[\n\r\t])*)\[USER_QUERY\]:((.(?!\[MODEL_RESPONSE\]:)|[\n\r\t](?!\[MODEL_RESPONSE\]:))*(?!\[USER_QUERY\]:))/g
+          )
+          .next().value[1];
+        const lastResponse = chatContents
+          .matchAll(
+            /(?<!\[MODEL_RESPONSE\]:)(?:(?:.|[\n\r\t])*)\[MODEL_RESPONSE\]:((.(?!\[USER_QUERY\]:)|[\n\r\t](?!\[USER_QUERY\]:))*(?!\[MODEL_RESPONSE\]:))/g
+          )
+          .next().value[1];
+        setQuery(lastQuery);
+        setCurrentResponse(lastResponse);
+      } else if (chatContents.includes("[MODEL_RESPONSE]:")) {
+        const lastResponse = chatContents
+          .matchAll(
+            /(?<!\[MODEL_RESPONSE\]:)(?:(?:.|[\n\r\t])*)\[MODEL_RESPONSE\]:((.|[\n\r\t])*(?!\[MODEL_RESPONSE\]:))/g
+          )
+          .next().value[1];
+        setQuery("");
+        setCurrentResponse(lastResponse);
+      } else if (chatContents.includes("[USER_QUERY]:")) {
+        const lastQuery = chatContentsReversed
+          .matchAll(/((.|[\n\r])*?):\]YREUQ_RESU\[/g)
+          .next()
+          .value[1].split("")
+          .reverse()
+          .join("");
+        setQuery(lastQuery);
+        setCurrentResponse("");
+      }
+    }
+  }, [selectedChat, response]);
+
   useEffect(() => {
     // Update the response field if the response from props changes
-    setCurrentResponse(response);
-  }, [response]);
+    if (currentResponse != response && response.length > 0 && previousResponse.length == 0) {
+      logResponse(response, selectedChat);
+      setCurrentResponse(response);
+    }
+  }, [response, selectedChat, previousResponse]);
 
   // Get files, set up prompt replacements, and run the model
   const {
@@ -106,6 +294,7 @@ export default function CommandChatView(props: {
           runReplacements(prompt, replacements, []).then((subbedPrompt) => {
             // Run the model again
             setSentQuery(subbedPrompt);
+            logQuery(subbedPrompt, selectedChat);
             setEnableModel(true);
             setCurrentCommand(
               JSON.parse(
@@ -122,7 +311,7 @@ export default function CommandChatView(props: {
 
   useEffect(() => {
     if (!loading && enableModel == true && currentResponse == data) {
-      // Disable the model once the response is generated
+      // Run action script of the command specified by the AI, if one exists
       if (currentCommand != undefined) {
         if (
           currentCommand.actionScript != undefined &&
@@ -142,9 +331,14 @@ export default function CommandChatView(props: {
           });
         }
       }
+
+      // Disable the model once the response is generated
       setEnableModel(false);
+
+      // Log the response to the chat file
+      logResponse(data, selectedChat);
     }
-  }, [enableModel, loading, currentResponse, data, currentCommand, input]);
+  }, [enableModel, loading, currentResponse, data, currentCommand, input, selectedChat]);
 
   return (
     <Form
@@ -156,7 +350,12 @@ export default function CommandChatView(props: {
             <Action
               title="Cancel"
               onAction={() => {
-                previousResponse.length > 0 ? setEnableModel(false) : cancel();
+                if (previousResponse.length > 0 || typeof cancel !== "function") {
+                  setEnableModel(false);
+                  logResponse(currentResponse, selectedChat);
+                } else {
+                  Function.call(cancel);
+                }
               }}
             />
           ) : (
@@ -226,6 +425,7 @@ export default function CommandChatView(props: {
                   }
                   ${subbedPrompt}###`
                 );
+                logQuery(subbedPrompt, selectedChat);
                 setEnableModel(true);
                 reattempt();
               }}
@@ -238,6 +438,56 @@ export default function CommandChatView(props: {
             onAction={previousResponse.length > 0 ? reattempt : revalidate}
             shortcut={{ modifiers: ["cmd"], key: "r" }}
           />
+
+          {selectedChat == "new" ? null : (
+            <ActionPanel.Section title="Chat Actions">
+              <Action
+                title="Export Chat"
+                icon={Icon.Download}
+                onAction={async () => {
+                  const toast = await showToast({ title: "Exporting Chat", style: Toast.Style.Animated });
+
+                  const chatFile = `${chatsDir}/${selectedChat}.txt`;
+                  const chatContents = fs.readFileSync(chatFile, "utf8");
+
+                  let filePath = path.resolve(preferences.exportLocation, selectedChat);
+                  let i = 2;
+                  while (fs.existsSync(filePath + ".json")) {
+                    filePath = path.resolve(preferences.exportLocation, selectedChat + "-" + i);
+                    i += 1;
+                  }
+
+                  fs.writeFile(filePath + ".txt", chatContents, (err) => {
+                    if (err) {
+                      toast.style = Toast.Style.Failure;
+                      toast.title = "Error";
+                      toast.message = "Couldn't export chat";
+                      throw err;
+                    }
+
+                    toast.style = Toast.Style.Success;
+                    toast.title = "Successfully Exported Chat";
+                  });
+                }}
+              />
+              <Action
+                title="Delete Chat"
+                icon={Icon.Trash}
+                style={Action.Style.Destructive}
+                onAction={async () => {
+                  if (
+                    await confirmAlert({
+                      title: "Delete Chat",
+                      message: "Are you sure?",
+                      primaryAction: { title: "Delete", style: Alert.ActionStyle.Destructive },
+                    })
+                  ) {
+                    deleteChat(selectedChat);
+                  }
+                }}
+              />
+            </ActionPanel.Section>
+          )}
 
           <ActionPanel.Section title="Clipboard Actions">
             <Action.CopyToClipboard
@@ -264,6 +514,26 @@ export default function CommandChatView(props: {
         </ActionPanel>
       }
     >
+      <Form.Dropdown
+        id="selectedChat"
+        title="Current Chat"
+        value={selectedChat}
+        onChange={(value) => {
+          if (value !== "new" && selectedChat == "new" && !chats.includes(value)) {
+            const newChats = [...chats];
+            newChats.push(value);
+            setChats(newChats);
+          }
+
+          setPreviousChat(selectedChat);
+          setSelectedChat(value);
+        }}
+      >
+        {chats
+          .map((chat) => <Form.Dropdown.Item key={chat} value={chat} title={chat} />)
+          .concat([<Form.Dropdown.Item key="new" value="new" title="New Chat" />])}
+      </Form.Dropdown>
+
       <Form.TextArea
         id="queryField"
         title="Query"
