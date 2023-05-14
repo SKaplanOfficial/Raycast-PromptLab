@@ -81,7 +81,12 @@ export default function useModel(basePrompt: string, prompt: string, input: stri
             body: preferences.inputSchema
               .replace("{prompt}", prompt.replaceAll(/[\n\r\s]+/g, " ").replaceAll('"', '\\"'))
               .replace("{basePrompt}", basePrompt.replaceAll(/[\n\r\s]+/g, " ").replaceAll('"', '\\"'))
-              .replace("{input}", input.replaceAll(/[\n\r\s]+/g, " ").replaceAll('"', '\\"')),
+              .replace(
+                "{input}",
+                preferences.inputSchema.includes("{prompt") && prompt == input
+                  ? ""
+                  : input.replaceAll(/[\n\r\s]+/g, " ").replaceAll('"', '\\"')
+              ),
           }).then(async (response) => {
             if (response.ok) {
               try {

@@ -60,9 +60,10 @@ export default function SearchCommand(props: { arguments: { commandName: string;
         input={queryInput}
         options={{
           minNumFiles: parseInt(command.minNumFiles as unknown as string),
-          acceptedFileExtensions: command.acceptedFileExtensions?.length && command.acceptedFileExtensions !== "None"
-            ? command.acceptedFileExtensions?.split(",").map((item) => item.trim())
-            : undefined,
+          acceptedFileExtensions:
+            command.acceptedFileExtensions?.length && command.acceptedFileExtensions !== "None"
+              ? command.acceptedFileExtensions?.split(",").map((item) => item.trim())
+              : undefined,
           useMetadata: command.useMetadata,
           useSoundClassification: command.useSoundClassification,
           useAudioDetails: command.useAudioDetails,
@@ -176,9 +177,10 @@ ${command.categories?.sort((a, b) => (a > b ? 1 : -1)).join(", ") || "Other"}
                     prompt={command.prompt}
                     options={{
                       minNumFiles: parseInt(command.minNumFiles as string),
-                      acceptedFileExtensions: command.acceptedFileExtensions?.length && command.acceptedFileExtensions !== "None"
-                        ? command.acceptedFileExtensions?.split(",").map((item) => item.trim())
-                        : undefined,
+                      acceptedFileExtensions:
+                        command.acceptedFileExtensions?.length && command.acceptedFileExtensions !== "None"
+                          ? command.acceptedFileExtensions?.split(",").map((item) => item.trim())
+                          : undefined,
                       useMetadata: command.useMetadata,
                       useSoundClassification: command.useSoundClassification,
                       useAudioDetails: command.useAudioDetails,

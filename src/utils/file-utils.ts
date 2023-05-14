@@ -96,8 +96,6 @@ export function useFileContents(options: CommandOptions) {
           return;
         }
 
-        console.log(files)
-
         // Remove directories and files with invalid extensions
         const filteredFiles = files
           .split("::")
