@@ -9,11 +9,10 @@ import {
   confirmAlert,
   environment,
   getPreferenceValues,
-  preferences,
   showToast,
 } from "@raycast/api";
 import { useEffect, useState } from "react";
-import useModel from "../utils/useModel";
+import useModel from "../hooks/useModel";
 import { Command, CommandOptions, ExtensionPreferences } from "../utils/types";
 import { useFileContents } from "../utils/file-utils";
 import { useReplacements } from "../hooks/useReplacements";
@@ -111,7 +110,7 @@ export default function CommandChatView(props: {
   const logQuery = (query: string, chatName: string, attemptNumber?: number): string => {
     let newChatName = chatName;
     if (chatName == "new") {
-      newChatName = new Date().toLocaleDateString("en-US", {
+      newChatName = query.trim().substring(0, 20).split("\n")[0] + " - " + new Date().toLocaleDateString("en-US", {
         year: "numeric",
         month: "long",
         day: "numeric",
@@ -145,7 +144,7 @@ export default function CommandChatView(props: {
   const logResponse = (response: string, chatName: string, attemptNumber?: number): string => {
     let newChatName = chatName;
     if (chatName == "new") {
-      newChatName = new Date().toLocaleDateString("en-US", {
+      newChatName = response.trim().substring(0, 20).split("\n")[0] + " - " + new Date().toLocaleDateString("en-US", {
         year: "numeric",
         month: "long",
         day: "numeric",

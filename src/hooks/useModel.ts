@@ -1,6 +1,6 @@
 import { AI, environment, getPreferenceValues } from "@raycast/api";
 import { useAI } from "@raycast/utils";
-import { ExtensionPreferences, modelOutput } from "./types";
+import { ExtensionPreferences, modelOutput } from "../utils/types";
 import { useEffect, useState } from "react";
 import fetch from "node-fetch";
 
@@ -69,6 +69,8 @@ export default function useModel(basePrompt: string, prompt: string, input: stri
       headers["Authorization"] = `Api-Key ${preferences.apiKey}`;
     } else if (preferences.authType == "bearerToken") {
       headers["Authorization"] = `Bearer ${preferences.apiKey}`;
+    } else if (preferences.authType == "X-API-Key") {
+      headers["X-API-Key"] = `${preferences.apiKey}`;
     }
 
     useEffect(() => {

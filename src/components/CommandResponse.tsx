@@ -3,7 +3,7 @@ import { ERRORTYPE, useFileContents } from "../utils/file-utils";
 import { useEffect, useState } from "react";
 import { CommandOptions } from "../utils/types";
 import { runActionScript, runReplacements } from "../utils/command-utils";
-import useModel from "../utils/useModel";
+import useModel from "../hooks/useModel";
 import { useReplacements } from "../hooks/useReplacements";
 import CommandDetailView from "./CommandDetailView";
 import CommandChatView from "./CommandChatView";

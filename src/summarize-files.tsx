@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { ERRORTYPE, installDefaults, useFileContents } from "./utils/file-utils";
 import ResponseActions from "./ResponseActions";
 import { imageFileExtensions } from "./utils/file-extensions";
-import useModel from "./utils/useModel";
+import useModel from "./hooks/useModel";
 
 export default function Command() {
   const options = {

@@ -1,12 +1,15 @@
 # PromptLab DevLog - A More Detailed ChangeLog
 
-## 2023-05-13
+### 2023-05-13
 
 - Added chat history and selection to chat views
 - Added export chat action
 - Added delete chat action
+- Added support for X-API-Key authentication in custom model endpoints
 
-## 2023-05-12
+## Release 1.0.0
+
+### 2023-05-12
 
 - Added {{youtube:URL}} and {{youtube:searchTerm}} placeholders
     - Both placeholders will return the transcript of the first matching video result
@@ -20,7 +23,7 @@
 - Fixed bug where no-view commands would not pop to root view after being run
 - Fixed bug where action scripts would not run if the command was executed by the AI
 
-## 2023-05-11
+### 2023-05-11
 
 - Tweaked autonomous agent features to be more reliable
 - Fixed bug where commands could not be uploaded to the PromptLab store due to missing fields
@@ -28,19 +31,19 @@
 - Added command categories field
 - Added ability to sort commands by category
 
-# 2023-05-10
+### 2023-05-10
 
 - Upgraded to the new useAI API
 - Fixed compatibility with latest version of Raycast
 
-## 2023-04-23
+### 2023-04-23
 
 - Added "Allow AI To Run Commands" checkbox in chat views
     - The AI will run other PromptLab commands to fulfil the user's request
 - Removed "Allow AI To Control Computer" checkbox in chat views, at least for now
     - It was too unreliable, and the commands approach is more understandable to users
 
-## 2023-04-21
+### 2023-04-21
 
 - Added experimental "Allow AI To Control Computer" checkbox in chat views
 - Added option to choose action script type, either AppleScript or Shell (ZSH), might add other options in the future
@@ -50,7 +53,7 @@
 - Fixed bug where running commands from Quicklinks would show a "Copied To Clipboard" HUD due to having a shortcut bound to `cmd+c`
 - Fixed bug where multi-line command prompts would display incorrectly in the command store
 
-## 2023-04-20
+### 2023-04-20
 
 - Added syntax highlighting to action script blocks
 - Updated PromptLab Chat command to use the new CommandChatView component
@@ -60,7 +63,7 @@
 - Added command placeholders
 - Fixed bug where only the initially selected files where recognized when using "Use Selected Files As Context" in Chat response views
 
-## 2023-04-19
+### 2023-04-19
 
 - Added example output images to the store
 - Added PDF document attributes to file data when metadata is enabled
@@ -69,7 +72,7 @@
 - Added Chat response views, layed groundwork for an improved PromptLab Chat command (coming soon)
 - Added Grid response views
 
-## 2023-04-18
+### 2023-04-18
 
 - Added saliency analysis option in the create command form
 - Adjusted names of PromptLab's built-in commands

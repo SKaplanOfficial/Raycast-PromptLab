@@ -2,13 +2,15 @@
   "$schema": "https://www.raycast.com/schemas/extension.json",
   "name": "promptlab",
   "title": "PromptLab",
+  "version": "1.1.0",
   "description": "Create custom AI commands using powerful placeholders",
   "icon": "command-icon.png",
   "author": "HelloImSteven",
   "categories": [
     "Productivity",
     "Data",
-    "Developer Tools"
+    "Developer Tools",
+    "Fun"
   ],
   "license": "MIT",
   "preferences": [
