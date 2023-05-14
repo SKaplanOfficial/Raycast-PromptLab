@@ -327,6 +327,8 @@ export const imageFileExtensions = [
   "indd",
 ];
 
+export const videoFileExtensions = ["mov", "mp4", "m4v", "avi", "wmv", "flv", "mkv", "webm", "mpg", "mpeg"];
+
 export const audioFileExtensions = [
   "aac",
   "ac4",

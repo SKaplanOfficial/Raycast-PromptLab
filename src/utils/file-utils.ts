@@ -2,7 +2,7 @@ import { LocalStorage, getPreferenceValues } from "@raycast/api";
 import * as fs from "fs";
 import exifr from "exifr";
 import { runAppleScript, runAppleScriptSync } from "run-applescript";
-import { audioFileExtensions, imageFileExtensions, textFileExtensions } from "./file-extensions";
+import { audioFileExtensions, imageFileExtensions, textFileExtensions, videoFileExtensions } from "./file-extensions";
 import { useEffect, useState } from "react";
 import { defaultCommands } from "../default-commands";
 import { CommandOptions, ExtensionPreferences } from "./types";
@@ -118,7 +118,7 @@ export function useFileContents(options: CommandOptions) {
             }}:\n`;
 
             // If the file is too large, just return the metadata
-            if (fs.lstatSync(file).size > 10000000) {
+            if (fs.lstatSync(file).size > 10000000 && !videoFileExtensions.includes(file.split(".").at(-1) as string)) {
               return contents + getMetadataDetails(file);
             }
 
@@ -137,6 +137,9 @@ export function useFileContents(options: CommandOptions) {
             } else if (imageFileExtensions.includes(pathLower.split(".").at(-1) as string)) {
               // Extract text, subjects, barcodes, rectangles, and metadata for an image
               contents += await getImageDetails(file, options);
+            } else if (videoFileExtensions.includes(pathLower.split(".").at(-1) as string)) {
+              // Extract image vision details, audio details, and metadata for a video
+              contents += await getVideoDetails(file, options);
             } else if (pathLower.endsWith(".app/")) {
               // Get plist and metadata for an application
               contents += getApplicationDetails(file, options.useMetadata);
@@ -236,6 +239,11 @@ const getImageDetails = async (filePath: string, options: CommandOptions): Promi
   const exifData = options.useMetadata ? filterContentString(await getFileExifData(filePath)) : ``;
   const exifInstruction = options.useMetadata ? `<EXIF data: ###${exifData}###>` : ``;
   return `${imageVisionInstructions}${exifInstruction}`;
+};
+
+const getVideoDetails = async (filePath: string, options: CommandOptions): Promise<string> => {
+  const videoVisionInstructions = filterContentString(getVideoVisionDetails(filePath, options));
+  return `${videoVisionInstructions}`;
 };
 
 /**
@@ -436,6 +444,134 @@ const getImageVisionDetails = (filePath: string, options: CommandOptions): strin
   }
 
   return promptText`);
+};
+
+const getVideoVisionDetails = (filePath: string, options: CommandOptions): string => {
+  return runAppleScriptSync(`set jxa to "(() => {
+    ObjC.import('objc');
+    ObjC.import('CoreMedia');
+    ObjC.import('Foundation');
+    ObjC.import('AVFoundation');
+    ObjC.import('Vision');
+    ObjC.import('AppKit');
+  
+    const assetURL = $.NSURL.fileURLWithPath('${filePath}');
+    const options = $.NSDictionary.alloc.init;
+    const asset = $.objc_getClass('AVAsset').assetWithURL(assetURL);
+  
+    if (asset.tracksWithMediaType($.AVMediaTypeVideo).count == 0) {
+      return '';
+    }
+  
+    const instructions = [];
+  const confidenceThreshold = 0.7
+  
+    const reader = $.objc_getClass('AVAssetReader').alloc.initWithAssetError(
+      asset,
+      null
+    );
+    const track = asset.tracksWithMediaType($.AVMediaTypeVideo).objectAtIndex(0);
+    const settings = $.NSDictionary.dictionaryWithObjectForKey(
+      '420v',
+      'PixelFormatType'
+    );
+    readerOutput = $.objc_getClass(
+      'AVAssetReaderTrackOutput'
+    ).alloc.initWithTrackOutputSettings(track, settings);
+    reader.addOutput(readerOutput);
+    reader.startReading;
+  
+    const maxCount = 15;
+    samples = [];
+    let buf = Ref();
+    while (
+      samples.length < maxCount &&
+      reader.status != $.AVAssetReaderStatusCompleted &&
+      reader.status != $.AVAssetReaderStatusFailed
+    ) {
+      buf = readerOutput.copyNextSampleBuffer;
+      samples.push(buf);
+    }
+  
+    const texts = [];
+   const classifications = [];
+   const animals = [];
+   let faces = 0;
+   const rects = [];
+    for (let i = 0; i < samples.length; i++) {
+      const sample = samples[i];
+      const presentationTime = $.CMSampleBufferGetPresentationTimeStamp(sample);
+      const imageBufferRef = ObjC.castRefToObject(
+        $.CMSampleBufferGetImageBuffer(samples[samples.length - i - 1])
+      );
+  
+      const requestHandler =
+        $.VNImageRequestHandler.alloc.initWithCVPixelBufferOptions(
+          imageBufferRef,
+          $.NSDictionary.alloc.init
+        );
+  
+      const textRequest = $.VNRecognizeTextRequest.alloc.init;
+	  const classificationRequest = $.VNClassifyImageRequest.alloc.init
+	  const animalRequest = $.VNRecognizeAnimalsRequest.alloc.init
+	  const faceRequest = $.VNDetectFaceRectanglesRequest.alloc.init
+	  const rectRequest = $.VNDetectRectanglesRequest.alloc.init
+	  rectRequest.maximumObservations = 0
+  
+      requestHandler.performRequestsError(
+        ObjC.wrap([textRequest, classificationRequest, animalRequest, faceRequest, rectRequest]),
+        null
+      );
+      const textResults = textRequest.results;
+      const classificationResults = classificationRequest.results;
+	const animalResults = animalRequest.results;
+	const faceResults = faceRequest.results;
+	const rectResults = rectRequest.results;
+  
+      const sampleTexts = [];
+      for (let i = 0; i < textResults.count; i++) {
+        const observation = textResults.objectAtIndex(i);
+        const observationText = observation.topCandidates(1).objectAtIndex(0)
+          .string.js;
+        sampleTexts.push(observationText);
+      }
+  
+      sampleTexts.forEach((text) => {
+        if (!texts.includes(text)) {
+          texts.push(text);
+        }
+      });
+	  	  
+	for (let i = 0; i < classificationResults.count; i++) {
+		const observation = classificationResults.objectAtIndex(i);
+		const identifier = observation.identifier.js
+		if (observation.confidence > confidenceThreshold && !classifications.includes(identifier)) {
+			classifications.push(identifier)
+		}
+	}
+    }
+	
+    if (texts.length > 0) {
+      instructions.push(
+        '<Transcribed text of the first ' + samples.length + ' video frames: \`' +
+          texts.join(', ') +
+          '\`.>',
+      );
+    }
+
+    if (classifications.length > 0) {
+      instructions.push(
+        '<Potential labels for objects in the first ' + samples.length + ' video frames: \`' +
+          classifications.join(', ') +
+          '\`.>'
+      );
+    }
+  
+    return instructions.join(\`
+    \`);
+  })();"
+
+return run script jxa in "JavaScript"`);
 };
 
 /**
