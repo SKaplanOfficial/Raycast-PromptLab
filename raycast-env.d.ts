@@ -19,7 +19,7 @@ type ExtensionPreferences = {
   /** Model Endpoint - The API endpoint of the model used to generate PromptLab command output. Set to 'Raycast AI' to use the Raycast AI API. */
   "modelEndpoint"?: string,
   /** API Authorization Type - The authorization type for the model endpoint, e.g. API Key or Bearer. This is only used if the model source is set to something other than Raycast AI. */
-  "authType"?: "apiKey" | "bearerToken",
+  "authType"?: "apiKey" | "bearerToken" | "x-api-key",
   /** API Key - The API key for the model source. This is only used if the model source is set to something other than Raycast AI. */
   "apiKey"?: string,
   /** Input Schema - The JSON schema of the endpoint used to generate PromptLab command output. This is only used if the model source is set to something other than Raycast AI. Use {input} to represent PromptLab's input to the command. */

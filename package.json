@@ -90,6 +90,10 @@
         {
           "title": "Bearer Token",
           "value": "bearerToken"
+        },
+        {
+          "title": "X-API-Key",
+          "value": "x-api-key"
         }
       ]
     },

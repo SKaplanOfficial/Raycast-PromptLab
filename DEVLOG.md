@@ -4,6 +4,7 @@
 
 - Added setting for primary action on command outputs
 - Added Prompt Prefix and Prompt Suffix settings
+- Changed async output from custom model endpoints to check whether the incoming response is the full response or just a partial update
 
 ## 2023-05-13
 

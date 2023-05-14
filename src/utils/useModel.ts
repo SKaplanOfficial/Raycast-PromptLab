@@ -69,6 +69,8 @@ export default function useModel(basePrompt: string, prompt: string, input: stri
       headers["Authorization"] = `Api-Key ${preferences.apiKey}`;
     } else if (preferences.authType == "bearerToken") {
       headers["Authorization"] = `Bearer ${preferences.apiKey}`;
+    } else if (preferences.authType == "x-api-key") {
+      headers["X-API-Key"] = `${preferences.apiKey}`;
     }
 
     useEffect(() => {
@@ -139,7 +141,11 @@ export default function useModel(basePrompt: string, prompt: string, input: stri
                     try {
                       const jsonData = JSON.parse(line.substring(5));
                       const output = get(jsonData, preferences.outputKeyPath) || "";
-                      text = text + output;
+                      if (output.toString().includes(text)) {
+                        text = output.toString();
+                      } else {
+                        text = text + output;
+                      }
                       setData(text);
                     } catch (e) {
                       console.log("Failed to get JSON from model output");
