@@ -128,7 +128,7 @@ export function useFileContents(options: CommandOptions) {
 
             // Otherwise, get the file's contents (and maybe the metadata)
             const pathLower = file.toLowerCase();
-            if (!pathLower.includes(".app") && fs.lstatSync(file).isDirectory()) {
+            if (!pathLower.replaceAll("/", "").endsWith(".app") && fs.lstatSync(file).isDirectory()) {
               // Get size, list of contained files within a directory
               contents += getDirectoryDetails(file);
             } else if (pathLower.includes(".pdf")) {

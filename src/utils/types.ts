@@ -10,6 +10,9 @@ export interface ExtensionPreferences {
   outputKeyPath: string;
   outputTiming: string;
   lengthLimit: string;
+  primaryAction: string;
+  promptPrefix: string;
+  promptSuffix: string;
 }
 
 /**

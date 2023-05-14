@@ -13,11 +13,58 @@
   "license": "MIT",
   "preferences": [
     {
+      "title": "General Settings",
       "name": "pdfOCR",
       "label": "Use OCR For PDFs",
       "type": "checkbox",
       "default": true,
       "description": "If checked, PromptLab will use OCR to extract text from PDFs. This takes longer but enables analysis of more PDF content types.",
+      "required": false
+    },
+    {
+      "name": "primaryAction",
+      "title": "Primary Command Action",
+      "type": "dropdown",
+      "default": "copy-to-clipboard",
+      "description": "The top action of the actions menu in command response views.",
+      "required": false,
+      "data": [
+        {
+          "title": "Copy Response To Clipboard",
+          "value": "copy-response-to-clipboard"
+        },
+        {
+          "title": "Paste To Active App",
+          "value": "paste-to-active-app"
+        },
+        {
+          "title": "Copy Prompt To Clipboard",
+          "value": "copy-prompt-to-clipboard"
+        },
+        {
+          "title": "Open Chat",
+          "value": "open-chat"
+        },
+        {
+          "title": "Regenerate",
+          "value": "regenerate"
+        }
+      ]
+    },
+    {
+      "title": "Prompt Prefix",
+      "name": "promptPrefix",
+      "type": "textfield",
+      "default": "",
+      "description": "Text to prepend at the start of every prompt. This can be used to set context for all commands.",
+      "required": false
+    },
+    {
+      "title": "Prompt Suffix",
+      "name": "promptSuffix",
+      "type": "textfield",
+      "default": "",
+      "description": "Text to append and the end of every prompt. This can be used to set context for all commands.",
       "required": false
     },
     {

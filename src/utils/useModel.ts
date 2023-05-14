@@ -30,7 +30,7 @@ export default function useModel(basePrompt: string, prompt: string, input: stri
         error: "Raycast AI is not available — Upgrade to Pro or use a different model endpoint.",
       };
     }
-    return useAI(prompt, { execute: execute });
+    return useAI(preferences.promptPrefix + prompt + preferences.promptSuffix, { execute: execute });
   } else if (preferences.modelEndpoint.includes(":")) {
     // If the endpoint is a URL, use the fetch hook
     const headers: { [key: string]: string } = {
@@ -79,13 +79,21 @@ export default function useModel(basePrompt: string, prompt: string, input: stri
             method: "POST",
             headers: headers,
             body: preferences.inputSchema
-              .replace("{prompt}", prompt.replaceAll(/[\n\r\s]+/g, " ").replaceAll('"', '\\"'))
-              .replace("{basePrompt}", basePrompt.replaceAll(/[\n\r\s]+/g, " ").replaceAll('"', '\\"'))
+              .replace(
+                "{prompt}",
+                preferences.promptPrefix +
+                  prompt.replaceAll(/[\n\r\s]+/g, " ").replaceAll('"', '\\"') +
+                  preferences.promptSuffix
+              )
+              .replace(
+                "{basePrompt}",
+                preferences.promptPrefix + basePrompt.replaceAll(/[\n\r\s]+/g, " ").replaceAll('"', '\\"')
+              )
               .replace(
                 "{input}",
                 preferences.inputSchema.includes("{prompt") && prompt == input
                   ? ""
-                  : input.replaceAll(/[\n\r\s]+/g, " ").replaceAll('"', '\\"')
+                  : input.replaceAll(/[\n\r\s]+/g, " ").replaceAll('"', '\\"') + preferences.promptSuffix
               ),
           }).then(async (response) => {
             if (response.ok) {
@@ -107,9 +115,20 @@ export default function useModel(basePrompt: string, prompt: string, input: stri
             method: "POST",
             headers: headers,
             body: preferences.inputSchema
-              .replace("{prompt}", prompt.replaceAll(/[\n\r\s]+/g, " ").replaceAll('"', '\\"'))
-              .replace("{basePrompt}", basePrompt.replaceAll(/[\n\r\s]+/g, " ").replaceAll('"', '\\"'))
-              .replace("{input}", input.replaceAll(/[\n\r\s]+/g, " ").replaceAll('"', '\\"')),
+              .replace(
+                "{prompt}",
+                preferences.promptPrefix +
+                  prompt.replaceAll(/[\n\r\s]+/g, " ").replaceAll('"', '\\"') +
+                  preferences.promptSuffix
+              )
+              .replace(
+                "{basePrompt}",
+                preferences.promptPrefix + basePrompt.replaceAll(/[\n\r\s]+/g, " ").replaceAll('"', '\\"')
+              )
+              .replace(
+                "{input}",
+                input.replaceAll(/[\n\r\s]+/g, " ").replaceAll('"', '\\"') + preferences.promptSuffix
+              ),
           }).then(async (response) => {
             if (response.ok && response.body != null) {
               let text = "";

@@ -1,5 +1,10 @@
 # PromptLab DevLog - A More Detailed ChangeLog
 
+## 2023-05-14
+
+- Added setting for primary action on command outputs
+- Added Prompt Prefix and Prompt Suffix settings
+
 ## 2023-05-13
 
 - Fixed bug where selected files containing "," in their name would yield an error
