@@ -58,6 +58,7 @@ PromptLab also supports "action scripts" -- AppleScripts which run with the AI's
     - Add custom commands from a JSON string.
 
 ## Images
+
 [Summarize Selected Files example](https://github.com/SKaplanOfficial/Raycast-PromptLab/assets/7865925/99460417-2e3f-46ce-ae1f-ba4c46e255c6)
 
 [Editing a PromptLab Command](https://github.com/SKaplanOfficial/Raycast-PromptLab/assets/7865925/bc999b6d-ace9-4ae0-aa74-6f6649b445cd)
@@ -286,6 +287,19 @@ npm install && npm run dev
 When you first run PromptLab, you'll have the option to configure a custom model API endpoint. If you have access to Raycast AI, you can just leave everything as-is, unless you have a particular need for a different model. You can, of course, adjust the configuration via the Raycast preferences at any time.
 
 To use any arbitrary endpoint, put the endpoint URL in the `Model Endpoint` preference field and provide your `API Key` alongside the corresponding `Authorization Type`. Then, specify the `Input Schema` in JSON notation, using `{prompt}` to indicate where PromptLab should input its prompt. Alternatively, you can specify `{basePrompt}` and `{input}` separately, for example if you want to provide content for the user and system roles separately when using the OpenAI API. Next, specify the `Output Key` of the output text within the returned JSON object. If the model endpoint returns a string, rather than a JSON object, leave this field empty. Finally, specify the `Output Timing` of the model endpoint. If the model endpoint returns the output immediately, select `Synchronous`. If the model endpoint returns the output asynchronously, select `Asynchronous`.
+
+### Anthropic API Example
+
+To use Anthropic's Claude API as the model endpoint, configure the extension as follows:
+
+| Preference Name | Value |
+| --- | --- |
+| Model Endpoint | https://api.anthropic.com/v1/complete |
+| API Authorization Type | X-API-Key |
+| API Key | Your API key |
+| Input Schema | { "prompt": "\n\nHuman: {prompt}\n\nAssistant: ", "model": "claude-instant-v1-100k", "max_tokens_to_sample": 300, "stop_sequences": ["\n\nHuman:"] , "stream": true  } |
+| Output Key Path | completion |
+| Output Timing | Asynchronous |
 
 ### OpenAI API Example
 

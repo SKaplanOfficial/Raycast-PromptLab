@@ -14,7 +14,7 @@ import fetch from "node-fetch";
 export default function useModel(basePrompt: string, prompt: string, input: string, execute: boolean) {
   const preferences = getPreferenceValues<ExtensionPreferences>();
   const [data, setData] = useState<string>("");
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState<boolean>(execute);
   const [error, setError] = useState<string>();
 
   // We can be a little forgiving of how users specify Raycast AI
