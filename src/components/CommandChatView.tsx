@@ -119,7 +119,7 @@ export default function CommandChatView(props: {
       });
     }
   }, [input, data]);
-
+  
   useEffect(() => {
     if (!loading && enableModel == true && currentResponse == data) {
       // Disable the model once the response is generated
@@ -148,11 +148,11 @@ export default function CommandChatView(props: {
 
   return (
     <Form
-      isLoading={isLoading || loading || contentIsLoading}
+      isLoading={isLoading || (loading && enableModel) || contentIsLoading}
       navigationTitle={commandName}
       actions={
         <ActionPanel>
-          {isLoading || loading ? (
+          {isLoading || (loading && enableModel) ? (
             <Action
               title="Cancel"
               onAction={() => {

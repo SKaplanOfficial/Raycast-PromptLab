@@ -12,6 +12,7 @@ PromptLab also supports "action scripts" -- AppleScripts which run with the AI's
 
 ## Table Of Contents
 
+- [Feature Overview](#feature-overview)
 - [Top-Level Commands](#top-level-commands)
 - [Images](#images)
 - [Create Your Own Commands](#create-your-own-commands)
@@ -39,8 +40,24 @@ PromptLab also supports "action scripts" -- AppleScripts which run with the AI's
 - [Autonomous Agent Features](#autonomous-agent-features)
 - [Troubleshooting](#troubleshooting)
 - [Contributing](#contributing)
+- [Roadmap](#roadmap)
 - [Privacy Policy](./PRIVACY.md)
 - [Useful Resources](#useful-resources)
+
+## Feature Overview
+
+- Create, Edit, and Run Custom Commands
+- Detail, List, Chat, and No-View Command Types
+- Utilize Numerous Contextual Placeholders in Prompts
+- Obtain Data from External APIs, Websites, and Applications
+- Analyze Content of Selected Files
+- Extract Text, Subjects, QR Codes, etc. from Images
+- Import/Export Commands
+- Save & Run Commands as Quicklinks with Optional Input Parameter
+- Run AppleScript or Bash Scripts On Model Response
+- PromptLab Chat with Autonomous Command Execution Capability
+- Upload & Download Commands To/From PromptLab Command Store
+- Use Custom Model Endpoints with Synchronous or Asynchronous Responses
 
 ## Top-Level Commands
 
@@ -332,10 +349,44 @@ If you encounter any issues with the extension, you can try the following steps 
 
 Contributions are welcome! Please see the [contributing guidelines](./CONTRIBUTING.md) for more information.
 
+## Roadmap
+
+### Current Release: v1.0.0
+
+- [x] Create, Edit, and Run Custom Commands
+- [x] Detail, List, Chat, and No-View Command Types
+- [x] Placeholders in Prompts
+- [x] Get Content of Selected Files
+- [x] Extract Text, Subjects, QR Codes, etc. from Images
+- [x] Import/Export Commands
+- [x] Run AppleScript or Bash Scripts On Model Response
+- [x] PromptLab Chat with Autonomous Command Execution Capability
+- [x] Upload & Download Commands To/From PromptLab Command Store
+- [x] Custom Model Endpoints with Synchronous or Asynchronous Responses
+- [x] Save & Run Commands as Quicklinks 
+- [ ] Release to the Raycast store (~May 20, 2023)
+
+### Next Release: v1.1.0
+
+- [ ] Command Favorites
+- [ ] Video Feature Extraction
+- [ ] Switch Between Chats & Export Chat History
+- [ ] Auto-Compress Chat History
+- [ ] Chat Settings
+    - [ ] Context Files/Folders/URLs
+    - [ ] Favorite Chats
+- [ ] Command Setup On Install
+- [ ] Speak Response
+- [ ] Voice Input
+- [ ] New Placeholders
+    - [ ] Nearby Locations
+    - [ ] Running Applications
+    - [ ] System Language
+
 ## Useful Resources
 
 | Link | Category | Description |
 | --- | --- | --- |
 | [Best practices for prompt engineering with OpenAI API](https://help.openai.com/en/articles/6654000-best-practices-for-prompt-engineering-with-openai-api) | Prompt Engineering | Strategies for creating effective ChatGPT prompts, from OpenAI itself |
-- [Brex's Prompt Engineering Guide](https://github.com/brexhq/prompt-engineering#what-is-a-prompt) | Prompt Engineering | A guide to prompt engineering, with examples and in-depth explanations |
+| [Brex's Prompt Engineering Guide](https://github.com/brexhq/prompt-engineering#what-is-a-prompt) | Prompt Engineering | A guide to prompt engineering, with examples and in-depth explanations |
 | [Techniques to improve reliability](https://github.com/openai/openai-cookbook/blob/main/techniques_to_improve_reliability.md) | Prompt Engineering | Strategies for improving reliability of GPT responses |
