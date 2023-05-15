@@ -58,7 +58,7 @@ end rselect`;
  * @returns A promise that resolves to void when the AppleScript has finished running.
  */
 export const addFileToSelection = async (filePath: string) => {
-    await runAppleScript(`tell application "Finder"
+  await runAppleScript(`tell application "Finder"
         set theSelection to selection as alias list
         set targetPath to POSIX file "${filePath}"
         copy targetPath to end of theSelection
@@ -72,7 +72,7 @@ export const addFileToSelection = async (filePath: string) => {
  * @returns A promise that resolves to a new-line-separated list of addresses.
  */
 export const searchNearbyLocations = async (query: string) => {
-    return runAppleScript(`set jxa to "(() => {
+  return runAppleScript(`set jxa to "(() => {
         ObjC.import('MapKit');
       
         const searchRequest = $.MKLocalSearchRequest.alloc.init;
@@ -104,5 +104,26 @@ export const searchNearbyLocations = async (query: string) => {
         \`);
       })();"
       
-      return run script jxa in "JavaScript"`)
-}
+      return run script jxa in "JavaScript"`);
+};
+
+/**
+ * Gets the names of all currently running non-background applications.
+ * @returns A promise that resolves to a comma-separated list of application names.
+ */
+export const getRunningApplications = async (): Promise<string> => {
+  return runAppleScript(`tell application "System Events"
+            return displayed name of every application process whose background only is false
+        end tell`);
+};
+
+/**
+ * Gets the name of the system's language.
+ * @returns A promise that resolves to the name of the system language as a string.
+ */
+export const getSystemLanguage = async (): Promise<string> => {
+  return runAppleScript(`use framework "Foundation"
+        set locale to current application's NSLocale's autoupdatingCurrentLocale()
+        set langCode to locale's languageCode()
+        return locale's localizedStringForLanguageCode:langCode`);
+};

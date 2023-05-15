@@ -27,6 +27,7 @@ import {
 import * as fs from "fs";
 import * as os from "os";
 import { useCachedState } from "@raycast/utils";
+import { getRunningApplications, getSystemLanguage } from "../utils/scripts";
 
 export const useReplacements = (
   input: string | undefined,
@@ -147,6 +148,12 @@ export const useReplacements = (
     },
     "{{previousResponse}}": async () => {
       return previousResponse;
+    },
+    "{{runningApplications}}": async () => {
+      return filterString(await getRunningApplications())
+    },
+    "{{systemLanguage}}" : async () => {
+      return await getSystemLanguage();
     },
 
     // API Data
