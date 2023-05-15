@@ -1,4 +1,30 @@
-import { runAppleScript } from "run-applescript";
+import { exec } from "child_process";
+import { runAppleScript, runAppleScriptSync } from "run-applescript";
+import * as util from "util";
+
+/**
+ * Executes an OSA script using the `osascript` command.
+ * @param script The script to execute (either a path to a file or the script itself)
+ * @param args The arguments to pass to the script
+ * @param language The language of the script, defaults to AppleScript
+ * @returns A promise that resolves to the output of the script.
+ */
+export const execScript = async (
+  script: string,
+  args: (string | boolean | number)[],
+  language = "AppleScript"
+): Promise<string> => {
+  if (script.startsWith("/")) {
+    const execPromise = util.promisify(exec);
+    const { stdout, stderr } = await execPromise(`osascript '${script}' -l ${language} ${args.join(" ")}`);
+    if (stderr) {
+      console.error(stderr);
+    }
+    return stdout;
+  } else {
+    return await runAppleScript(script);
+  }
+};
 
 /** AppleScriptObjC framework and library imports */
 export const objcImports = `use framework "AVFoundation"

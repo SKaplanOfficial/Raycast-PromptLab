@@ -1,8 +1,8 @@
-import { Detail, popToRoot, showToast, Toast } from "@raycast/api";
+import { Detail, environment, open, popToRoot, showToast, Toast } from "@raycast/api";
 import { useEffect } from "react";
 import { ERRORTYPE, installDefaults, useFileContents } from "./utils/file-utils";
 import ResponseActions from "./ResponseActions";
-import { imageFileExtensions } from "./utils/file-extensions";
+import { imageFileExtensions, videoFileExtensions } from "./utils/file-extensions";
 import useModel from "./hooks/useModel";
 
 export default function Command() {
@@ -25,17 +25,25 @@ export default function Command() {
     installDefaults();
   }, []);
 
-  const matchAnyImageExtensions = `/(\\.${imageFileExtensions.join("|\\.")})/`;
+  const matchAnyImageExtensions = RegExp(`(.${imageFileExtensions.join("|.")})`);
+  const matchAnyVideoExtensions = RegExp(`(.${videoFileExtensions.join("|.")})`);
   const svgSelected = selectedFiles?.join("").toLowerCase().includes(".svg");
   const imageSelected = selectedFiles?.join("").toLowerCase().search(matchAnyImageExtensions) != -1;
+  const videoSelected = selectedFiles?.join("").toLowerCase().search(matchAnyVideoExtensions) != -1;
 
-  const basePrompt = `I want you to derive insights from the following information about the content of files. You will respond with a descriptive discussion of each file, its main topics, and its significance. You will use all information provided to infer more insights. Provide several insights derived from metadata or EXIF data. Give an overview of lists, content, objects, etc. without listing specific details. Discuss the general position of any objects, points, or rectangles within the image without using numbers. Don't repeat yourself. Don't list properties without describing their value. ${
+  const basePrompt = `I want you to derive insights from the following information about the content of files. You will respond with a descriptive discussion of each file, its main topics, and its significance. You will use all information provided to infer more insights. Provide several insights derived from metadata or EXIF data. Give an overview of lists, content, objects, etc. without listing specific details. Discuss the general position of any objects, points, or rectangles within images and videos without using numbers. Don't repeat yourself. Don't list properties without describing their value. ${
     imageSelected
       ? "Discuss the payload of any barcodes or QR codes. For images, use the general size and arrangement of objects to help predict what the file is about."
       : ""
   } ${
+    videoSelected
+      ? "For video, discuss what they are about in friendly paragraphs without listing off specific details. You must summarize any transcribed text in 100 words or fewer."
+      : ""
+  } ${
     svgSelected ? "For SVGs, predict what object(s) the overall code will render as." : ""
   } Draw connections between different pieces of information and discuss the significance of any relationships therein. Use the file names as headings. Limit your discussion to one short paragraph. At the end, include a list of relevant links formatted as a markdown list. \nHere are the files:\n###\n`;
+
+  open(environment.supportPath);
 
   const contentPromptString = contentPrompts.join("\n");
   const fullPrompt = basePrompt + contentPromptString;
