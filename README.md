@@ -58,14 +58,10 @@ PromptLab also supports "action scripts" -- AppleScripts which run with the AI's
     - Add custom commands from a JSON string.
 
 ## Images
-![List Of Default Commands](./examples/promptlab-1.png)
-![Editing a command](./examples/promptlab-2.png)
-![Customization options for commands](./examples/promptlab-3.png)
-![Identify Selected Files example](./examples/promptlab-4.png)
-![Recent News Headlines Example](./examples/promptlab-5.png)
-![PromptLab commands as Quicklinks](./examples/promptlab-6.png)
-![Navigating the PromptLab Command Store](./examples/promptlab-7.png)
-![PromptLab Chat + Autonomous Agent Features](./examples/promptlab-8.png)
+![Summarize Selected Files example](./examples/DogSVG.gif)
+![Editing a PromptLab Command](./examples/EditCommand.gif)
+![Navigating the PromptLab Command Store](./examples/InstallAll.gif)
+![PromptLab Chat + Autonomous Agent Features](./examples/CPUPerformance.gif)
 
 View more images in [the gallery](https://skaplanofficial.github.io/Raycast-PromptLab/gallery).
 
@@ -323,4 +319,5 @@ Contributions are welcome! Please see the [contributing guidelines](./CONTRIBUTI
 | Link | Category | Description |
 | --- | --- | --- |
 | [Best practices for prompt engineering with OpenAI API](https://help.openai.com/en/articles/6654000-best-practices-for-prompt-engineering-with-openai-api) | Prompt Engineering | Strategies for creating effective ChatGPT prompts, from OpenAI itself |
+- [Brex's Prompt Engineering Guide](https://github.com/brexhq/prompt-engineering#what-is-a-prompt) | Prompt Engineering | A guide to prompt engineering, with examples and in-depth explanations |
 | [Techniques to improve reliability](https://github.com/openai/openai-cookbook/blob/main/techniques_to_improve_reliability.md) | Prompt Engineering | Strategies for improving reliability of GPT responses |
