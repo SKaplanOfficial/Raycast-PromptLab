@@ -53,6 +53,8 @@ export const ERRORTYPE = {
  */
 async function getSelectedFiles(): Promise<string> {
   return runAppleScript(`tell application "Finder"
+  set oldDelimiters to AppleScript's text item delimiters
+  set AppleScript's text item delimiters to "::"
   set theSelection to selection
   if theSelection is {} then
     return
@@ -63,7 +65,9 @@ async function getSelectedFiles(): Promise<string> {
     repeat with i from 1 to (theSelection count)
         copy (POSIX path of (item i of theSelection as alias)) to end of thePaths
     end repeat
-    return thePaths
+    set thePathsString to thePaths as text
+    set AppleScript's text item delimiters to oldDelimiters
+    return thePathsString
   end if
 end tell`);
 }
@@ -89,14 +93,14 @@ export function useFileContents(options: CommandOptions) {
     getSelectedFiles()
       .then((files) => {
         // Raise error if too few files are selected
-        if (files.split(", ").length < (options.minNumFiles || 1)) {
+        if (files.split("::").length < (options.minNumFiles || 1)) {
           setErrorType(ERRORTYPE.MIN_SELECTION_NOT_MET);
           return;
         }
 
         // Remove directories and files with invalid extensions
         const filteredFiles = files
-          .split(", ")
+          .split("::")
           .filter(
             (file) =>
               validExtensions.length == 0 ||
@@ -126,7 +130,7 @@ export function useFileContents(options: CommandOptions) {
 
             // Otherwise, get the file's contents (and maybe the metadata)
             const pathLower = file.toLowerCase();
-            if (!pathLower.includes(".app") && fs.lstatSync(file).isDirectory()) {
+            if (!pathLower.replaceAll("/", "").endsWith(".app") && fs.lstatSync(file).isDirectory()) {
               // Get size, list of contained files within a directory
               contents += getDirectoryDetails(file);
             } else if (pathLower.includes(".pdf")) {

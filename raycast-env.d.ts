@@ -8,14 +8,20 @@
 /* eslint-disable @typescript-eslint/ban-types */
 
 type ExtensionPreferences = {
-  /**  - If checked, PromptLab will use OCR to extract text from PDFs. This takes longer but enables analysis of more PDF content types. */
+  /** General Settings - If checked, PromptLab will use OCR to extract text from PDFs. This takes longer but enables analysis of more PDF content types. */
   "pdfOCR"?: boolean,
   /** Export Location - The folder where exported commands and chats will be saved. */
   "exportLocation"?: string,
+  /** Primary Command Action - The top action of the actions menu in command response views. */
+  "primaryAction"?: "copy-response-to-clipboard" | "paste-to-active-app" | "copy-prompt-to-clipboard" | "open-chat" | "regenerate",
+  /** Prompt Prefix - Text to prepend at the start of every prompt. This can be used to set context for all commands. */
+  "promptPrefix"?: string,
+  /** Prompt Suffix - Text to append and the end of every prompt. This can be used to set context for all commands. */
+  "promptSuffix"?: string,
   /** Model Endpoint - The API endpoint of the model used to generate PromptLab command output. Set to 'Raycast AI' to use the Raycast AI API. */
   "modelEndpoint"?: string,
   /** API Authorization Type - The authorization type for the model endpoint, e.g. API Key or Bearer. This is only used if the model source is set to something other than Raycast AI. */
-  "authType"?: "apiKey" | "bearerToken",
+  "authType"?: "apiKey" | "bearerToken" | "x-api-key",
   /** API Key - The API key for the model source. This is only used if the model source is set to something other than Raycast AI. */
   "apiKey"?: string,
   /** Input Schema - The JSON schema of the endpoint used to generate PromptLab command output. This is only used if the model source is set to something other than Raycast AI. Use {input} to represent PromptLab's input to the command. */

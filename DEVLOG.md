@@ -1,13 +1,27 @@
 # PromptLab DevLog - A More Detailed ChangeLog
 
-### 2023-05-13
+### 2023-05-15
+
+
+# Release v1.0.0
+
+## 2023-05-14
 
 - Added chat history and selection to chat views
 - Added export chat action
 - Added delete chat action
-- Added support for X-API-Key authentication in custom model endpoints
+- Added setting for primary action on command outputs
+- Added Prompt Prefix and Prompt Suffix settings
+- Added 'Install All Commands' action to the command store
+- Adjust behavior of acceptedFileExtensions to (hopefully) resolve some issues
+- Changed async output from custom model endpoints to check whether the incoming response is the full response or just a partial update
 
-## Release 1.0.0
+### 2023-05-13
+
+- Added support for X-API-Key authentication in custom model endpoints
+- Fixed bug where selected files containing "," in their name would yield an error
+- Fixed bug where commands whose acceptedFileExtensions fields were empty would yield an error
+- Fixed bug where the `{input}` placeholder in model schemas was not provided when in a chat view
 
 ### 2023-05-12
 
@@ -18,6 +32,9 @@
 - Added setting for prompt length limit
 - Added setting for export location to use when exporting all commands
 - Added previousCommand, previousPrompt, and previousResponse placeholders
+- Added {{youtube:URL}} and {{youtube:searchTerm}} placeholders
+    - Both placeholders will return the transcript of the first matching video result
+    - Transcript text is limited to the configured prompt length limit
 - Fixed allocation error when analyzing images with a dimension < 100px
 - Fixed bug where placeholder replacements were run multiple times
 - Fixed bug where no-view commands would not pop to root view after being run

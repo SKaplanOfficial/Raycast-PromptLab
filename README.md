@@ -12,6 +12,7 @@ PromptLab also supports "action scripts" -- AppleScripts which run with the AI's
 
 ## Table Of Contents
 
+- [Feature Overview](#feature-overview)
 - [Top-Level Commands](#top-level-commands)
 - [Images](#images)
 - [Create Your Own Commands](#create-your-own-commands)
@@ -39,7 +40,24 @@ PromptLab also supports "action scripts" -- AppleScripts which run with the AI's
 - [Autonomous Agent Features](#autonomous-agent-features)
 - [Troubleshooting](#troubleshooting)
 - [Contributing](#contributing)
+- [Roadmap](#roadmap)
+- [Privacy Policy](./PRIVACY.md)
 - [Useful Resources](#useful-resources)
+
+## Feature Overview
+
+- Create, Edit, and Run Custom Commands
+- Detail, List, Chat, and No-View Command Types
+- Utilize Numerous Contextual Placeholders in Prompts
+- Obtain Data from External APIs, Websites, and Applications
+- Analyze Content of Selected Files
+- Extract Text, Subjects, QR Codes, etc. from Images
+- Import/Export Commands
+- Save & Run Commands as Quicklinks with Optional Input Parameter
+- Run AppleScript or Bash Scripts On Model Response
+- PromptLab Chat with Autonomous Command Execution Capability
+- Upload & Download Commands To/From PromptLab Command Store
+- Use Custom Model Endpoints with Synchronous or Asynchronous Responses
 
 ## Top-Level Commands
 
@@ -57,16 +75,17 @@ PromptLab also supports "action scripts" -- AppleScripts which run with the AI's
     - Add custom commands from a JSON string.
 
 ## Images
-![List Of Default Commands](./examples/promptlab-1.png)
-![Editing a command](./examples/promptlab-2.png)
-![Customization options for commands](./examples/promptlab-3.png)
-![Identify Selected Files example](./examples/promptlab-4.png)
-![Recent News Headlines Example](./examples/promptlab-5.png)
-![PromptLab commands as Quicklinks](./examples/promptlab-6.png)
-![Navigating the PromptLab Command Store](./examples/promptlab-7.png)
-![PromptLab Chat + Autonomous Agent Features](./examples/promptlab-8.png)
+
+[Summarize Selected Files example](https://github.com/SKaplanOfficial/Raycast-PromptLab/assets/7865925/99460417-2e3f-46ce-ae1f-ba4c46e255c6)
+
+[Editing a PromptLab Command](https://github.com/SKaplanOfficial/Raycast-PromptLab/assets/7865925/bc999b6d-ace9-4ae0-aa74-6f6649b445cd)
+
+[Installing all commands at once from the PromptLab Command Store](https://github.com/SKaplanOfficial/Raycast-PromptLab/assets/7865925/334d7b03-d5f0-4b0d-9e4f-c05175c7bed0)
+
+[PromptLab Chat + Autonomous Agent Features](https://github.com/SKaplanOfficial/Raycast-PromptLab/assets/7865925/df9305c7-3e1a-4055-90e3-5a34650284cc)
 
 View more images in [the gallery](https://skaplanofficial.github.io/Raycast-PromptLab/gallery).
+
 
 ## Create Your Own Commands
 
@@ -286,6 +305,19 @@ When you first run PromptLab, you'll have the option to configure a custom model
 
 To use any arbitrary endpoint, put the endpoint URL in the `Model Endpoint` preference field and provide your `API Key` alongside the corresponding `Authorization Type`. Then, specify the `Input Schema` in JSON notation, using `{prompt}` to indicate where PromptLab should input its prompt. Alternatively, you can specify `{basePrompt}` and `{input}` separately, for example if you want to provide content for the user and system roles separately when using the OpenAI API. Next, specify the `Output Key` of the output text within the returned JSON object. If the model endpoint returns a string, rather than a JSON object, leave this field empty. Finally, specify the `Output Timing` of the model endpoint. If the model endpoint returns the output immediately, select `Synchronous`. If the model endpoint returns the output asynchronously, select `Asynchronous`.
 
+### Anthropic API Example
+
+To use Anthropic's Claude API as the model endpoint, configure the extension as follows:
+
+| Preference Name | Value |
+| --- | --- |
+| Model Endpoint | https://api.anthropic.com/v1/complete |
+| API Authorization Type | X-API-Key |
+| API Key | Your API key |
+| Input Schema | { "prompt": "\n\nHuman: {prompt}\n\nAssistant: ", "model": "claude-instant-v1-100k", "max_tokens_to_sample": 300, "stop_sequences": ["\n\nHuman:"] , "stream": true  } |
+| Output Key Path | completion |
+| Output Timing | Asynchronous |
+
 ### OpenAI API Example
 
 To use the OpenAI API as the model endpoint, configure the extension as follows:
@@ -317,9 +349,44 @@ If you encounter any issues with the extension, you can try the following steps 
 
 Contributions are welcome! Please see the [contributing guidelines](./CONTRIBUTING.md) for more information.
 
+## Roadmap
+
+### Current Release: v1.0.0
+
+- [x] Create, Edit, and Run Custom Commands
+- [x] Detail, List, Chat, and No-View Command Types
+- [x] Placeholders in Prompts
+- [x] Get Content of Selected Files
+- [x] Extract Text, Subjects, QR Codes, etc. from Images
+- [x] Import/Export Commands
+- [x] Run AppleScript or Bash Scripts On Model Response
+- [x] PromptLab Chat with Autonomous Command Execution Capability
+- [x] Upload & Download Commands To/From PromptLab Command Store
+- [x] Custom Model Endpoints with Synchronous or Asynchronous Responses
+- [x] Save & Run Commands as Quicklinks 
+- [ ] Release to the Raycast store (~May 20, 2023)
+
+### Next Release: v1.1.0
+
+- [ ] Command Favorites
+- [ ] Video Feature Extraction
+- [ ] Switch Between Chats & Export Chat History
+- [ ] Auto-Compress Chat History
+- [ ] Chat Settings
+    - [ ] Context Files/Folders/URLs
+    - [ ] Favorite Chats
+- [ ] Command Setup On Install
+- [ ] Speak Response
+- [ ] Voice Input
+- [ ] New Placeholders
+    - [ ] Nearby Locations
+    - [ ] Running Applications
+    - [ ] System Language
+
 ## Useful Resources
 
 | Link | Category | Description |
 | --- | --- | --- |
 | [Best practices for prompt engineering with OpenAI API](https://help.openai.com/en/articles/6654000-best-practices-for-prompt-engineering-with-openai-api) | Prompt Engineering | Strategies for creating effective ChatGPT prompts, from OpenAI itself |
+| [Brex's Prompt Engineering Guide](https://github.com/brexhq/prompt-engineering#what-is-a-prompt) | Prompt Engineering | A guide to prompt engineering, with examples and in-depth explanations |
 | [Techniques to improve reliability](https://github.com/openai/openai-cookbook/blob/main/techniques_to_improve_reliability.md) | Prompt Engineering | Strategies for improving reliability of GPT responses |

@@ -11,6 +11,9 @@ export interface ExtensionPreferences {
   outputTiming: string;
   lengthLimit: string;
   exportLocation: string;
+  primaryAction: string;
+  promptPrefix: string;
+  promptSuffix: string;
 }
 
 /**

@@ -308,7 +308,7 @@ export default function CommandChatView(props: {
     revalidate: revalidateFiles,
   } = useFileContents(options);
   const replacements = useReplacements(input, selectedFiles);
-  const { data, isLoading: loading, revalidate: reattempt } = useModel(prompt, sentQuery, "", enableModel);
+  const { data, isLoading: loading, revalidate: reattempt } = useModel(prompt, sentQuery, sentQuery, enableModel);
 
   useEffect(() => {
     if (data.length > 0) {
@@ -362,7 +362,7 @@ export default function CommandChatView(props: {
       });
     }
   }, [input, data]);
-
+  
   useEffect(() => {
     if (!loading && enableModel == true && currentResponse == data) {
       // Run action script of the command specified by the AI, if one exists
