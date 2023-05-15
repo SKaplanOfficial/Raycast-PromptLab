@@ -58,12 +58,16 @@ PromptLab also supports "action scripts" -- AppleScripts which run with the AI's
     - Add custom commands from a JSON string.
 
 ## Images
-![Summarize Selected Files example](./examples/DogSVG.gif)
-![Editing a PromptLab Command](./examples/EditCommand.gif)
-![Navigating the PromptLab Command Store](./examples/InstallAll.gif)
-![PromptLab Chat + Autonomous Agent Features](./examples/CPUPerformance.gif)
+[Summarize Selected Files example](https://github.com/SKaplanOfficial/Raycast-PromptLab/assets/7865925/99460417-2e3f-46ce-ae1f-ba4c46e255c6)
+
+[Editing a PromptLab Command](https://github.com/SKaplanOfficial/Raycast-PromptLab/assets/7865925/bc999b6d-ace9-4ae0-aa74-6f6649b445cd)
+
+[Installing all commands at once from the PromptLab Command Store](https://github.com/SKaplanOfficial/Raycast-PromptLab/assets/7865925/334d7b03-d5f0-4b0d-9e4f-c05175c7bed0)
+
+[PromptLab Chat + Autonomous Agent Features](https://github.com/SKaplanOfficial/Raycast-PromptLab/assets/7865925/df9305c7-3e1a-4055-90e3-5a34650284cc)
 
 View more images in [the gallery](https://skaplanofficial.github.io/Raycast-PromptLab/gallery).
+
 
 ## Create Your Own Commands
 
