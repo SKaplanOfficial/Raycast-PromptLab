@@ -130,3 +130,19 @@ export interface StoreCommand {
 export interface modelOutput {
   [key: string]: string | modelOutput;
 }
+
+/**
+ * A PromptLab Chat instance.
+ */
+export interface Chat {
+  name: string;
+  icon: string;
+  iconColor: string;
+  basePrompt: string;
+  favorited: boolean;
+  contextData: {
+    type: string;
+    source: string;
+    data: string;
+  }[];
+}

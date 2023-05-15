@@ -17,8 +17,7 @@ export default function Discover() {
     // Get installed commands from local storage
     Promise.resolve(LocalStorage.allItems()).then((commandData) => {
       const commandDataFiltered = Object.values(commandData).filter(
-        (cmd, index) =>
-          Object.keys(commandData)[index] != "--defaults-installed" && !Object.keys(cmd)[index].startsWith("id-")
+        (cmd, index) => !Object.keys(commandData)[index].startsWith("--") && !Object.keys(cmd)[index].startsWith("id-")
       );
       setMyCommands(commandDataFiltered.map((data) => JSON.parse(data)));
     });
@@ -187,8 +186,7 @@ ${
                   Promise.resolve(LocalStorage.allItems()).then((commandData) => {
                     const commandDataFiltered = Object.values(commandData).filter(
                       (cmd, index) =>
-                        Object.keys(commandData)[index] != "--defaults-installed" &&
-                        !Object.keys(cmd)[index].startsWith("id-")
+                        !Object.keys(commandData)[index].startsWith("--") && !Object.keys(cmd)[index].startsWith("id-")
                     );
                     setMyCommands(commandDataFiltered.map((data) => JSON.parse(data)));
                   });

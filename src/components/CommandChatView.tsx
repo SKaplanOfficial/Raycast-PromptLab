@@ -2,6 +2,7 @@ import {
   Action,
   ActionPanel,
   Alert,
+  Color,
   Form,
   Icon,
   LocalStorage,
@@ -13,12 +14,13 @@ import {
 } from "@raycast/api";
 import { useEffect, useState } from "react";
 import useModel from "../hooks/useModel";
-import { Command, CommandOptions, ExtensionPreferences } from "../utils/types";
+import { Chat, Command, CommandOptions, ExtensionPreferences } from "../utils/types";
 import { useFileContents } from "../utils/file-utils";
 import { useReplacements } from "../hooks/useReplacements";
 import { runActionScript, runReplacements } from "../utils/command-utils";
 import * as fs from "fs";
 import path from "path";
+import ChatSettingsForm from "./ChatSettingsForm";
 
 export default function CommandChatView(props: {
   isLoading: boolean;
@@ -57,12 +59,16 @@ export default function CommandChatView(props: {
   const [currentCommand, setCurrentCommand] = useState<Command>();
   const [previousChat, setPreviousChat] = useState<string>("");
   const [selectedChat, setSelectedChat] = useState<string>("new");
+  const [currentChatSettings, setCurrentChatSettings] = useState<Chat>();
   const [updatingFile, setUpdatingFile] = useState<boolean>(false);
   const [chats, setChats] = useState<string[]>([]);
+  const [chatSettings, setChatSettings] = useState<Chat[]>([]);
 
   const preferences = getPreferenceValues<ExtensionPreferences>();
   const supportPath = environment.supportPath;
   const chatsDir = `${supportPath}/chats`;
+
+  const favoriteChats = chatSettings.filter((chat) => chat.favorited);
 
   useEffect(() => {
     // Create the chats directory if it doesn't exist
@@ -75,6 +81,14 @@ export default function CommandChatView(props: {
         setChats(files.filter((file) => !file.startsWith(".")).map((file) => file.replace(".txt", "")));
       });
     }
+
+    // Get the chat settings
+    LocalStorage.allItems().then((items) => {
+      const chatSettings = Object.entries(items)
+        .filter(([key]) => key.startsWith("--chat-"))
+        .map(([, value]) => JSON.parse(value));
+      setChatSettings(chatSettings);
+    });
   }, []);
 
   const loadConversation = (chatFile: string) => {
@@ -97,32 +111,59 @@ export default function CommandChatView(props: {
   };
 
   const deleteChat = (chatName: string) => {
+    // Delete the chat file and remove it from the active list of chats
     const chatFile = `${chatsDir}/${chatName}.txt`;
     fs.unlink(chatFile, (err) => {
       if (err) throw err;
       const newChats = [...chats];
       newChats.splice(chats.indexOf(chatName), 1);
       setChats(newChats);
+
+      // Return to the new chat default
       setSelectedChat("new");
+      setCurrentChatSettings(undefined);
+    });
+
+    // Remove the chat's settings entry
+    LocalStorage.removeItem(`--chat-${chatName}`).then(() => {
+      const newChatSettings = [...chatSettings.map((chat) => ({ ...chat }))];
+      newChatSettings.splice(
+        chatSettings.findIndex((chat) => chat.name == chatName),
+        1
+      );
+      setChatSettings(newChatSettings);
     });
   };
 
   const logQuery = (query: string, chatName: string, attemptNumber?: number): string => {
     let newChatName = chatName;
     if (chatName == "new") {
-      newChatName = query.trim().substring(0, 20).split("\n")[0] + " - " + new Date().toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-        hour: "numeric",
-        minute: "numeric",
-        second: "numeric",
-      });
+      newChatName =
+        query.trim().substring(0, 20).split("\n")[0] +
+        " - " +
+        new Date().toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+          hour: "numeric",
+          minute: "numeric",
+          second: "numeric",
+        });
 
       const newChats = [...chats];
       newChats.push(newChatName);
       setChats(newChats);
 
+      const newChatSettingsEntry = {
+        name: newChatName,
+        icon: Icon.Message,
+        iconColor: Color.PrimaryText,
+        basePrompt: prompt,
+        favorited: false,
+        contextData: [],
+      };
+      setChatSettings([...chatSettings.map((chat) => ({ ...chat })), newChatSettingsEntry]);
+      setCurrentChatSettings(newChatSettingsEntry);
       setSelectedChat(newChatName);
     }
 
@@ -144,19 +185,32 @@ export default function CommandChatView(props: {
   const logResponse = (response: string, chatName: string, attemptNumber?: number): string => {
     let newChatName = chatName;
     if (chatName == "new") {
-      newChatName = response.trim().substring(0, 20).split("\n")[0] + " - " + new Date().toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-        hour: "numeric",
-        minute: "numeric",
-        second: "numeric",
-      });
+      newChatName =
+        response.trim().substring(0, 20).split("\n")[0] +
+        " - " +
+        new Date().toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+          hour: "numeric",
+          minute: "numeric",
+          second: "numeric",
+        });
 
       const newChats = [...chats];
       newChats.push(newChatName);
       setChats(newChats);
 
+      const newChatSettingsEntry = {
+        name: newChatName,
+        icon: Icon.Message,
+        iconColor: Color.PrimaryText,
+        basePrompt: prompt,
+        favorited: false,
+        contextData: [],
+      };
+      setChatSettings([...chatSettings.map((chat) => ({ ...chat })), newChatSettingsEntry]);
+      setCurrentChatSettings(newChatSettingsEntry);
       setSelectedChat(newChatName);
     }
 
@@ -197,6 +251,7 @@ export default function CommandChatView(props: {
         newChats.splice(chats.indexOf(selectedChat), 1);
         setChats(newChats);
         setSelectedChat("new");
+        setCurrentChatSettings(undefined);
         return;
       }
 
@@ -281,7 +336,7 @@ export default function CommandChatView(props: {
       // Get the command prompt
       LocalStorage.allItems().then((commands) => {
         const commandPrompts = Object.entries(commands)
-          .filter(([key]) => key != "--defaults-installed" && !key.startsWith("id-"))
+          .filter(([key]) => !key.startsWith("--") && !key.startsWith("id-"))
           .sort(([a], [b]) => (a > b ? 1 : -1))
           .map(([, value], index) => `${index}:${JSON.parse(value)["prompt"]}`);
         const nameIndex = parseInt(cmdMatch[1]);
@@ -298,7 +353,7 @@ export default function CommandChatView(props: {
             setCurrentCommand(
               JSON.parse(
                 Object.entries(commands)
-                  .filter(([key]) => key != "--defaults-installed" && !key.startsWith("id-"))
+                  .filter(([key]) => !key.startsWith("--") && !key.startsWith("id-"))
                   .filter(([, cmd]) => cmd.prompt == undefined)[0][1]
               )
             );
@@ -341,11 +396,11 @@ export default function CommandChatView(props: {
 
   return (
     <Form
-      isLoading={isLoading || loading || contentIsLoading}
+      isLoading={isLoading || (loading && enableModel) || contentIsLoading}
       navigationTitle={commandName}
       actions={
         <ActionPanel>
-          {isLoading || loading ? (
+          {isLoading || (loading && enableModel) ? (
             <Action
               title="Cancel"
               onAction={() => {
@@ -392,7 +447,7 @@ export default function CommandChatView(props: {
                 // Get command descriptions
                 const commands = await LocalStorage.allItems();
                 const commandDescriptions = Object.entries(commands)
-                  .filter(([key]) => key != "--defaults-installed" && !key.startsWith("id-"))
+                  .filter(([key]) => !key.startsWith("--") && !key.startsWith("id-"))
                   .sort(([a], [b]) => (a > b ? 1 : -1))
                   .map(([, value], index) => `${index}:${JSON.parse(value)["description"]}`);
 
@@ -402,6 +457,12 @@ export default function CommandChatView(props: {
                   `${
                     values.responseField.length > 0
                       ? `You are an interactive chatbot, and I am giving you instructions. You will use this base prompt for context as you consider my next input. Here is the prompt: ###${prompt}###\n\n${
+                          currentChatSettings && !conversation.join("\n").includes(currentChatSettings.basePrompt)
+                            ? `You will also consider the following contextual information: ###${currentChatSettings.contextData
+                                .map((data) => `${data.source}:${data.data}`)
+                                .join("\n\n")}###\n\n`
+                            : ``
+                        }\n\n${
                           values.useFilesCheckbox && selectedFiles?.length
                             ? ` You will also consider the following details about selected files. Here are the file details: ###${contentPrompts.join(
                                 "\n"
@@ -440,6 +501,20 @@ export default function CommandChatView(props: {
 
           {selectedChat == "new" ? null : (
             <ActionPanel.Section title="Chat Actions">
+              <Action.Push
+                title="Chat Settings..."
+                icon={Icon.Gear}
+                target={
+                  <ChatSettingsForm
+                    oldData={currentChatSettings}
+                    chats={chats}
+                    setChats={setChats}
+                    setSelectedChat={setSelectedChat}
+                    setChatSettings={setChatSettings}
+                    setCurrentChatSettings={setCurrentChatSettings}
+                  />
+                }
+              />
               <Action
                 title="Export Chat"
                 icon={Icon.Download}
@@ -526,11 +601,37 @@ export default function CommandChatView(props: {
 
           setPreviousChat(selectedChat);
           setSelectedChat(value);
+          if (value !== "new") {
+            setCurrentChatSettings(
+              chatSettings.find((chat) => chat.name == value) || {
+                name: value,
+                icon: Icon.Message,
+                iconColor: Color.PrimaryText,
+                basePrompt: prompt,
+                favorited: false,
+                contextData: [],
+              }
+            );
+          }
         }}
       >
-        {chats
-          .map((chat) => <Form.Dropdown.Item key={chat} value={chat} title={chat} />)
-          .concat([<Form.Dropdown.Item key="new" value="new" title="New Chat" />])}
+        <Form.Dropdown.Item key="new" value="new" title="New Chat" />
+
+        {favoriteChats.length > 0 ? (
+          <Form.Dropdown.Section title="Favorite Chats">
+            {favoriteChats.map((chat) => (
+              <Form.Dropdown.Item key={chat.name} value={chat.name} title={chat.name} />
+            ))}
+          </Form.Dropdown.Section>
+        ) : null}
+
+        <Form.Dropdown.Section title={favoriteChats.length > 0 ? "Other Chats" : "Existing Chats"}>
+          {chats
+            .filter((chat) => !favoriteChats.find((favChat) => favChat.name == chat)?.favorited)
+            .map((chat) => (
+              <Form.Dropdown.Item key={chat} value={chat} title={chat} />
+            ))}
+        </Form.Dropdown.Section>
       </Form.Dropdown>
 
       <Form.TextArea
@@ -566,6 +667,14 @@ export default function CommandChatView(props: {
       />
 
       <Form.Description title="Base Prompt" text={prompt} />
+
+      {currentChatSettings && currentChatSettings.contextData.length ? <Form.Separator /> : null}
+      {currentChatSettings && currentChatSettings.contextData.length ? (
+        <Form.Description title="Context Data" text="Information provided as context for your conversation." />
+      ) : null}
+      {currentChatSettings?.contextData.map((data) => {
+        return <Form.Description title={data.source} key={data.source + data.data.substring(0, 20)} text={data.data} />;
+      })}
     </Form>
   );
 }

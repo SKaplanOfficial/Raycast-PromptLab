@@ -1,4 +1,4 @@
-import { LocalStorage, getPreferenceValues } from "@raycast/api";
+import { LocalStorage, environment, getPreferenceValues } from "@raycast/api";
 import * as fs from "fs";
 import exifr from "exifr";
 import { runAppleScript, runAppleScriptSync } from "run-applescript";
@@ -6,6 +6,8 @@ import { audioFileExtensions, imageFileExtensions, textFileExtensions, videoFile
 import { useEffect, useState } from "react";
 import { defaultCommands } from "../default-commands";
 import { CommandOptions, ExtensionPreferences } from "./types";
+import { execScript } from "./scripts";
+import path from "path";
 
 /**
  * Installs the default prompts if they haven't been installed yet and the user hasn't input their own command set.
@@ -242,7 +244,20 @@ const getImageDetails = async (filePath: string, options: CommandOptions): Promi
 };
 
 const getVideoDetails = async (filePath: string, options: CommandOptions): Promise<string> => {
-  const videoVisionInstructions = filterContentString(getVideoVisionDetails(filePath, options));
+  const videoFeatureExtractor = path.resolve(environment.assetsPath, "scripts", "VideoFeatureExtractor.scpt");
+  const videoVisionInstructions = filterContentString(
+    await execScript(
+      videoFeatureExtractor,
+      [
+        `"${filePath}"`,
+        options.useAudioDetails || false,
+        options.useSubjectClassification || false,
+        options.useFaceDetection || false,
+        options.useRectangleDetection || false,
+      ],
+      "JavaScript"
+    )
+  );
   return `${videoVisionInstructions}`;
 };
 
@@ -444,134 +459,6 @@ const getImageVisionDetails = (filePath: string, options: CommandOptions): strin
   }
 
   return promptText`);
-};
-
-const getVideoVisionDetails = (filePath: string, options: CommandOptions): string => {
-  return runAppleScriptSync(`set jxa to "(() => {
-    ObjC.import('objc');
-    ObjC.import('CoreMedia');
-    ObjC.import('Foundation');
-    ObjC.import('AVFoundation');
-    ObjC.import('Vision');
-    ObjC.import('AppKit');
-  
-    const assetURL = $.NSURL.fileURLWithPath('${filePath}');
-    const options = $.NSDictionary.alloc.init;
-    const asset = $.objc_getClass('AVAsset').assetWithURL(assetURL);
-  
-    if (asset.tracksWithMediaType($.AVMediaTypeVideo).count == 0) {
-      return '';
-    }
-  
-    const instructions = [];
-  const confidenceThreshold = 0.7
-  
-    const reader = $.objc_getClass('AVAssetReader').alloc.initWithAssetError(
-      asset,
-      null
-    );
-    const track = asset.tracksWithMediaType($.AVMediaTypeVideo).objectAtIndex(0);
-    const settings = $.NSDictionary.dictionaryWithObjectForKey(
-      '420v',
-      'PixelFormatType'
-    );
-    readerOutput = $.objc_getClass(
-      'AVAssetReaderTrackOutput'
-    ).alloc.initWithTrackOutputSettings(track, settings);
-    reader.addOutput(readerOutput);
-    reader.startReading;
-  
-    const maxCount = 15;
-    samples = [];
-    let buf = Ref();
-    while (
-      samples.length < maxCount &&
-      reader.status != $.AVAssetReaderStatusCompleted &&
-      reader.status != $.AVAssetReaderStatusFailed
-    ) {
-      buf = readerOutput.copyNextSampleBuffer;
-      samples.push(buf);
-    }
-  
-    const texts = [];
-   const classifications = [];
-   const animals = [];
-   let faces = 0;
-   const rects = [];
-    for (let i = 0; i < samples.length; i++) {
-      const sample = samples[i];
-      const presentationTime = $.CMSampleBufferGetPresentationTimeStamp(sample);
-      const imageBufferRef = ObjC.castRefToObject(
-        $.CMSampleBufferGetImageBuffer(samples[samples.length - i - 1])
-      );
-  
-      const requestHandler =
-        $.VNImageRequestHandler.alloc.initWithCVPixelBufferOptions(
-          imageBufferRef,
-          $.NSDictionary.alloc.init
-        );
-  
-      const textRequest = $.VNRecognizeTextRequest.alloc.init;
-	  const classificationRequest = $.VNClassifyImageRequest.alloc.init
-	  const animalRequest = $.VNRecognizeAnimalsRequest.alloc.init
-	  const faceRequest = $.VNDetectFaceRectanglesRequest.alloc.init
-	  const rectRequest = $.VNDetectRectanglesRequest.alloc.init
-	  rectRequest.maximumObservations = 0
-  
-      requestHandler.performRequestsError(
-        ObjC.wrap([textRequest, classificationRequest, animalRequest, faceRequest, rectRequest]),
-        null
-      );
-      const textResults = textRequest.results;
-      const classificationResults = classificationRequest.results;
-	const animalResults = animalRequest.results;
-	const faceResults = faceRequest.results;
-	const rectResults = rectRequest.results;
-  
-      const sampleTexts = [];
-      for (let i = 0; i < textResults.count; i++) {
-        const observation = textResults.objectAtIndex(i);
-        const observationText = observation.topCandidates(1).objectAtIndex(0)
-          .string.js;
-        sampleTexts.push(observationText);
-      }
-  
-      sampleTexts.forEach((text) => {
-        if (!texts.includes(text)) {
-          texts.push(text);
-        }
-      });
-	  	  
-	for (let i = 0; i < classificationResults.count; i++) {
-		const observation = classificationResults.objectAtIndex(i);
-		const identifier = observation.identifier.js
-		if (observation.confidence > confidenceThreshold && !classifications.includes(identifier)) {
-			classifications.push(identifier)
-		}
-	}
-    }
-	
-    if (texts.length > 0) {
-      instructions.push(
-        '<Transcribed text of the first ' + samples.length + ' video frames: \`' +
-          texts.join(', ') +
-          '\`.>',
-      );
-    }
-
-    if (classifications.length > 0) {
-      instructions.push(
-        '<Potential labels for objects in the first ' + samples.length + ' video frames: \`' +
-          classifications.join(', ') +
-          '\`.>'
-      );
-    }
-  
-    return instructions.join(\`
-    \`);
-  })();"
-
-return run script jxa in "JavaScript"`);
 };
 
 /**

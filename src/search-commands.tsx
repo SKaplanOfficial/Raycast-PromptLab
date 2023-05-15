@@ -39,7 +39,7 @@ export default function SearchCommand(props: { arguments: { commandName: string;
       Promise.resolve(LocalStorage.allItems()).then((commandData) => {
         const commandDataFiltered = Object.values(commandData).filter(
           (cmd, index) =>
-            Object.keys(commandData)[index] != "--defaults-installed" && !Object.keys(cmd)[index].startsWith("id-")
+            !Object.keys(commandData)[index].startsWith("--") && !Object.keys(cmd)[index].startsWith("id-")
         );
         setCommands(commandDataFiltered.map((data) => JSON.parse(data)));
 
@@ -290,7 +290,9 @@ ${command.categories?.sort((a, b) => (a > b ? 1 : -1)).join(", ") || "Other"}
 
                     const items = await LocalStorage.allItems();
                     delete items["--defaults-installed"];
-                    const identifiers = Object.keys(items).filter((key) => key.startsWith("id-"));
+                    const identifiers = Object.keys(items).filter(
+                      (key) => key.startsWith("id-") || key.startsWith("--")
+                    );
                     identifiers.forEach((identifier) => {
                       delete items[identifier];
                     });
