@@ -11,7 +11,13 @@ import fetch from "node-fetch";
  * @param execute Whether to execute the request immediately or wait until this value becomes true.
  * @returns The string output received from the model endpoint.
  */
-export default function useModel(basePrompt: string, prompt: string, input: string, execute: boolean) {
+export default function useModel(
+  basePrompt: string,
+  prompt: string,
+  input: string,
+  temperature: string,
+  execute: boolean
+) {
   const preferences = getPreferenceValues<ExtensionPreferences>();
   const [data, setData] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -20,6 +26,7 @@ export default function useModel(basePrompt: string, prompt: string, input: stri
   // We can be a little forgiving of how users specify Raycast AI
   const validRaycastAIReps = ["raycast ai", "raycastai", "raycast", "raycast-ai"];
 
+  const temp = preferences.includeTemperature ? parseFloat(temperature) || 1.0 : 1.0;
   if (validRaycastAIReps.includes(preferences.modelEndpoint.toLowerCase())) {
     // If the endpoint is Raycast AI, use the AI hook
     if (!environment.canAccess(AI)) {
@@ -30,7 +37,7 @@ export default function useModel(basePrompt: string, prompt: string, input: stri
         error: "Raycast AI is not available — Upgrade to Pro or use a different model endpoint.",
       };
     }
-    return useAI(preferences.promptPrefix + prompt + preferences.promptSuffix, { execute: execute });
+    return useAI(preferences.promptPrefix + prompt + preferences.promptSuffix, { execute: execute, creativity: temp });
   } else if (preferences.modelEndpoint.includes(":")) {
     // If the endpoint is a URL, use the fetch hook
     const headers: { [key: string]: string } = {
@@ -73,6 +80,11 @@ export default function useModel(basePrompt: string, prompt: string, input: stri
       headers["X-API-Key"] = `${preferences.apiKey}`;
     }
 
+    const modelSchema = JSON.parse(preferences.inputSchema);
+    if (preferences.includeTemperature) {
+      modelSchema["temperature"] = temp;
+    }
+
     useEffect(() => {
       if (execute) {
         if (preferences.outputTiming == "sync") {
@@ -80,7 +92,7 @@ export default function useModel(basePrompt: string, prompt: string, input: stri
           fetch(preferences.modelEndpoint, {
             method: "POST",
             headers: headers,
-            body: preferences.inputSchema
+            body: JSON.stringify(modelSchema)
               .replace(
                 "{prompt}",
                 preferences.promptPrefix +
@@ -116,7 +128,7 @@ export default function useModel(basePrompt: string, prompt: string, input: stri
           fetch(preferences.modelEndpoint, {
             method: "POST",
             headers: headers,
-            body: preferences.inputSchema
+            body: JSON.stringify(modelSchema)
               .replace(
                 "{prompt}",
                 preferences.promptPrefix +

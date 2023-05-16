@@ -66,7 +66,17 @@ export default function CommandChatView(props: {
     revalidate: revalidateFiles,
   } = useFileContents(options);
   const replacements = useReplacements(input, selectedFiles);
-  const { data, isLoading: loading, revalidate: reattempt } = useModel(prompt, sentQuery, sentQuery, enableModel);
+  const {
+    data,
+    isLoading: loading,
+    revalidate: reattempt,
+  } = useModel(
+    prompt,
+    sentQuery,
+    sentQuery,
+    options.temperature == undefined ? "1.0" : options.temperature,
+    enableModel
+  );
 
   useEffect(() => {
     if (data.length > 0) {
@@ -119,7 +129,7 @@ export default function CommandChatView(props: {
       });
     }
   }, [input, data]);
-  
+
   useEffect(() => {
     if (!loading && enableModel == true && currentResponse == data) {
       // Disable the model once the response is generated

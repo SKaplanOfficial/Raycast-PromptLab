@@ -128,6 +128,7 @@ ${
       ? command.acceptedFileExtensions
       : "Any"
   } |
+  | Creativity | ${command.temperature == undefined || command.temperature == "" ? "1.0" : command.temperature} |
   | Use File Metadata? | ${command.useMetadata == "TRUE" ? "Yes" : "No"} |
   | Use Sound Classification? | ${command.useSoundClassification == "TRUE" ? "Yes" : "No"} |
   | Use Subject Classification? | ${command.useSubjectClassification == "TRUE" ? "Yes" : "No"} |
@@ -179,6 +180,7 @@ ${
                   requirements: command.requirements,
                   scriptKind: command.scriptKind,
                   categories: command.categories?.split(", ") || ["Other"],
+                  temperature: command.temperature,
                 };
                 LocalStorage.setItem(cmdName, JSON.stringify(commandData)).then(() => {
                   showToast({ title: "Command Installed", message: `${command.name}" has been installed.` });
@@ -217,6 +219,7 @@ ${
                     showResponse: command.showResponse == "TRUE" ? true : false,
                     useSaliencyAnalysis: command.useSaliencyAnalysis == "TRUE" ? true : false,
                     scriptKind: command.scriptKind,
+                    temperature: command.temperature,
                   }}
                 />
               }
@@ -268,6 +271,8 @@ ${
                       requirements: command.requirements,
                       scriptKind: command.scriptKind,
                       categories: command.categories?.split(", ") || ["Other"],
+                      temperature:
+                        command.temperature == undefined || command.temperature == "" ? "1.0" : command.temperature,
                     }}
                     setCommands={setMyCommands}
                     duplicate={true}
@@ -320,6 +325,7 @@ ${
                       requirements: command.requirements,
                       scriptKind: command.scriptKind,
                       categories: command.categories?.split(", ") || ["Other"],
+                      temperature: command.temperature,
                     };
                     await LocalStorage.setItem(cmdName, JSON.stringify(commandData));
                     successes.push(command.name);

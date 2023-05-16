@@ -1,5 +1,11 @@
 # PromptLab DevLog - A More Detailed ChangeLog
 
+## 2023-05-15
+
+- Added extension preference to include temperature/creativity parameter in model schema
+- Added per-command creativity parameter
+- Removed command titles from responses copied via Copy To Clipboard actions
+
 ## 2023-05-14
 
 - Added setting for primary action on command outputs

@@ -115,6 +115,14 @@
       "placeholder": "{ \"prompt\": \"{input}\" }"
     },
     {
+      "name": "includeTemperature",
+      "label": "Include Creativity Parameter",
+      "type": "checkbox",
+      "default": true,
+      "description": "If checked, PromptLab will include a temperature (creativity) parameter in the model input, using the value specified during command creation. You may need to disable this if the model does not support temperature. Disabling this will also disable the 'Creativity' textfield in the command creation view.",
+      "required": false
+    },
+    {
       "name": "outputKeyPath",
       "title": "Output Key Path",
       "type": "textfield",

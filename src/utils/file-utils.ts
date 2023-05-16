@@ -222,7 +222,7 @@ export function useFileContents(options: CommandOptions) {
 const filterContentString = (content: string, cutoff?: number): string => {
   /* Removes unnecessary/invalid characters from file content strings. */
   return content
-    .replaceAll(/[^A-Za-z0-9,.?!\-()[\]{}@: \n]/g, "")
+    .replaceAll(/[^A-Za-z0-9,.?!\-()[\]{}@: \n\r]/g, "")
     .replaceAll('"', "'")
     .replaceAll(/[^\S\r\n]/g, " ")
     .substring(0, cutoff || maxCharacters);
