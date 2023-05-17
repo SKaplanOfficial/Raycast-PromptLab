@@ -1,5 +1,5 @@
 import { getPreferenceValues } from "@raycast/api";
-import CommandChatView from "./components/CommandChatView";
+import CommandChatView from "./components/ChatViews/CommandChatView";
 
 interface CommandPreferences {
   basePrompt: string;

@@ -1,7 +1,13 @@
 # PromptLab DevLog - A More Detailed ChangeLog
 
-### 2023-05-15
+### 2023-05-17
 
+- Add ability to edit chat settings, such as renaming the chat, changing the prompt, and setting the chat as a favorite
+- Added ability to delete chats
+- Added ability to export chats
+- Added ability to add/remove context data to chats
+- Added ability to delete chats individually or in bulk
+- Added chat statistics
 
 # Release v1.0.0
 

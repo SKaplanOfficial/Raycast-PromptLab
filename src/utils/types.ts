@@ -135,6 +135,25 @@ export interface modelOutput {
 }
 
 /**
+ * Statistics about a PromptLab chat.
+ */
+export interface ChatStatistics {
+  totalQueries: string;
+  totalResponses: string;
+  totalPlaceholdersUsedByUser: string;
+  totalCommandsRunByAI: string;
+  mostCommonQueryWords: string[];
+  mostCommonResponseWords: string[];
+  totalLengthOfContextData: string;
+  lengthOfBasePrompt: string;
+  averageQueryLength: string;
+  averageResponseLength: string;
+  mostUsedPlaceholder: string;
+  mostUsedCommand: string;
+  mostUsedEmojis: string[];
+}
+
+/**
  * A PromptLab Chat instance.
  */
 export interface Chat {
@@ -148,4 +167,7 @@ export interface Chat {
     source: string;
     data: string;
   }[];
+  condensingStrategy: string;
+  summaryLength: string;
+  stats?: ChatStatistics;
 }

@@ -6,7 +6,7 @@ import { runActionScript, runReplacements } from "../utils/command-utils";
 import useModel from "../hooks/useModel";
 import { useReplacements } from "../hooks/useReplacements";
 import CommandDetailView from "./CommandDetailView";
-import CommandChatView from "./CommandChatView";
+import CommandChatView from "./ChatViews/CommandChatView";
 import CommandListView from "./CommandListView";
 import CommandGridView from "./CommandGridView";
 import { useCachedState } from "@raycast/utils";

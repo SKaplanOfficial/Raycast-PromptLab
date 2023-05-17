@@ -217,6 +217,74 @@ export function useFileContents(options: CommandOptions) {
   };
 }
 
+export async function getFileContent(filePath: string) {
+  const preferences = getPreferenceValues<ExtensionPreferences>();
+  const maxLength = parseInt(preferences.lengthLimit || "2500");
+
+  const options = {
+    useMetadata: true,
+    useAudioDetails: true,
+    useSoundClassification: true,
+    useSubjectClassification: true,
+    useFaceDetection: true,
+    useBarcodeDetection: true,
+    useRectangleDetection: true,
+    useSaliencyAnalysis: true,
+  };
+
+  let contents = "";
+
+  // Otherwise, get the file's contents (and maybe the metadata)
+  const pathLower = filePath.toLowerCase();
+  if (!pathLower.replaceAll("/", "").endsWith(".app") && fs.lstatSync(filePath).isDirectory()) {
+    // Get size, list of contained files within a directory
+    contents += getDirectoryDetails(filePath);
+  } else if (pathLower.includes(".pdf")) {
+    // Extract text from a PDF
+    contents += `"${filterContentString(await getPDFText(filePath, preferences.pdfOCR, 3))}"`;
+    contents += filterContentString(await getPDFAttributes(filePath));
+    contents += filterContentString(getMetadataDetails(filePath));
+  } else if (imageFileExtensions.includes(pathLower.split(".").at(-1) as string)) {
+    // Extract text, subjects, barcodes, rectangles, and metadata for an image
+    contents += await getImageDetails(filePath, options);
+  } else if (videoFileExtensions.includes(pathLower.split(".").at(-1) as string)) {
+    // Extract image vision details, audio details, and metadata for a video
+    contents += await getVideoDetails(filePath, options);
+  } else if (pathLower.endsWith(".app/")) {
+    // Get plist and metadata for an application
+    contents += getApplicationDetails(filePath, options.useMetadata);
+  } else if (
+    !pathLower.split("/").at(-1)?.includes(".") ||
+    textFileExtensions.includes(pathLower.split(".").at(-1) as string)
+  ) {
+    // Get raw text and metadata of text file
+    contents += `"${filterContentString(fs.readFileSync(filePath).toString() + getMetadataDetails(filePath))}"`;
+  } else if (audioFileExtensions.includes(pathLower.split(".").at(-1) as string)) {
+    if (options.useAudioDetails) {
+      // Extract text and metadata from audio
+      if (options.useMetadata) {
+        contents += getMetadataDetails(filePath);
+      }
+      contents += `<Spoken Content: "${getAudioTranscription(filePath)}"`;
+    } else if (options.useSoundClassification) {
+      // Get sound classifications and metadata of audio
+      contents += getAudioDetails(filePath, options.useMetadata);
+    }
+  } else if (options.useMetadata) {
+    // Get metadata for an unsupported file type
+    try {
+      // Assume file contains readable text
+      contents += `"${filterContentString(fs.readFileSync(filePath).toString(), maxLength / 2)}"`;
+    } catch (error) {
+      // File contains characters that can't be read
+      console.error(error);
+    }
+    contents += getMetadataDetails(filePath);
+  }
+
+  return filterContentString(contents);
+}
+
 /**
  * Removes excess characters from a string.
  *

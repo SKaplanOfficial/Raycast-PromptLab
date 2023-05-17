@@ -16,9 +16,14 @@ export default function useModel(basePrompt: string, prompt: string, input: stri
   const [data, setData] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>();
+  const [dataTag, setDataTag] = useState<string>("");
 
   // We can be a little forgiving of how users specify Raycast AI
   const validRaycastAIReps = ["raycast ai", "raycastai", "raycast", "raycast-ai"];
+
+  if (basePrompt.length == 0 && prompt.length == 0) {
+    return { data: "", isLoading: false, revalidate: () => null, error: "Prompt cannot be empty" };
+  }
 
   if (validRaycastAIReps.includes(preferences.modelEndpoint.toLowerCase())) {
     // If the endpoint is Raycast AI, use the AI hook
@@ -30,7 +35,10 @@ export default function useModel(basePrompt: string, prompt: string, input: stri
         error: "Raycast AI is not available — Upgrade to Pro or use a different model endpoint.",
       };
     }
-    return useAI(preferences.promptPrefix + prompt + preferences.promptSuffix, { execute: execute });
+    return {
+      ...useAI(preferences.promptPrefix + prompt + preferences.promptSuffix, { execute: execute }),
+      dataTag: basePrompt,
+    };
   } else if (preferences.modelEndpoint.includes(":")) {
     // If the endpoint is a URL, use the fetch hook
     const headers: { [key: string]: string } = {
@@ -75,6 +83,7 @@ export default function useModel(basePrompt: string, prompt: string, input: stri
 
     useEffect(() => {
       if (execute) {
+        setIsLoading(true);
         if (preferences.outputTiming == "sync") {
           // Send the request and wait for the complete response
           fetch(preferences.modelEndpoint, {
@@ -113,7 +122,7 @@ export default function useModel(basePrompt: string, prompt: string, input: stri
           });
         } else if (preferences.outputTiming == "async") {
           // Send the request and parse each data chunk as it arrives
-          fetch(preferences.modelEndpoint, {
+          const request = {
             method: "POST",
             headers: headers,
             body: preferences.inputSchema
@@ -131,10 +140,17 @@ export default function useModel(basePrompt: string, prompt: string, input: stri
                 "{input}",
                 input.replaceAll(/[\n\r\s]+/g, " ").replaceAll('"', '\\"') + preferences.promptSuffix
               ),
-          }).then(async (response) => {
+          };
+          fetch(preferences.modelEndpoint, request).then(async (response) => {
             if (response.ok && response.body != null) {
               let text = "";
               response.body.on("data", (chunk: string) => {
+                setDataTag(request.body);
+                if (!execute && text.length > 0) {
+                  response.body?.emit("end");
+                  setIsLoading(false);
+                  return;
+                }
                 const jsonString = chunk.toString();
                 jsonString.split("\n").forEach((line) => {
                   if (line.includes("data:")) {
@@ -148,13 +164,16 @@ export default function useModel(basePrompt: string, prompt: string, input: stri
                       }
                       setData(text);
                     } catch (e) {
-                      console.log("Failed to get JSON from model output");
+                      console.error("Failed to get JSON from model output");
                     }
                   }
                 });
               });
               response.body.on("end", () => {
-                setIsLoading(false);
+                if (execute) {
+                  setIsLoading(false);
+                  setData("");
+                }
               });
             } else {
               setError(response.statusText);
@@ -162,16 +181,17 @@ export default function useModel(basePrompt: string, prompt: string, input: stri
           });
         }
       }
-    }, [execute]);
+    }, [execute, basePrompt, input, prompt]);
 
     return {
       data: data,
       isLoading: isLoading,
       revalidate: () => null,
       error: error,
+      dataTag: dataTag,
     };
   }
 
   // If the endpoint is invalid, return an error
-  return { data: "", isLoading: false, revalidate: () => null, error: "Invalid Endpoint" };
+  return { data: "", isLoading: false, revalidate: () => null, error: "Invalid Endpoint", dataTag: "" };
 }

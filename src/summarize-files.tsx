@@ -1,4 +1,4 @@
-import { Detail, environment, open, popToRoot, showToast, Toast } from "@raycast/api";
+import { Detail, popToRoot, showToast, Toast } from "@raycast/api";
 import { useEffect } from "react";
 import { ERRORTYPE, installDefaults, useFileContents } from "./utils/file-utils";
 import ResponseActions from "./ResponseActions";
@@ -37,13 +37,11 @@ export default function Command() {
       : ""
   } ${
     videoSelected
-      ? "For video, discuss what they are about in friendly paragraphs without listing off specific details. You must summarize any transcribed text in 100 words or fewer."
+      ? "For videos, discuss what they are about in friendly paragraphs without listing off specific details. You must summarize any transcribed text in 100 words or fewer, while limited the entire output to two paragraphs."
       : ""
   } ${
     svgSelected ? "For SVGs, predict what object(s) the overall code will render as." : ""
   } Draw connections between different pieces of information and discuss the significance of any relationships therein. Use the file names as headings. Limit your discussion to one short paragraph. At the end, include a list of relevant links formatted as a markdown list. \nHere are the files:\n###\n`;
-
-  open(environment.supportPath);
 
   const contentPromptString = contentPrompts.join("\n");
   const fullPrompt = basePrompt + contentPromptString;
