@@ -148,7 +148,6 @@ export default function useModel(basePrompt: string, prompt: string, input: stri
                 setDataTag(request.body);
                 if (!execute && text.length > 0) {
                   response.body?.emit("end");
-                  setIsLoading(false);
                   return;
                 }
                 const jsonString = chunk.toString();
@@ -170,9 +169,9 @@ export default function useModel(basePrompt: string, prompt: string, input: stri
                 });
               });
               response.body.on("end", () => {
-                if (execute) {
+                // Verify that the current prompt is still the same as the one that was sent
+                if (request.body.includes(prompt.replaceAll(/[\n\r\s]+/g, " ").replaceAll('"', '\\"')) || request.body.includes(prompt.replaceAll(/[\n\r\s]+/g, " ").replaceAll('"', '\\"'))) {
                   setIsLoading(false);
-                  setData("");
                 }
               });
             } else {

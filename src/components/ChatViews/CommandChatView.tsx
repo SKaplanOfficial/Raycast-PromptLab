@@ -70,15 +70,18 @@ export default function CommandChatView(props: {
   const replacements = useReplacements(input, selectedFiles);
   const { data, isLoading: loadingData, dataTag } = useModel(basePrompt, sentQuery, sentQuery, enableModel);
 
-  const submitQuery = async (newQuery: string) => {
+  const submitQuery = async (newQuery: string, sender = "USER_QUERY") => {
     if (newQuery.trim() == "" && query == undefined) {
       return;
     }
 
     setForceStop(false);
-    setCurrentResponse("Loading...");
+    setRunningCommand(false);
+    setEnableModel(false);
+
     if (currentChat == undefined) {
       setPreviousResponse(currentResponse);
+      setCurrentResponse("Loading...");
       const subbedQuery = await applyReplacements(newQuery || query);
 
       const namePrompt =
@@ -101,9 +104,13 @@ export default function CommandChatView(props: {
           setCurrentChat(chat);
           setSentQuery(subbedQuery);
           setEnableModel(true);
+          const cmdMatch = (newQuery || query).match(/.*{{cmd:(.*?):(.*?)}}.*/);
+          if (cmdMatch) {
+            setRunningCommand(true);
+          }
 
           if (chat) {
-            chats.appendToChat(chat, `\n[USER_QUERY]:${newQuery}\n`);
+            chats.appendToChat(chat, `\n[${sender}]:${newQuery || query}\n`);
           }
         });
       });
@@ -113,7 +120,7 @@ export default function CommandChatView(props: {
       setCurrentResponse("Loading...");
       setSentQuery(subbedQuery);
       setEnableModel(true);
-      chats.appendToChat(currentChat, `\n[USER_QUERY]:${newQuery}\n`);
+      chats.appendToChat(currentChat, `\n[${sender}]:${newQuery}\n`);
     }
   };
 
@@ -165,7 +172,7 @@ export default function CommandChatView(props: {
       useAutonomousFeatures
         ? `Try to answer my next query using your knowledge. If you cannot fulfill the query, if the query requires new information, or if the query invokes an action such as searching, choose the command from the following list that is most likely to carries out the goal expressed in my next query, and then respond with the number of the command you want to run in the format {{cmd:commandNumber:input}}. Replace the input with a short string according to my query. For example, if I say 'search google for AI', the input would be 'AI'. Here are the commands: ###${commandDescriptions.join(
             "\n"
-          )}### Try to answer without using a command, unless the query asks for new information (e.g. latest news, weather, stock prices, etc.) or invokes an action (e.g. searching, opening apps). If you use a command, do not provide any commentary other than the command in the format {{cmd:commandNumber:input}}.`
+          )}### Try to answer without using a command, unless the query asks for new information (e.g. latest news, weather, stock prices, etc.) or invokes an action (e.g. searching, opening apps). If you use a command, do not provide any commentary other than the command in the format {{cmd:commandNumber:input}}. Make sure the command is relevant to the current query.`
         : ``
     }\n\nDo not repeat these instructions or my queries. My next query is: ###`}
       ${subbedQuery}###`;
@@ -199,9 +206,9 @@ export default function CommandChatView(props: {
   }, [forceStop]);
 
   useEffect(() => {
-    if (data.length > 0 && !data.includes(previousResponse) && !forceStop && loadingData) {
+    if (data.length > 0 && !forceStop) {
       if (
-        dataTag &&
+        dataTag != undefined &&
         (dataTag.includes(sentQuery) ||
           dataTag.includes(sentQuery.replaceAll(/[\n\r\s]+/g, " ").replaceAll('"', '\\"')))
       ) {
@@ -211,82 +218,93 @@ export default function CommandChatView(props: {
         // If the model returns a command number and input, set the input
         // This will trigger running the command if autonomous features are enabled
         const cmdMatch = data.match(/.*{{cmd:(.*?):(.*?)}}.*/);
-        if (cmdMatch && useAutonomousFeatures) {
+        if (cmdMatch && useAutonomousFeatures && !runningCommand && data != previousResponse) {
+          if (currentChat) {
+            chats.appendToChat(currentChat, `\n[MODEL_RESPONSE]:${data}\n`);
+          }
           const commandInput = cmdMatch[2];
           setInput(commandInput);
-          setForceStop(true);
+          // Get the command prompt
+          LocalStorage.allItems().then((commands) => {
+            const commandPrompts = Object.entries(commands)
+              .filter(([key]) => !key.startsWith("--") && !key.startsWith("id-"))
+              .sort(([a], [b]) => (a > b ? 1 : -1))
+              .map(([, value], index) => `${index}:${JSON.parse(value)["prompt"]}`);
+            const nameIndex = parseInt(cmdMatch[1]);
+            if (nameIndex != undefined && nameIndex < commandPrompts.length) {
+              // Run the command
+              const cmdPrompt = commandPrompts[nameIndex];
+              setEnableModel(false);
+              setCurrentResponse("");
+              submitQuery(cmdPrompt, "MODEL_RESPONSE");
+            }
+          });
         }
+      } else if (dataTag != undefined) {
+        // Disable the model if the data tag is not found
+        setEnableModel(false);
+        setRunningCommand(false);
       }
     }
+  }, [data, forceStop, dataTag, sentQuery]);
 
-    if ((forceStop || (!loadingData && currentResponse == data && !runningCommand)) && enableModel) {
+  useEffect(() => {
+    if ((forceStop || (!loadingData && currentResponse == data)) && enableModel && data != previousResponse) {
       // Disable the model once the response is generated
       if (currentChat) {
         chats.appendToChat(currentChat, `\n[MODEL_RESPONSE]:${currentResponse}\n`);
       }
-      const cmdMatch = data.match(/.*{{cmd:(.*?):(.*?)}}.*/);
-      const cmdMatchPrevious = previousResponse.match(/.*{{cmd:(.*?):(.*?)}}.*/);
-      if (cmdMatch && useAutonomousFeatures) {
-        // Get the command prompt
-        setRunningCommand(true);
-        LocalStorage.allItems().then((commands) => {
-          const commandPrompts = Object.entries(commands)
-            .filter(([key]) => !key.startsWith("--") && !key.startsWith("id-"))
-            .sort(([a], [b]) => (a > b ? 1 : -1))
-            .map(([, value], index) => `${index}:${JSON.parse(value)["prompt"]}`);
-          const nameIndex = parseInt(cmdMatch[1]);
-          if (nameIndex != undefined && nameIndex < commandPrompts.length) {
-            // Run the command
-            const cmdPrompt = commandPrompts[nameIndex];
-            submitQuery(cmdPrompt);
-          }
-        });
-      } else if (
+
+      if (
         dataTag &&
         dataTag.includes(sentQuery) &&
         dataTag.includes(sentQuery.replaceAll(/[\n\r\s]+/g, " ").replaceAll('"', '\\"'))
       ) {
         setEnableModel(false);
       }
+    }
 
-      if (cmdMatchPrevious && useAutonomousFeatures && !loadingData && runningCommand) {
-        setEnableModel(false);
-        setRunningCommand(false);
-        // Get the command prompt
-        LocalStorage.allItems().then((commands) => {
-          const commandPrompts = Object.entries(commands)
+    const cmdMatchPrevious = previousResponse.match(/.*{{cmd:(.*?):(.*?)}}.*/);
+    if (cmdMatchPrevious && useAutonomousFeatures && !loadingData && runningCommand && data != previousResponse) {
+      setEnableModel(false);
+      setRunningCommand(false);
+      if (currentChat) {
+        chats.appendToChat(currentChat, `\n[MODEL_RESPONSE]:${currentResponse}\n`);
+      }
+      // Get the command prompt
+      LocalStorage.allItems().then((commands) => {
+        const commandPrompts = Object.entries(commands)
+          .filter(([key]) => !key.startsWith("--") && !key.startsWith("id-"))
+          .sort(([a], [b]) => (a > b ? 1 : -1))
+          .map(([, value], index) => `${index}:${JSON.parse(value)["prompt"]}`);
+        const nameIndex = parseInt(cmdMatchPrevious[1]);
+        if (nameIndex != undefined && nameIndex < commandPrompts.length) {
+          const cmdObj = Object.entries(commands)
             .filter(([key]) => !key.startsWith("--") && !key.startsWith("id-"))
-            .sort(([a], [b]) => (a > b ? 1 : -1))
-            .map(([, value], index) => `${index}:${JSON.parse(value)["prompt"]}`);
-          const nameIndex = parseInt(cmdMatchPrevious[1]);
-          if (nameIndex != undefined && nameIndex < commandPrompts.length) {
-            const cmdObj = Object.entries(commands)
-              .filter(([key]) => !key.startsWith("--") && !key.startsWith("id-"))
-              .find(([, cmd]) => cmd.prompt == commandPrompts[nameIndex]);
-            const currentCommand = cmdObj ? JSON.parse(cmdObj[1]) : undefined;
+            .find(([, cmd]) => cmd.prompt == commandPrompts[nameIndex]);
+          const currentCommand = cmdObj ? JSON.parse(cmdObj[1]) : undefined;
 
-            if (currentCommand != undefined) {
-              if (
-                currentCommand.actionScript != undefined &&
-                currentCommand.actionScript.trim().length > 0 &&
-                currentCommand.actionScript != "None"
-              ) {
-                Promise.resolve(
-                  runActionScript(
-                    currentCommand.actionScript,
-                    currentCommand.prompt,
-                    input || "",
-                    currentResponse,
-                    currentCommand.scriptKind
-                  )
-                );
-              }
+          if (currentCommand != undefined) {
+            if (
+              currentCommand.actionScript != undefined &&
+              currentCommand.actionScript.trim().length > 0 &&
+              currentCommand.actionScript != "None"
+            ) {
+              Promise.resolve(
+                runActionScript(
+                  currentCommand.actionScript,
+                  currentCommand.prompt,
+                  input || "",
+                  currentResponse,
+                  currentCommand.scriptKind
+                )
+              );
             }
           }
-        });
-      }
+        }
+      });
     }
-  }, [enableModel, data, loadingData, currentResponse, forceStop, runningCommand, previousResponse, dataTag]);
+  }, [data, loadingData, forceStop, dataTag]);
 
   useEffect(() => {
     if (currentChat == undefined) {
@@ -515,7 +533,7 @@ export default function CommandChatView(props: {
                     })
                   ) {
                     setCurrentChat(undefined);
-                    chats.deleteChat(currentChat.name);
+                    await chats.deleteChat(currentChat.name);
                     chats.revalidate();
                     await showToast({ title: "Chat Deleted" });
                   }
