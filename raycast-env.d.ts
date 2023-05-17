@@ -12,6 +12,8 @@ type ExtensionPreferences = {
   "pdfOCR"?: boolean,
   /** Primary Command Action - The top action of the actions menu in command response views. */
   "primaryAction"?: "copy-response-to-clipboard" | "paste-to-active-app" | "copy-prompt-to-clipboard" | "open-chat" | "regenerate",
+  /** Level of Automatic Input Condensing - The amount of automatic input condensing to apply to the input text. Higher levels will remove more characters and cut out excess verbiage, resulting in far fewer tokens. However, this may result in less accurate results. Adjust this value according to the model's token limit. For Raycast AI, use 'Medium' or 'High'. */
+  "condenseAmount"?: "high" | "medium" | "low" | "none",
   /** Prompt Prefix - Text to prepend at the start of every prompt. This can be used to set context for all commands. */
   "promptPrefix"?: string,
   /** Prompt Suffix - Text to append and the end of every prompt. This can be used to set context for all commands. */

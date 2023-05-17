@@ -52,6 +52,32 @@
       ]
     },
     {
+      "name": "condenseAmount",
+      "title": "Level of Automatic Input Condensing",
+      "type": "dropdown",
+      "default": "high",
+      "description": "The amount of automatic input condensing to apply to the input text. Higher levels will remove more characters and cut out excess verbiage, resulting in far fewer tokens. However, this may result in less accurate results. Adjust this value according to the model's token limit. For Raycast AI, use 'Medium' or 'High'.",
+      "required": false,
+      "data": [
+        {
+          "title": "High",
+          "value": "high"
+        },
+        {
+          "title": "Medium",
+          "value": "medium"
+        },
+        {
+          "title": "Low",
+          "value": "low"
+        },
+        {
+          "title": "None",
+          "value": "none"
+        }
+      ]
+    },
+    {
       "title": "Prompt Prefix",
       "name": "promptPrefix",
       "type": "textfield",

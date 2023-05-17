@@ -1,5 +1,10 @@
 # PromptLab DevLog - A More Detailed ChangeLog
 
+## 2023-05-17
+
+- Fixed bug where Quicklinks would fail if your command contained "&"
+- Adjusted how symbols are condensed in prompt input (now better preserves new lines)
+
 ## 2023-05-15
 
 - Added extension preference to include temperature/creativity parameter in model schema

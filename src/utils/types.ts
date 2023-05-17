@@ -14,6 +14,7 @@ export interface ExtensionPreferences {
   promptPrefix: string;
   promptSuffix: string;
   includeTemperature: boolean;
+  condenseAmount: string;
 }
 
 /**
