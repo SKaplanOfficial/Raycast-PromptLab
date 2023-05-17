@@ -91,3 +91,65 @@ export const addFileToSelection = async (filePath: string) => {
         select theSelection
     end tell`);
 };
+
+/**
+ * Searches for nearby locations matching the provided query.
+ * @param query The query to search for.
+ * @returns A promise that resolves to a new-line-separated list of addresses.
+ */
+export const searchNearbyLocations = async (query: string) => {
+  return runAppleScript(`set jxa to "(() => {
+        ObjC.import('MapKit');
+      
+        const searchRequest = $.MKLocalSearchRequest.alloc.init;
+        searchRequest.naturalLanguageQuery = '${query}';
+      
+        const search = $.MKLocalSearch.alloc.initWithRequest(searchRequest);
+        let addresses = [];
+        search.startWithCompletionHandler((response, error) => {
+          if (error.localizedDescription) {
+            console.log(error.localizedDescription.js);
+          } else {
+            const numItems = response.mapItems.count > 10 ? 10 : response.mapItems.count;
+            for (let i = 0; i < numItems; i++) {
+              const item = response.mapItems.objectAtIndex(i);
+              const placemark = item.placemark;
+              addresses.push(\`\${item.name.js}, \${placemark.subThoroughfare.js} \${placemark.thoroughfare.js}, \${placemark.locality.js}, \${placemark.administrativeArea.js}\`);
+            }
+          }
+        });
+      
+        const startDate = $.NSDate.date;
+        while (startDate.timeIntervalSinceNow > -2) {
+          runLoop = $.NSRunLoop.currentRunLoop;
+          today = $.NSDate.dateWithTimeIntervalSinceNow(0.1);
+          runLoop.runUntilDate(today);
+        }
+
+        return addresses.join(\`
+        \`);
+      })();"
+      
+      return run script jxa in "JavaScript"`);
+};
+
+/**
+ * Gets the names of all currently running non-background applications.
+ * @returns A promise that resolves to a comma-separated list of application names.
+ */
+export const getRunningApplications = async (): Promise<string> => {
+  return runAppleScript(`tell application "System Events"
+            return displayed name of every application process whose background only is false
+        end tell`);
+};
+
+/**
+ * Gets the name of the system's language.
+ * @returns A promise that resolves to the name of the system language as a string.
+ */
+export const getSystemLanguage = async (): Promise<string> => {
+  return runAppleScript(`use framework "Foundation"
+        set locale to current application's NSLocale's autoupdatingCurrentLocale()
+        set langCode to locale's languageCode()
+        return locale's localizedStringForLanguageCode:langCode`);
+};

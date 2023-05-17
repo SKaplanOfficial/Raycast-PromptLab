@@ -10,6 +10,8 @@
 - Added ability to add/remove context data to chats
 - Added ability to delete chats individually or in bulk
 - Added chat statistics
+- Added {{nearbyLocations:searchTerm}} placeholder
+    - Returns a list of nearby location addresses matching the search term
 
 #### v1.0.0
 
@@ -40,11 +42,8 @@
 - Fixed bug where commands whose acceptedFileExtensions fields were empty would yield an error
 - Fixed bug where the `{input}` placeholder in model schemas was not provided when in a chat view
 
-### 2023-05-12
+## 2023-05-12
 
-- Added {{youtube:URL}} and {{youtube:searchTerm}} placeholders
-    - Both placeholders will return the transcript of the first matching video result
-    - Transcript text is limited to the configured prompt length limit
 - Added setting to group commands by category
 - Added setting for prompt length limit
 - Added setting for export location to use when exporting all commands
