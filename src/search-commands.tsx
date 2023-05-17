@@ -75,6 +75,7 @@ export default function SearchCommand(props: { arguments: { commandName: string;
           actionScript: command.actionScript,
           showResponse: command.showResponse,
           useSaliencyAnalysis: command.useSaliencyAnalysis,
+          temperature: command.temperature,
         }}
       />
     );
@@ -157,6 +158,7 @@ ${command.categories?.sort((a, b) => (a > b ? 1 : -1)).join(", ") || "Other"}
                   ? command.acceptedFileExtensions
                   : "Any"
               } |
+| Creativity | ${command.temperature == undefined || command.temperature == "" ? "1.0" : command.temperature} |
 | Use File Metadata? | ${command.useMetadata ? "Yes" : "No"} |
 | Use Sound Classification? | ${command.useSoundClassification ? "Yes" : "No"} |
 | Use Subject Classification? | ${command.useSubjectClassification ? "Yes" : "No"} |
@@ -193,6 +195,7 @@ ${command.categories?.sort((a, b) => (a > b ? 1 : -1)).join(", ") || "Other"}
                       showResponse: command.showResponse,
                       useSaliencyAnalysis: command.useSaliencyAnalysis,
                       scriptKind: command.scriptKind,
+                      temperature: command.temperature,
                     }}
                   />
                 }
@@ -255,6 +258,8 @@ ${command.categories?.sort((a, b) => (a > b ? 1 : -1)).join(", ") || "Other"}
                           requirements: command.requirements || "None",
                           scriptKind: command.scriptKind || "applescript",
                           categories: command.categories?.join(", ") || "Other",
+                          temperature:
+                            command.temperature == undefined || command.temperature == "" ? "1.0" : command.temperature,
                         },
                       }),
                     }).then((res) => {
@@ -325,7 +330,7 @@ ${command.categories?.sort((a, b) => (a > b ? 1 : -1)).join(", ") || "Other"}
               <ActionPanel.Section title="Command Controls">
                 <Action.CreateQuicklink
                   quicklink={{
-                    link: `${QUICKLINK_URL_BASE}${encodeURI(command.name)}%22${
+                    link: `${QUICKLINK_URL_BASE}${encodeURIComponent(command.name)}%22${
                       command.prompt?.includes("{{input}}") ? "%2C%22queryInput%22%3A%22{Input}%22" : ""
                     }%7D`,
                     name: command.name,
@@ -360,6 +365,8 @@ ${command.categories?.sort((a, b) => (a > b ? 1 : -1)).join(", ") || "Other"}
                         requirements: command.requirements,
                         scriptKind: command.scriptKind,
                         categories: command.categories || [],
+                        temperature:
+                          command.temperature == undefined || command.temperature == "" ? "1.0" : command.temperature,
                       }}
                       setCommands={setCommands}
                     />
@@ -396,6 +403,8 @@ ${command.categories?.sort((a, b) => (a > b ? 1 : -1)).join(", ") || "Other"}
                         requirements: command.requirements,
                         scriptKind: command.scriptKind,
                         categories: command.categories || [],
+                        temperature:
+                          command.temperature == undefined || command.temperature == "" ? "1.0" : command.temperature,
                       }}
                       setCommands={setCommands}
                       duplicate={true}

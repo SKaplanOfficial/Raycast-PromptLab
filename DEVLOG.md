@@ -2,6 +2,8 @@
 
 ### 2023-05-17
 
+#### v1.1.0
+
 - Add ability to edit chat settings, such as renaming the chat, changing the prompt, and setting the chat as a favorite
 - Added ability to delete chats
 - Added ability to export chats
@@ -9,9 +11,18 @@
 - Added ability to delete chats individually or in bulk
 - Added chat statistics
 
-# Release v1.0.0
+#### v1.0.0
 
-## 2023-05-14
+- Fixed bug where Quicklinks would fail if your command contained "&"
+- Adjusted how symbols are condensed in prompt input (now better preserves new lines)
+
+### 2023-05-15
+
+- Added extension preference to include temperature/creativity parameter in model schema
+- Added per-command creativity parameter
+- Removed command titles from responses copied via Copy To Clipboard actions
+
+### 2023-05-14
 
 - Added chat history and selection to chat views
 - Added export chat action

@@ -11,7 +11,13 @@ import fetch from "node-fetch";
  * @param execute Whether to execute the request immediately or wait until this value becomes true.
  * @returns The string output received from the model endpoint.
  */
-export default function useModel(basePrompt: string, prompt: string, input: string, execute: boolean) {
+export default function useModel(
+  basePrompt: string,
+  prompt: string,
+  input: string,
+  temperature: string,
+  execute: boolean
+) {
   const preferences = getPreferenceValues<ExtensionPreferences>();
   const [data, setData] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -25,6 +31,7 @@ export default function useModel(basePrompt: string, prompt: string, input: stri
     return { data: "", isLoading: false, revalidate: () => null, error: "Prompt cannot be empty" };
   }
 
+  const temp = preferences.includeTemperature ? parseFloat(temperature) || 1.0 : 1.0;
   if (validRaycastAIReps.includes(preferences.modelEndpoint.toLowerCase())) {
     // If the endpoint is Raycast AI, use the AI hook
     if (!environment.canAccess(AI)) {
@@ -36,7 +43,7 @@ export default function useModel(basePrompt: string, prompt: string, input: stri
       };
     }
     return {
-      ...useAI(preferences.promptPrefix + prompt + preferences.promptSuffix, { execute: execute }),
+      ...useAI(preferences.promptPrefix + prompt + preferences.promptSuffix, { execute: execute, creativity: temp }),
       dataTag: basePrompt,
     };
   } else if (preferences.modelEndpoint.includes(":")) {
@@ -81,6 +88,11 @@ export default function useModel(basePrompt: string, prompt: string, input: stri
       headers["X-API-Key"] = `${preferences.apiKey}`;
     }
 
+    const modelSchema = JSON.parse(preferences.inputSchema);
+    if (preferences.includeTemperature) {
+      modelSchema["temperature"] = temp;
+    }
+
     useEffect(() => {
       if (execute) {
         setIsLoading(true);
@@ -89,7 +101,7 @@ export default function useModel(basePrompt: string, prompt: string, input: stri
           fetch(preferences.modelEndpoint, {
             method: "POST",
             headers: headers,
-            body: preferences.inputSchema
+            body: JSON.stringify(modelSchema)
               .replace(
                 "{prompt}",
                 preferences.promptPrefix +
@@ -125,7 +137,7 @@ export default function useModel(basePrompt: string, prompt: string, input: stri
           const request = {
             method: "POST",
             headers: headers,
-            body: preferences.inputSchema
+            body: JSON.stringify(modelSchema)
               .replace(
                 "{prompt}",
                 preferences.promptPrefix +
@@ -170,7 +182,10 @@ export default function useModel(basePrompt: string, prompt: string, input: stri
               });
               response.body.on("end", () => {
                 // Verify that the current prompt is still the same as the one that was sent
-                if (request.body.includes(prompt.replaceAll(/[\n\r\s]+/g, " ").replaceAll('"', '\\"')) || request.body.includes(prompt.replaceAll(/[\n\r\s]+/g, " ").replaceAll('"', '\\"'))) {
+                if (
+                  request.body.includes(prompt.replaceAll(/[\n\r\s]+/g, " ").replaceAll('"', '\\"')) ||
+                  request.body.includes(prompt.replaceAll(/[\n\r\s]+/g, " ").replaceAll('"', '\\"'))
+                ) {
                   setIsLoading(false);
                 }
               });

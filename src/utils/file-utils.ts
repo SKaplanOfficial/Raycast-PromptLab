@@ -294,11 +294,32 @@ export async function getFileContent(filePath: string) {
  */
 const filterContentString = (content: string, cutoff?: number): string => {
   /* Removes unnecessary/invalid characters from file content strings. */
-  return content
-    .replaceAll(/[^A-Za-z0-9,.?!\-()[\]{}@: \n]/g, "")
-    .replaceAll('"', "'")
-    .replaceAll(/[^\S\r\n]/g, " ")
-    .substring(0, cutoff || maxCharacters);
+  const preferences = getPreferenceValues<ExtensionPreferences>();
+  console.log(preferences.condenseAmount);
+  if (preferences.condenseAmount == "high") {
+    // Remove some useful characters for the sake of brevity
+    return content
+      .replaceAll(/[^A-Za-z0-9,.?!\-()[\]{}@: \n\r]/g, "")
+      .replaceAll('"', "'")
+      .replaceAll(/[^\S\r\n]+/g, " ")
+      .substring(0, cutoff || maxCharacters);
+  } else if (preferences.condenseAmount == "medium") {
+    // Remove uncommon characters
+    return content
+      .replaceAll(/[^A-Za-z0-9,.?!\-()[\]{}@: \n\r*+&|]/g, "")
+      .replaceAll('"', "'")
+      .replaceAll(/[^\S\r\n]+/g, " ")
+      .substring(0, cutoff || maxCharacters);
+  } else if (preferences.condenseAmount == "low") {
+    // Remove all characters except for letters, numbers, and punctuation
+    return content
+      .replaceAll(/[^A-Za-z0-9,.?!\-()[\]{}@: \n\r\t*+&%^|$~_]/g, "")
+      .replaceAll('"', "'")
+      .substring(0, cutoff || maxCharacters);
+  } else {
+    // Just remove quotes and cut off at the limit
+    return content.replaceAll('"', "'").substring(0, cutoff || maxCharacters);
+  }
 };
 
 /**
@@ -357,6 +378,9 @@ const getImageVisionDetails = (filePath: string, options: CommandOptions): strin
   set confidenceThreshold to 0.7
   
   set imagePath to "${filePath}"
+  set promptText to ""
+
+  try
   set theImage to current application's NSImage's alloc()'s initWithContentsOfFile:imagePath
   
   set requestHandler to current application's VNImageRequestHandler's alloc()'s initWithData:(theImage's TIFFRepresentation()) options:(current application's NSDictionary's alloc()'s init())
@@ -472,7 +496,6 @@ const getImageVisionDetails = (filePath: string, options: CommandOptions): strin
       : ``
   }
   
-  set promptText to ""
   if theText is not "" then
     set promptText to "<Transcribed text of the image: \\"" & theText & "\\".>"
   end if
@@ -529,6 +552,7 @@ const getImageVisionDetails = (filePath: string, options: CommandOptions): strin
   end if`
       : ``
   }
+  end try
 
   return promptText`);
 };

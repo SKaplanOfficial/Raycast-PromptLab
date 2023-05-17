@@ -54,7 +54,7 @@ export default function ResponseActions(props: {
           <Action.CopyToClipboard
             key="copy-response-to-clipboard"
             title={`Copy ${commandSummary} To Clipboard`}
-            content={responseText}
+            content={responseText.trim()}
             shortcut={{ modifiers: ["cmd", "shift"], key: "c" }}
           />
         );
@@ -65,7 +65,7 @@ export default function ResponseActions(props: {
           <Action.CopyToClipboard
             key="copy-prompt-to-clipboard"
             title={`Copy Prompt To Clipboard`}
-            content={promptText}
+            content={promptText.trim()}
             shortcut={{ modifiers: ["cmd", "shift"], key: "p" }}
           />
         );
