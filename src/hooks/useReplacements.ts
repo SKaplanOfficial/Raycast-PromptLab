@@ -150,9 +150,9 @@ export const useReplacements = (
       return previousResponse;
     },
     "{{runningApplications}}": async () => {
-      return filterString(await getRunningApplications())
+      return filterString(await getRunningApplications());
     },
-    "{{systemLanguage}}" : async () => {
+    "{{systemLanguage}}": async () => {
       return await getSystemLanguage();
     },
 

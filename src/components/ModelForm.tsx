@@ -1,4 +1,6 @@
 import {
+  Action,
+  ActionPanel,
   Color,
   Form,
   Icon,
@@ -38,10 +40,10 @@ export default function ModelForm(props: { models: ModelManager; currentModel?: 
   const [uuid, setUUID] = useState<string>("");
 
   useEffect(() => {
-    const id = randomUUID()
+    const id = randomUUID();
     setUUID(id);
     if (currentModel && !currentModel.id) {
-        Promise.resolve(models.updateModel(currentModel, { ...currentModel, id: id })).then(() => models.revalidate())
+      Promise.resolve(models.updateModel(currentModel, { ...currentModel, id: id })).then(() => models.revalidate());
     }
   }, []);
 
@@ -51,7 +53,7 @@ export default function ModelForm(props: { models: ModelManager; currentModel?: 
     async onSubmit(values) {
       await LocalStorage.setItem(`--model-${values.name}`, JSON.stringify(values));
       if (currentModel && currentModel.name != values.name) {
-        await LocalStorage.removeItem(currentModel.name);
+        await LocalStorage.removeItem(`--model-${currentModel.name}`);
       }
 
       models.revalidate();
@@ -71,7 +73,13 @@ export default function ModelForm(props: { models: ModelManager; currentModel?: 
   });
 
   return (
-    <Form>
+    <Form
+      actions={
+        <ActionPanel>
+          <Action.SubmitForm title="Save" onSubmit={handleSubmit} />
+        </ActionPanel>
+      }
+    >
       <Form.TextField title="Model Name" {...itemProps.name} info="A recognizable name for the model." />
 
       <Form.Dropdown title="Icon" {...itemProps.icon}>

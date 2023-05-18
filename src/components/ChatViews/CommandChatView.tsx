@@ -22,6 +22,7 @@ import { useChats } from "../../hooks/useChats";
 import runModel from "../../utils/runModel";
 import path from "path";
 import * as fs from "fs";
+import { useModels } from "../../hooks/useModels";
 
 interface CommandPreferences {
   useSelectedFiles: boolean;
@@ -60,6 +61,7 @@ export default function CommandChatView(props: {
   );
   const [useAutonomousFeatures, setUseAutonomousFeatures] = useState<boolean>(preferences.autonomousFeatures || false);
   const [basePrompt, setBasePrompt] = useState<string>(preferences.basePrompt || prompt);
+  const models = useModels();
   const chats = useChats();
   const {
     selectedFiles,
@@ -68,7 +70,12 @@ export default function CommandChatView(props: {
     revalidate: revalidateFiles,
   } = useFileContents(options);
   const replacements = useReplacements(input, selectedFiles);
-  const { data, isLoading: loadingData, dataTag } = useModel(basePrompt, sentQuery, sentQuery, "1.0", enableModel);
+  const targetModel = options.model ? models.models.find((model) => model.id == options.model) : undefined;
+  const {
+    data,
+    isLoading: loadingData,
+    dataTag,
+  } = useModel(basePrompt, sentQuery, sentQuery, "1.0", enableModel, targetModel);
 
   const submitQuery = async (newQuery: string, sender = "USER_QUERY") => {
     if (newQuery.trim() == "" && query == undefined) {
@@ -87,7 +94,7 @@ export default function CommandChatView(props: {
       const namePrompt =
         "Come up with a title, in Title Case, for a conversation started with the following query. The title must summarize the intent of the query. The title must be three words or shorter. Output only the title without commentary or labels. For example, if the query is 'What are galaxies?', the title you output might be 'Question About Galaxies'. Here is the query: ";
       const nameComponent =
-        (await runModel(namePrompt, namePrompt + (newQuery || query), newQuery || query)) ||
+        (await runModel(namePrompt, namePrompt + `'''${newQuery || query}'''`, newQuery || query)) ||
         query.trim().split(" ").splice(0, 2).join(" ");
       const dateComponent = new Date().toLocaleDateString("en-US", {
         year: "numeric",

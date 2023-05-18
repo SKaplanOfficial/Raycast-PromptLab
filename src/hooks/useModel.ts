@@ -42,8 +42,13 @@ export default function useModel(
     lengthLimit: preferences.lengthLimit,
   };
 
-  const temp = modelOverride ? parseFloat(modelOverride.temperature) : preferences.includeTemperature ? parseFloat(temperature) || 1.0 : 1.0;
+  const temp = modelOverride
+    ? parseFloat(modelOverride.temperature)
+    : preferences.includeTemperature
+    ? parseFloat(temperature) || 1.0
+    : 1.0;
 
+  console.log(targetModel);
 
   if (validRaycastAIReps.includes(targetModel.endpoint.toLowerCase())) {
     // If the endpoint is Raycast AI, use the AI hook
@@ -56,8 +61,12 @@ export default function useModel(
       };
     }
     return {
-      ...useAI(preferences.promptPrefix + prompt + preferences.promptSuffix, { execute: execute, creativity: temp, model: targetModel.endpoint == "Raycast AI 3.5" ? "gpt-3.5-turbo" : "text-davinci-003" }),
-      dataTag: basePrompt,
+      ...useAI(preferences.promptPrefix + prompt + preferences.promptSuffix, {
+        execute: execute,
+        creativity: temp,
+        model: targetModel.endpoint == "Raycast AI 3.5" ? "gpt-3.5-turbo" : "text-davinci-003",
+      }),
+      dataTag: basePrompt + prompt + input,
     };
   } else if (targetModel.endpoint.includes(":")) {
     // If the endpoint is a URL, use the fetch hook

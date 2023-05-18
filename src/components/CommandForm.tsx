@@ -278,14 +278,16 @@ export default function CommandForm(props: {
         />
       ) : null}
 
-        <Form.Dropdown
-          title="Model"
-          info="The model to use for this command."
-          defaultValue={models.models.find((model) => model.isDefault)?.id || ""}
-          {...itemProps.model}
-        >
-          {models.models.map((model) => <Form.Dropdown.Item title={model.name} value={model.id} />) }
-        </Form.Dropdown>
+      <Form.Dropdown
+        title="Model"
+        info="The model to use for this command."
+        defaultValue={models.models.find((model) => model.isDefault)?.id || ""}
+        {...itemProps.model}
+      >
+        {models.models.map((model) => (
+          <Form.Dropdown.Item title={model.name} value={model.id} />
+        ))}
+      </Form.Dropdown>
 
       <Form.Checkbox
         title="Included Information"

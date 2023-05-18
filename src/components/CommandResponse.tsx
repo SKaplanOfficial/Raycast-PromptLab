@@ -10,6 +10,7 @@ import CommandChatView from "./ChatViews/CommandChatView";
 import CommandListView from "./CommandListView";
 import CommandGridView from "./CommandGridView";
 import { useCachedState } from "@raycast/utils";
+import { useModels } from "../hooks/useModels";
 
 export default function CommandResponse(props: {
   commandName: string;
@@ -26,6 +27,8 @@ export default function CommandResponse(props: {
   const [, setPreviousPrompt] = useCachedState<string>("promptlab-previous-prompt", "");
 
   const { pop } = useNavigation();
+
+  const models = useModels();
 
   const { selectedFiles, contentPrompts, loading, errorType } =
     options.minNumFiles != undefined && options.minNumFiles > 0
@@ -70,7 +73,8 @@ export default function CommandResponse(props: {
     input || contentPromptString,
     options.temperature == undefined ? "1.0" : options.temperature,
     !loadingData &&
-      ((options.minNumFiles != undefined && options.minNumFiles == 0) || (contentPrompts.length > 0 && !shouldCancel))
+      ((options.minNumFiles != undefined && options.minNumFiles == 0) || (contentPrompts.length > 0 && !shouldCancel)),
+    models.models.find((model) => model.id == options.model)
   );
 
   useEffect(() => {

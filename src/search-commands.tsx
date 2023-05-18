@@ -76,7 +76,7 @@ export default function SearchCommand(props: { arguments: { commandName: string;
           showResponse: command.showResponse,
           useSaliencyAnalysis: command.useSaliencyAnalysis,
           temperature: command.temperature,
-          model: command.model
+          model: command.model,
         }}
       />
     );
@@ -203,7 +203,7 @@ ${command.categories?.sort((a, b) => (a > b ? 1 : -1)).join(", ") || "Other"}
                       useSaliencyAnalysis: command.useSaliencyAnalysis,
                       scriptKind: command.scriptKind,
                       temperature: command.temperature,
-                      model: command.model
+                      model: command.model,
                     }}
                   />
                 }
@@ -352,7 +352,10 @@ ${command.categories?.sort((a, b) => (a > b ? 1 : -1)).join(", ") || "Other"}
                     });
                     setCommands([...commandDataFiltered.map((data) => JSON.parse(data)), newCmdData]);
                     await LocalStorage.setItem(command.name, JSON.stringify(newCmdData));
-                    await showToast({ title: command.favorited ? `Removed From Favorites` : `Added To Favorites`, style: Toast.Style.Success });
+                    await showToast({
+                      title: command.favorited ? `Removed From Favorites` : `Added To Favorites`,
+                      style: Toast.Style.Success,
+                    });
                   }}
                 />
                 <Action.CreateQuicklink

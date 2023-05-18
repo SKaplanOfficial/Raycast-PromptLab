@@ -212,7 +212,7 @@ export const replaceLocationsSearchPlaceholders = async (prompt: string): Promis
     subbedPrompt = subbedPrompt.replaceAll(m, filterString(nearbyLocations));
   }
   return subbedPrompt;
-}
+};
 
 /**
  * Gets the importable JSON string representation of a command.
