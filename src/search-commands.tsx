@@ -76,6 +76,7 @@ export default function SearchCommand(props: { arguments: { commandName: string;
           showResponse: command.showResponse,
           useSaliencyAnalysis: command.useSaliencyAnalysis,
           temperature: command.temperature,
+          model: command.model
         }}
       />
     );
@@ -93,6 +94,12 @@ export default function SearchCommand(props: { arguments: { commandName: string;
             tintColor: command.iconColor == undefined ? Color.PrimaryText : command.iconColor,
           }}
           key={command.name}
+          accessories={[
+            {
+              icon: command.favorited ? { source: Icon.StarCircle, tintColor: Color.Yellow } : undefined,
+              tooltip: command.favorited ? "Favorited" : undefined,
+            },
+          ]}
           detail={
             <List.Item.Detail
               markdown={`# ${command.name}
@@ -196,6 +203,7 @@ ${command.categories?.sort((a, b) => (a > b ? 1 : -1)).join(", ") || "Other"}
                       useSaliencyAnalysis: command.useSaliencyAnalysis,
                       scriptKind: command.scriptKind,
                       temperature: command.temperature,
+                      model: command.model
                     }}
                   />
                 }
@@ -328,6 +336,25 @@ ${command.categories?.sort((a, b) => (a > b ? 1 : -1)).join(", ") || "Other"}
               </ActionPanel.Section>
 
               <ActionPanel.Section title="Command Controls">
+                <Action
+                  title={command.favorited ? `Remove From Favorites` : `Add To Favorites`}
+                  icon={Icon.Star}
+                  shortcut={{ modifiers: ["cmd", "shift"], key: "f" }}
+                  onAction={async () => {
+                    const newCmdData = { ...command, favorited: command.favorited == true ? false : true };
+                    const commandData = await LocalStorage.allItems();
+                    const commandDataFiltered = Object.values(commandData).filter((cmd, index) => {
+                      return (
+                        !Object.keys(commandData)[index].startsWith("--") &&
+                        !Object.keys(commandData)[index].startsWith("id-") &&
+                        JSON.parse(cmd).name != command.name
+                      );
+                    });
+                    setCommands([...commandDataFiltered.map((data) => JSON.parse(data)), newCmdData]);
+                    await LocalStorage.setItem(command.name, JSON.stringify(newCmdData));
+                    await showToast({ title: command.favorited ? `Removed From Favorites` : `Added To Favorites`, style: Toast.Style.Success });
+                  }}
+                />
                 <Action.CreateQuicklink
                   quicklink={{
                     link: `${QUICKLINK_URL_BASE}${encodeURIComponent(command.name)}%22${
@@ -367,6 +394,8 @@ ${command.categories?.sort((a, b) => (a > b ? 1 : -1)).join(", ") || "Other"}
                         categories: command.categories || [],
                         temperature:
                           command.temperature == undefined || command.temperature == "" ? "1.0" : command.temperature,
+                        favorited: command.favorited ? command.favorited : false,
+                        model: command.model,
                       }}
                       setCommands={setCommands}
                     />
@@ -405,6 +434,8 @@ ${command.categories?.sort((a, b) => (a > b ? 1 : -1)).join(", ") || "Other"}
                         categories: command.categories || [],
                         temperature:
                           command.temperature == undefined || command.temperature == "" ? "1.0" : command.temperature,
+                        favorited: false,
+                        model: command.model,
                       }}
                       setCommands={setCommands}
                       duplicate={true}
@@ -484,6 +515,9 @@ ${command.categories?.sort((a, b) => (a > b ? 1 : -1)).join(", ") || "Other"}
   const shownCommands =
     commands?.filter((command) => command.categories?.includes(targetCategory) || targetCategory == "All") || [];
 
+  const favorites = shownCommands.filter((command) => command.favorited);
+  const otherCommands = shownCommands.filter((command) => !command.favorited);
+
   return (
     <List
       isLoading={!commands}
@@ -499,7 +533,16 @@ ${command.categories?.sort((a, b) => (a > b ? 1 : -1)).join(", ") || "Other"}
       searchBarAccessory={<CategoryDropdown onSelection={setTargetCategory} />}
     >
       <List.EmptyView title="No Custom Commands" />
-      {listItems}
+      {favorites.length ? (
+        <List.Section title="Favorites">
+          {listItems.filter((item) => favorites.map((command) => command.name).includes(item.props.title))}
+        </List.Section>
+      ) : null}
+      {otherCommands.length ? (
+        <List.Section title={favorites.length ? `Other Commands` : `All Commands`}>
+          {listItems.filter((item) => otherCommands.map((command) => command.name).includes(item.props.title))}
+        </List.Section>
+      ) : null}
     </List>
   );
 }

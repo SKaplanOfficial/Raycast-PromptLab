@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Chat, ChatStatistics, ExtensionPreferences } from "../utils/types";
 import * as fs from "fs";
 import { Color, Icon, LocalStorage, environment, getPreferenceValues } from "@raycast/api";
+import { installDefaults } from "../utils/file-utils";
 
 export function useChats() {
   const [chats, setChats] = useState<Chat[]>([]);
@@ -30,7 +31,9 @@ export function useChats() {
   };
 
   useEffect(() => {
-    Promise.resolve(loadChats());
+    Promise.resolve(installDefaults()).then(() => {
+      Promise.resolve(loadChats());
+    });
   }, []);
 
   const revalidate = async () => {

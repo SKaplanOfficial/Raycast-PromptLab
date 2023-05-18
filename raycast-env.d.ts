@@ -26,7 +26,7 @@ type ExtensionPreferences = {
   "authType"?: "apiKey" | "bearerToken" | "x-api-key",
   /** API Key - The API key for the model source. This is only used if the model source is set to something other than Raycast AI. */
   "apiKey"?: string,
-  /** Input Schema - The JSON schema of the endpoint used to generate PromptLab command output. This is only used if the model source is set to something other than Raycast AI. Use {input} to represent PromptLab's input to the command. */
+  /** Input Schema - The JSON schema of the endpoint used to generate PromptLab command output. This is only used if the model source is set to something other than Raycast AI. Use {prompt} to represent PromptLab's entire input to the model. */
   "inputSchema"?: string,
   /**  - If checked, PromptLab will include a temperature (creativity) parameter in the model input, using the value specified during command creation. You may need to disable this if the model does not support temperature. Disabling this will also disable the 'Creativity' textfield in the command creation view. */
   "includeTemperature"?: boolean,
@@ -66,6 +66,8 @@ declare namespace Preferences {
   export type ImportCommands = ExtensionPreferences & {}
   /** Preferences accessible in the `discover-commands` command */
   export type DiscoverCommands = ExtensionPreferences & {}
+  /** Preferences accessible in the `manage-models` command */
+  export type ManageModels = ExtensionPreferences & {}
 }
 
 declare namespace Arguments {
@@ -87,4 +89,6 @@ declare namespace Arguments {
   export type ImportCommands = {}
   /** Arguments passed to the `discover-commands` command */
   export type DiscoverCommands = {}
+  /** Arguments passed to the `manage-models` command */
+  export type ManageModels = {}
 }

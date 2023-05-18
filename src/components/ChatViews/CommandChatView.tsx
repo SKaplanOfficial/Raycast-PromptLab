@@ -68,7 +68,7 @@ export default function CommandChatView(props: {
     revalidate: revalidateFiles,
   } = useFileContents(options);
   const replacements = useReplacements(input, selectedFiles);
-  const { data, isLoading: loadingData, dataTag } = useModel(basePrompt, sentQuery, sentQuery, enableModel);
+  const { data, isLoading: loadingData, dataTag } = useModel(basePrompt, sentQuery, sentQuery, "1.0", enableModel);
 
   const submitQuery = async (newQuery: string, sender = "USER_QUERY") => {
     if (newQuery.trim() == "" && query == undefined) {

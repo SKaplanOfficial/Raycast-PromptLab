@@ -180,6 +180,7 @@ ${
                   scriptKind: command.scriptKind,
                   categories: command.categories?.split(", ") || ["Other"],
                   temperature: command.temperature,
+                  favorited: false,
                 };
                 LocalStorage.setItem(cmdName, JSON.stringify(commandData)).then(() => {
                   showToast({ title: "Command Installed", message: `${command.name}" has been installed.` });
@@ -271,6 +272,7 @@ ${
                       categories: command.categories?.split(", ") || ["Other"],
                       temperature:
                         command.temperature == undefined || command.temperature == "" ? "1.0" : command.temperature,
+                      favorited: false,
                     }}
                     setCommands={setMyCommands}
                     duplicate={true}
@@ -324,6 +326,7 @@ ${
                       scriptKind: command.scriptKind,
                       categories: command.categories?.split(", ") || ["Other"],
                       temperature: command.temperature,
+                      favorited: false,
                     };
                     await LocalStorage.setItem(cmdName, JSON.stringify(commandData));
                     successes.push(command.name);

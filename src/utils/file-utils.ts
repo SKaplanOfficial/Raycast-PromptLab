@@ -4,10 +4,12 @@ import exifr from "exifr";
 import { runAppleScript, runAppleScriptSync } from "run-applescript";
 import { audioFileExtensions, imageFileExtensions, textFileExtensions, videoFileExtensions } from "./file-extensions";
 import { useEffect, useState } from "react";
-import { defaultCommands } from "../default-commands";
+import { defaultCommands } from "../data/default-commands";
 import { CommandOptions, ExtensionPreferences } from "./types";
 import { execScript } from "./scripts";
 import path from "path";
+import { defaultModels } from "../data/default-models";
+import { randomUUID } from "crypto";
 
 /**
  * Installs the default prompts if they haven't been installed yet and the user hasn't input their own command set.
@@ -22,9 +24,14 @@ export async function installDefaults() {
       return;
     }
 
-    Object.entries(defaultCommands).forEach(async (entry) => {
-      await LocalStorage.setItem(entry[0], entry[1]);
-    });
+    for (const [key, value] of Object.entries(defaultCommands)) {
+      await LocalStorage.setItem(key, value);
+    }
+
+    for (const [key, value] of Object.entries(defaultModels)) {
+      await LocalStorage.setItem(key, JSON.stringify({ ...value, id: randomUUID() }));
+    }
+
     await LocalStorage.setItem("--defaults-installed", "true");
   }
 }

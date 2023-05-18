@@ -50,6 +50,41 @@ export const categories = [
   "Web",
 ];
 
+export interface ModelManager {
+  models: Model[];
+  isLoading: boolean;
+  error: string | undefined;
+  revalidate: () => Promise<void>;
+  updateModel: (model: Model, newData: Model) => Promise<void>;
+  deleteModel: (model: Model) => Promise<void>;
+  createModel: (
+    newData: Model & {
+      [key: string]: string | boolean;
+    }
+  ) => Promise<false | Model>;
+  favorites: () => Model[];
+  dummyModel: () => Model;
+}
+
+export interface Model {
+  name: string;
+  description: string;
+  endpoint: string;
+  authType: string;
+  apiKey: string;
+  inputSchema: string;
+  outputKeyPath: string;
+  outputTiming: string;
+  lengthLimit: string;
+  favorited: boolean;
+  id: string;
+  icon: string;
+  iconColor: string;
+  notes: string;
+  isDefault: boolean;
+  temperature: string;
+}
+
 /**
  * User-customizable options for PromptLab commands.
  */
@@ -69,6 +104,7 @@ export interface CommandOptions {
   useSaliencyAnalysis?: boolean;
   scriptKind?: string;
   temperature?: string;
+  model?: string;
 }
 
 /**
@@ -100,6 +136,8 @@ export interface Command {
   scriptKind?: string;
   categories?: string[];
   temperature?: string;
+  model?: string;
+  favorited?: boolean;
 }
 
 /**
@@ -132,6 +170,8 @@ export interface StoreCommand {
   scriptKind?: string;
   categories?: string;
   temperature?: string;
+  model?: string;
+  favorited?: boolean;
 }
 
 /** Output from a model endpoint */

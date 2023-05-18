@@ -147,7 +147,7 @@
       "type": "textfield",
       "required": false,
       "default": "N/A",
-      "description": "The JSON schema of the endpoint used to generate PromptLab command output. This is only used if the model source is set to something other than Raycast AI. Use {input} to represent PromptLab's input to the command.",
+      "description": "The JSON schema of the endpoint used to generate PromptLab command output. This is only used if the model source is set to something other than Raycast AI. Use {prompt} to represent PromptLab's entire input to the model.",
       "placeholder": "{ \"prompt\": \"{input}\" }"
     },
     {
@@ -289,6 +289,12 @@
       "name": "discover-commands",
       "title": "PromptLab Command Store",
       "description": "Discover commands from the PromptLab community",
+      "mode": "view"
+    },
+    {
+      "name": "manage-models",
+      "title": "Manage Models",
+      "description": "Manage the models used to generate PromptLab command output",
       "mode": "view"
     }
   ],

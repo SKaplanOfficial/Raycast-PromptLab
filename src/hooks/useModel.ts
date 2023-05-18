@@ -1,6 +1,6 @@
 import { AI, environment, getPreferenceValues } from "@raycast/api";
 import { useAI } from "@raycast/utils";
-import { ExtensionPreferences, modelOutput } from "../utils/types";
+import { ExtensionPreferences, Model, modelOutput } from "../utils/types";
 import { useEffect, useState } from "react";
 import fetch from "node-fetch";
 
@@ -16,7 +16,8 @@ export default function useModel(
   prompt: string,
   input: string,
   temperature: string,
-  execute: boolean
+  execute: boolean,
+  modelOverride?: Model
 ) {
   const preferences = getPreferenceValues<ExtensionPreferences>();
   const [data, setData] = useState<string>("");
@@ -25,14 +26,26 @@ export default function useModel(
   const [dataTag, setDataTag] = useState<string>("");
 
   // We can be a little forgiving of how users specify Raycast AI
-  const validRaycastAIReps = ["raycast ai", "raycastai", "raycast", "raycast-ai"];
+  const validRaycastAIReps = ["raycast ai", "raycastai", "raycast", "raycast-ai", "raycast ai 3.5"];
 
   if (basePrompt.length == 0 && prompt.length == 0) {
     return { data: "", isLoading: false, revalidate: () => null, error: "Prompt cannot be empty" };
   }
 
-  const temp = preferences.includeTemperature ? parseFloat(temperature) || 1.0 : 1.0;
-  if (validRaycastAIReps.includes(preferences.modelEndpoint.toLowerCase())) {
+  const targetModel = modelOverride || {
+    endpoint: preferences.modelEndpoint,
+    authType: preferences.authType,
+    apiKey: preferences.apiKey,
+    inputSchema: preferences.inputSchema,
+    outputKeyPath: preferences.outputKeyPath,
+    outputTiming: preferences.outputTiming,
+    lengthLimit: preferences.lengthLimit,
+  };
+
+  const temp = modelOverride ? parseFloat(modelOverride.temperature) : preferences.includeTemperature ? parseFloat(temperature) || 1.0 : 1.0;
+
+
+  if (validRaycastAIReps.includes(targetModel.endpoint.toLowerCase())) {
     // If the endpoint is Raycast AI, use the AI hook
     if (!environment.canAccess(AI)) {
       return {
@@ -43,10 +56,10 @@ export default function useModel(
       };
     }
     return {
-      ...useAI(preferences.promptPrefix + prompt + preferences.promptSuffix, { execute: execute, creativity: temp }),
+      ...useAI(preferences.promptPrefix + prompt + preferences.promptSuffix, { execute: execute, creativity: temp, model: targetModel.endpoint == "Raycast AI 3.5" ? "gpt-3.5-turbo" : "text-davinci-003" }),
       dataTag: basePrompt,
     };
-  } else if (preferences.modelEndpoint.includes(":")) {
+  } else if (targetModel.endpoint.includes(":")) {
     // If the endpoint is a URL, use the fetch hook
     const headers: { [key: string]: string } = {
       method: "POST",
@@ -80,25 +93,25 @@ export default function useModel(
     };
 
     // Add the authentication header if necessary
-    if (preferences.authType == "apiKey") {
-      headers["Authorization"] = `Api-Key ${preferences.apiKey}`;
-    } else if (preferences.authType == "bearerToken") {
-      headers["Authorization"] = `Bearer ${preferences.apiKey}`;
-    } else if (preferences.authType == "x-api-key") {
-      headers["X-API-Key"] = `${preferences.apiKey}`;
+    if (targetModel.authType == "apiKey") {
+      headers["Authorization"] = `Api-Key ${targetModel.apiKey}`;
+    } else if (targetModel.authType == "bearerToken") {
+      headers["Authorization"] = `Bearer ${targetModel.apiKey}`;
+    } else if (targetModel.authType == "x-api-key") {
+      headers["X-API-Key"] = `${targetModel.apiKey}`;
     }
 
-    const modelSchema = JSON.parse(preferences.inputSchema);
-    if (preferences.includeTemperature) {
+    const modelSchema = JSON.parse(targetModel.inputSchema);
+    if (preferences.includeTemperature || modelOverride) {
       modelSchema["temperature"] = temp;
     }
 
     useEffect(() => {
       if (execute) {
         setIsLoading(true);
-        if (preferences.outputTiming == "sync") {
+        if (targetModel.outputTiming == "sync") {
           // Send the request and wait for the complete response
-          fetch(preferences.modelEndpoint, {
+          fetch(targetModel.endpoint, {
             method: "POST",
             headers: headers,
             body: JSON.stringify(modelSchema)
@@ -114,7 +127,7 @@ export default function useModel(
               )
               .replace(
                 "{input}",
-                preferences.inputSchema.includes("{prompt") && prompt == input
+                targetModel.inputSchema.includes("{prompt") && prompt == input
                   ? ""
                   : input.replaceAll(/[\n\r\s]+/g, " ").replaceAll('"', '\\"') + preferences.promptSuffix
               ),
@@ -122,7 +135,7 @@ export default function useModel(
             if (response.ok) {
               try {
                 const jsonData = await response.json();
-                const output = get(jsonData as modelOutput, preferences.outputKeyPath) as string;
+                const output = get(jsonData as modelOutput, targetModel.outputKeyPath) as string;
                 setData(output);
                 setIsLoading(false);
               } catch {
@@ -132,7 +145,7 @@ export default function useModel(
               setError(response.statusText);
             }
           });
-        } else if (preferences.outputTiming == "async") {
+        } else if (targetModel.outputTiming == "async") {
           // Send the request and parse each data chunk as it arrives
           const request = {
             method: "POST",
@@ -153,7 +166,7 @@ export default function useModel(
                 input.replaceAll(/[\n\r\s]+/g, " ").replaceAll('"', '\\"') + preferences.promptSuffix
               ),
           };
-          fetch(preferences.modelEndpoint, request).then(async (response) => {
+          fetch(targetModel.endpoint, request).then(async (response) => {
             if (response.ok && response.body != null) {
               let text = "";
               response.body.on("data", (chunk: string) => {
@@ -167,7 +180,7 @@ export default function useModel(
                   if (line.includes("data:")) {
                     try {
                       const jsonData = JSON.parse(line.substring(5));
-                      const output = get(jsonData, preferences.outputKeyPath) || "";
+                      const output = get(jsonData, targetModel.outputKeyPath) || "";
                       if (output.toString().includes(text)) {
                         text = output.toString();
                       } else {

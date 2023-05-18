@@ -13,6 +13,7 @@ import {
 import { useForm, FormValidation } from "@raycast/utils";
 import { Command, ExtensionPreferences } from "../utils/types";
 import { useState } from "react";
+import { useModels } from "../hooks/useModels";
 
 interface CommandFormValues {
   name: string;
@@ -40,6 +41,8 @@ interface CommandFormValues {
   scriptKind?: string;
   categories?: string[];
   temperature?: string;
+  favorited?: boolean;
+  model?: string;
 }
 
 export default function CommandForm(props: {
@@ -51,6 +54,7 @@ export default function CommandForm(props: {
   const [showResponse, setShowResponse] = useState<boolean>(
     oldData != undefined && oldData.showResponse != undefined ? oldData.showResponse : true
   );
+  const models = useModels();
   const { pop } = useNavigation();
 
   let maxPromptLength = oldData?.minNumFiles == "0" ? 3000 : 500;
@@ -106,6 +110,8 @@ export default function CommandForm(props: {
       scriptKind: "applescript",
       categories: ["Other"],
       temperature: "1.0",
+      favorited: false,
+      model: "",
     },
     validation: {
       name: FormValidation.Required,
@@ -160,7 +166,7 @@ export default function CommandForm(props: {
 
       <Form.Dropdown title="Icon Color" {...itemProps.iconColor}>
         <Form.Dropdown.Item
-          title={environment.theme == "dark" ? "White" : "Black"}
+          title={environment.appearance == "dark" ? "White" : "Black"}
           value={Color.PrimaryText}
           icon={{ source: Icon.CircleFilled, tintColor: Color.PrimaryText }}
         />
@@ -271,6 +277,15 @@ export default function CommandForm(props: {
           {...itemProps.temperature}
         />
       ) : null}
+
+        <Form.Dropdown
+          title="Model"
+          info="The model to use for this command."
+          defaultValue={models.models.find((model) => model.isDefault)?.id || ""}
+          {...itemProps.model}
+        >
+          {models.models.map((model) => <Form.Dropdown.Item title={model.name} value={model.id} />) }
+        </Form.Dropdown>
 
       <Form.Checkbox
         title="Included Information"
