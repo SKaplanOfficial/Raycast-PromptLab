@@ -376,7 +376,9 @@ Contributions are welcome! Please see the [contributing guidelines](./CONTRIBUTI
     - [x] Context Files/Folders/URLs [example1](./examples/promptlab-1.1.0/addContextData.png) [example2](./examples/promptlab-1.1.0/contextDataSummaries.png) [example3](./examples/promptlab-1.1.0/contextualKnowledge.png)
     - [x] Favorite Chats [example](./examples/promptlab-1.1.0/favoriteChats.png)
     - [x] Chat Statistics [example](./examples/promptlab-1.1.0/chatStats.png)
-- [ ] Command Setup On Install
+- [x] Command Setup On Install
+    - [x] Custom Configuration Fields [example](./examples/promptlab-1.1.0/commandConfig.png) [example2](./examples/promptlab-1.1.0/commandConfig2.png) [example](./examples/promptlab-1.1.0/)
+    - [x] Post-Install Configuration [example](./examples/promptlab-1.1.0/commandConfig4.png)
 - [ ] Speak Response
 - [ ] Voice Input
 - [x] New Placeholders
