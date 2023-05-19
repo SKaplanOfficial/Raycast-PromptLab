@@ -34,7 +34,6 @@ export function useModels() {
       await LocalStorage.removeItem(`--model-${model.name}`);
     }
     await LocalStorage.setItem(`--model-${newData.name}`, JSON.stringify(newData));
-    console.log(newData);
   };
 
   const deleteModel = async (model: Model) => {

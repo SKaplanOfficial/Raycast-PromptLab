@@ -237,14 +237,8 @@ export default function ChatSettingsForm(props: {
                         break;
                       }
                     }
-                    if (prompt.length > parseInt(preferences.lengthLimit) + 1000) {
-                      await showToast({
-                        title: "Context Data Too Long",
-                        message: "Please shorten your input, or increase the length limit if the model supports it.",
-                        style: Toast.Style.Failure,
-                      });
-                    }
 
+                    prompt = filterString(prompt);
                     const condensedText = await runModel(prompt, prompt, "");
                     filledContextFields[i].source = contextDataField;
 
@@ -476,7 +470,7 @@ export default function ChatSettingsForm(props: {
 
       <Form.Separator />
 
-      {stats ? <Form.Description title="Statistics" text="Neat information about this chat." /> : null}
+      {stats ? <Form.Description title="Statistics" text="Various information about this chat." /> : null}
       {stats
         ? Object.entries(stats).map(([key, value]) =>
             value.length == 0 || value == "None" ? null : (

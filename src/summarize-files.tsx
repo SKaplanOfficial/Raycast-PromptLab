@@ -1,7 +1,7 @@
 import { Detail, popToRoot, showToast, Toast } from "@raycast/api";
 import { useEffect } from "react";
 import { ERRORTYPE, installDefaults, useFileContents } from "./utils/file-utils";
-import ResponseActions from "./ResponseActions";
+import ResponseActions from "./components/ResponseActions";
 import { imageFileExtensions, videoFileExtensions } from "./utils/file-extensions";
 import useModel from "./hooks/useModel";
 

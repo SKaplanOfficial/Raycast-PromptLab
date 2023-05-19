@@ -302,7 +302,6 @@ export async function getFileContent(filePath: string) {
 const filterContentString = (content: string, cutoff?: number): string => {
   /* Removes unnecessary/invalid characters from file content strings. */
   const preferences = getPreferenceValues<ExtensionPreferences>();
-  console.log(preferences.condenseAmount);
   if (preferences.condenseAmount == "high") {
     // Remove some useful characters for the sake of brevity
     return content

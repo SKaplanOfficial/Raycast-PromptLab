@@ -1,7 +1,7 @@
 import { Action, ActionPanel, Icon, Keyboard, getPreferenceValues } from "@raycast/api";
-import CommandChatView from "./components/ChatViews/CommandChatView";
-import { CommandOptions, ExtensionPreferences } from "./utils/types";
-import { getMenubarOwningApplicationSync } from "./utils/context-utils";
+import CommandChatView from "./ChatViews/CommandChatView";
+import { CommandOptions, ExtensionPreferences } from "../utils/types";
+import { getMenubarOwningApplicationSync } from "../utils/context-utils";
 
 /**
  * A command action that pastes the provided text into the current application.

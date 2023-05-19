@@ -22,7 +22,6 @@ import { useChats } from "../../hooks/useChats";
 import runModel from "../../utils/runModel";
 import path from "path";
 import * as fs from "fs";
-import { useModels } from "../../hooks/useModels";
 
 interface CommandPreferences {
   useSelectedFiles: boolean;
@@ -61,7 +60,6 @@ export default function CommandChatView(props: {
   );
   const [useAutonomousFeatures, setUseAutonomousFeatures] = useState<boolean>(preferences.autonomousFeatures || false);
   const [basePrompt, setBasePrompt] = useState<string>(preferences.basePrompt || prompt);
-  const models = useModels();
   const chats = useChats();
   const {
     selectedFiles,
@@ -70,12 +68,11 @@ export default function CommandChatView(props: {
     revalidate: revalidateFiles,
   } = useFileContents(options);
   const replacements = useReplacements(input, selectedFiles);
-  const targetModel = options.model ? models.models.find((model) => model.id == options.model) : undefined;
   const {
     data,
     isLoading: loadingData,
     dataTag,
-  } = useModel(basePrompt, sentQuery, sentQuery, "1.0", enableModel, targetModel);
+  } = useModel(basePrompt, sentQuery, sentQuery, "1.0", enableModel);
 
   const submitQuery = async (newQuery: string, sender = "USER_QUERY") => {
     if (newQuery.trim() == "" && query == undefined) {
@@ -90,12 +87,19 @@ export default function CommandChatView(props: {
       setPreviousResponse(currentResponse);
       setCurrentResponse("Loading...");
       const subbedQuery = await applyReplacements(newQuery || query);
-
+          setSentQuery(subbedQuery);
+          setEnableModel(true);
+          const cmdMatch = (newQuery || query).match(/.*{{cmd:(.*?):(.*?)}}.*/);
+          if (cmdMatch) {
+            setRunningCommand(true);
+          }
+      
       const namePrompt =
         "Come up with a title, in Title Case, for a conversation started with the following query. The title must summarize the intent of the query. The title must be three words or shorter. Output only the title without commentary or labels. For example, if the query is 'What are galaxies?', the title you output might be 'Question About Galaxies'. Here is the query: ";
       const nameComponent =
         (await runModel(namePrompt, namePrompt + `'''${newQuery || query}'''`, newQuery || query)) ||
         query.trim().split(" ").splice(0, 2).join(" ");
+      console.log(nameComponent)
       const dateComponent = new Date().toLocaleDateString("en-US", {
         year: "numeric",
         month: "long",
@@ -109,13 +113,6 @@ export default function CommandChatView(props: {
       chats.createChat(newChatName, basePrompt).then((chat) => {
         chats.revalidate().then(() => {
           setCurrentChat(chat);
-          setSentQuery(subbedQuery);
-          setEnableModel(true);
-          const cmdMatch = (newQuery || query).match(/.*{{cmd:(.*?):(.*?)}}.*/);
-          if (cmdMatch) {
-            setRunningCommand(true);
-          }
-
           if (chat) {
             chats.appendToChat(chat, `\n[${sender}]:${newQuery || query}\n`);
           }
@@ -194,13 +191,13 @@ export default function CommandChatView(props: {
   }, []);
 
   useEffect(() => {
-    if (currentChat == undefined && isLoading && !previousResponse.length) {
+    if (currentChat == undefined && isLoading && !previousResponse?.length) {
       setCurrentResponse(response);
     }
   }, [response]);
 
   useEffect(() => {
-    if (currentChat == undefined && !isLoading && !previousResponse.length && initialQuery?.length) {
+    if (currentChat == undefined && !isLoading && !previousResponse?.length && initialQuery?.length) {
       submitQuery(initialQuery);
     }
   }, [response, isLoading]);
@@ -213,14 +210,14 @@ export default function CommandChatView(props: {
   }, [forceStop]);
 
   useEffect(() => {
-    if (data.length > 0 && !forceStop) {
+    if (data?.length > 0 && !forceStop) {
       if (
         dataTag != undefined &&
         (dataTag.includes(sentQuery) ||
           dataTag.includes(sentQuery.replaceAll(/[\n\r\s]+/g, " ").replaceAll('"', '\\"')))
       ) {
         // Update the response field as the model generates text
-        setCurrentResponse(data);
+        setCurrentResponse(data.replaceAll("MODEL_RESPONSE:", "").replaceAll("USER_QUERY:", ""));
 
         // If the model returns a command number and input, set the input
         // This will trigger running the command if autonomous features are enabled
@@ -361,7 +358,7 @@ export default function CommandChatView(props: {
             <Action
               title="Cancel"
               onAction={() => {
-                if (previousResponse.length > 0 || typeof cancel !== "function") {
+                if (previousResponse?.length > 0 || typeof cancel !== "function") {
                   setForceStop(true);
                 } else {
                   Function.call(cancel);
@@ -578,7 +575,7 @@ export default function CommandChatView(props: {
           <Action
             title="Regenerate"
             icon={Icon.ArrowClockwise}
-            onAction={previousResponse.length > 0 ? () => setSentQuery(sentQuery + " ") : revalidate}
+            onAction={previousResponse?.length ? () => setSentQuery(sentQuery + " ") : revalidate}
             shortcut={{ modifiers: ["cmd"], key: "r" }}
           />
 

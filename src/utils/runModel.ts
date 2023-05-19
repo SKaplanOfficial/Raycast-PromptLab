@@ -14,11 +14,12 @@ export default async function runModel(basePrompt: string, prompt: string, input
   // We can be a little forgiving of how users specify Raycast AI
   const validRaycastAIReps = ["raycast ai", "raycastai", "raycast", "raycast-ai"];
 
-  if (validRaycastAIReps.includes(preferences.modelEndpoint.toLowerCase())) {
+  if (validRaycastAIReps.includes(preferences.modelEndpoint.toLowerCase()) || preferences.modelEndpoint.trim() == "") {
     // If the endpoint is Raycast AI, use the AI hook
     if (!environment.canAccess(AI)) {
       ("");
     }
+    console.log("here")
     return await AI.ask(preferences.promptPrefix + prompt + preferences.promptSuffix);
   } else if (preferences.modelEndpoint.includes(":")) {
     // If the endpoint is a URL, use the fetch hook
@@ -134,7 +135,7 @@ export default async function runModel(basePrompt: string, prompt: string, input
 
         let text = "";
         texts.forEach((t) => {
-          if (t.length > 0) {
+          if (t?.length) {
             text += t.replaceAll(text, "");
           }
         });

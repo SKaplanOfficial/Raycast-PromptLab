@@ -164,7 +164,7 @@ export default function ModelForm(props: { models: ModelManager; currentModel?: 
         <Form.Dropdown.Item title="X-API-Key" value="x-api-key" icon={{ source: Icon.Key }} />
       </Form.Dropdown>
 
-      <Form.TextField title={`${values.authType}`} {...itemProps.apiKey} info="The API key for the model source." />
+      <Form.PasswordField title={`${values.authType}`} {...itemProps.apiKey} info="The API key for the model source." />
 
       <Form.TextField
         title="Input Schema"
@@ -173,15 +173,15 @@ export default function ModelForm(props: { models: ModelManager; currentModel?: 
       />
 
       <Form.TextField
-        title="Creativity"
-        {...itemProps.outputKeyPath}
-        info="A measure of how much randomness and creativity the model will use in its outputs. Also called temperature."
-      />
-
-      <Form.TextField
         title="Output Key Path"
         {...itemProps.outputKeyPath}
         info="The key path to the text output in the JSON response from the model endpoint. For example, choices[0].message.content, for the OpenAI API."
+      />
+
+      <Form.TextField
+        title="Creativity"
+        {...itemProps.temperature}
+        info="A measure of how much randomness and creativity the model will use in its outputs. Also called temperature."
       />
 
       <Form.Dropdown

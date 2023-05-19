@@ -177,7 +177,7 @@ export function useChats() {
       const responses = convo.filter((entry) => entry.startsWith("MODEL_RESPONSE")).map((entry) => entry.substring(15));
       const placeholders = queries.filter((entry) => entry.match(/.*{{.*}}.*/g) != undefined);
       const commands = responses.filter((entry) => entry.match(/.*{{cmd:.*}}.*/g) != undefined);
-      const emojis = responses.map((entry) => entry.match(/(\p{Extended_Pictographic}){1}/gu) || "").flat();
+      const emojis = responses.map((entry) => entry.match(/(\p{Extended_Pictographic}){1}/gu) || "").flat().filter((entry) => entry.trim().length > 0);
 
       stats.totalQueries = `${queries.length} queries`;
       stats.totalResponses = `${responses.length} responses`;
@@ -215,21 +215,21 @@ export function useChats() {
 
       const queryWordsByFreq = Object.entries(queryWordCounts).sort((a, b) => b[1] - a[1]);
 
-      stats.mostCommonQueryWords = queryWordsByFreq.slice(0, 5).map((word) => `${word[0]}: ${word[1]} times`);
+      stats.mostCommonQueryWords = queryWordsByFreq.slice(0, 5).map((word) => `${word[0]} - ${word[1]} times`);
 
       const responseWordsByFreq = Object.entries(responseWordCounts).sort((a, b) => b[1] - a[1]);
-      stats.mostCommonResponseWords = responseWordsByFreq.slice(0, 5).map((word) => `${word[0]} ${word[1]} times`);
+      stats.mostCommonResponseWords = responseWordsByFreq.slice(0, 5).map((word) => `${word[0]} - ${word[1]} times`);
 
       const placeholdersByFreq = Object.entries(placeholderCounts).sort((a, b) => b[1] - a[1]);
       stats.mostUsedPlaceholder = placeholdersByFreq.length
-        ? `${placeholdersByFreq[0][0]}: ${placeholdersByFreq[0][1]} times`
+        ? `${placeholdersByFreq[0][0]} - ${placeholdersByFreq[0][1]} times`
         : "None";
 
       const commandsByFreq = Object.entries(commandCounts).sort((a, b) => b[1] - a[1]);
-      stats.mostUsedCommand = commandsByFreq.length ? `${commandsByFreq[0][0]}: ${commandsByFreq[0][1]} times` : "None";
+      stats.mostUsedCommand = commandsByFreq.length ? `${commandsByFreq[0][0]} - ${commandsByFreq[0][1]} times` : "None";
 
       const emojisByFreq = Object.entries(emojiCounts).sort((a, b) => b[1] - a[1]);
-      stats.mostUsedEmojis = emojisByFreq.slice(0, 5).map((word) => `${word[0]} ${word[1]} times`);
+      stats.mostUsedEmojis = emojisByFreq.slice(0, 5).map((word) => `${word[0]} - ${word[1]} times`);
     }
 
     let contextDataLength = 0;

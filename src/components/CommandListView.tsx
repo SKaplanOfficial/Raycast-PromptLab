@@ -1,5 +1,5 @@
 import { List } from "@raycast/api";
-import ResponseActions from "../ResponseActions";
+import ResponseActions from "./ResponseActions";
 import { CommandOptions } from "../utils/types";
 
 export default function CommandListView(props: {
