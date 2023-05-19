@@ -368,20 +368,21 @@ Contributions are welcome! Please see the [contributing guidelines](./CONTRIBUTI
 
 ### Next Release: v1.1.0
 
-- [ ] Command Favorites
-- [ ] Video Feature Extraction
-- [ ] Switch Between Chats & Export Chat History
+- [x] Command Favorites
+- [x] Video Feature Extraction [example](./examples/promptlab-1.1.0/videoSubjectSummarization.webp)
+- [x] Switch Between Chats & Export Chat History [example](./examples/promptlab-1.1.0/multipleChats.webp)
 - [ ] Auto-Compress Chat History
-- [ ] Chat Settings
-    - [ ] Context Files/Folders/URLs
-    - [ ] Favorite Chats
+- [x] Chat Settings
+    - [x] Context Files/Folders/URLs [example1](./examples/promptlab-1.1.0/addContextData.webp) [example2](./examples/promptlab-1.1.0/contextDataSummaries.webp) [example3](./examples/promptlab-1.1.0/contextualKnowledge.webp)
+    - [x] Favorite Chats [example](./examples/promptlab-1.1.0/favoriteChats.webp)
+    - [x] Chat Statistics [example](./examples/promptlab-1.1.0/chatStats.webp)
 - [ ] Command Setup On Install
 - [ ] Speak Response
 - [ ] Voice Input
-- [ ] New Placeholders
-    - [ ] Nearby Locations
-    - [ ] Running Applications
-    - [ ] System Language
+- [x] New Placeholders
+    - [x] Nearby Locations [example](./examples/promptlab-1.1.0/nearbyLocations.webp)
+    - [x] Running Applications
+    - [x] System Language
 
 ## Useful Resources
 
