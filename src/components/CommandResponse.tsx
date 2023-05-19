@@ -29,7 +29,7 @@ export default function CommandResponse(props: {
   const [, setPreviousPrompt] = useCachedState<string>("promptlab-previous-prompt", "");
   const [options, setOptions] = useState<CommandOptions>({ ...props.options });
 
-  const { push, pop } = useNavigation();
+  const { pop } = useNavigation();
 
   const models = useModels();
 

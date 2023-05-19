@@ -97,6 +97,7 @@ export const useReplacements = (
       try {
         return (await getSelectedText()).substring(0, 3000);
       } catch (error) {
+        console.log(error)
         return "";
       }
     },

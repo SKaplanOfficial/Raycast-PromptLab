@@ -140,7 +140,7 @@ ${
 | Use Saliency Analysis? | ${command.useSaliencyAnalysis == "TRUE" ? "Yes" : "No"} |
   
 ${
-  command.setupConfig?.length
+  command.setupConfig?.length && command.setupConfig != "None"
     ? `## Setup Config
 
 | Field | Description |
@@ -195,7 +195,7 @@ ${(JSON.parse(command.setupConfig) as CommandConfig).fields
                   categories: command.categories?.split(", ") || ["Other"],
                   temperature: command.temperature,
                   favorited: false,
-                  setupConfig: command.setupConfig?.length ? JSON.parse(command.setupConfig) : undefined,
+                  setupConfig: command.setupConfig?.length && command.setupConfig != "None" ? JSON.parse(command.setupConfig) : undefined,
                   installedFromStore: true,
                   setupLocked: true,
                 };
@@ -292,7 +292,7 @@ ${(JSON.parse(command.setupConfig) as CommandConfig).fields
                       temperature:
                         command.temperature == undefined || command.temperature == "" ? "1.0" : command.temperature,
                       favorited: false,
-                      setupConfig: command.setupConfig?.length ? JSON.parse(command.setupConfig) : undefined,
+                      setupConfig: command.setupConfig?.length && command.setupConfig != "None" ? JSON.parse(command.setupConfig) : undefined,
                       installedFromStore: false,
                       setupLocked: false,
                     }}
@@ -349,7 +349,7 @@ ${(JSON.parse(command.setupConfig) as CommandConfig).fields
                       categories: command.categories?.split(", ") || ["Other"],
                       temperature: command.temperature,
                       favorited: false,
-                      setupConfig: command.setupConfig?.length ? JSON.parse(command.setupConfig) : undefined,
+                      setupConfig: command.setupConfig?.length && command.setupConfig != "None" ? JSON.parse(command.setupConfig) : undefined,
                       installedFromStore: true,
                       setupLocked: true,
                     };

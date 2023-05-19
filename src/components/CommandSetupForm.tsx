@@ -3,21 +3,14 @@ import {
   ActionPanel,
   Form,
   showToast,
-  Icon,
   LocalStorage,
   useNavigation,
-  Color,
-  environment,
-  getPreferenceValues,
-  Detail,
 } from "@raycast/api";
-import { useForm, FormValidation } from "@raycast/utils";
 import {
   BooleanConfigField,
   Command,
   CommandConfig,
   CommandOptions,
-  ExtensionPreferences,
   NumberConfigField,
   StringConfigField,
 } from "../utils/types";

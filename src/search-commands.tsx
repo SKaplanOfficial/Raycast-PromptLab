@@ -292,7 +292,7 @@ ${command.setupConfig.fields
                           categories: command.categories?.join(", ") || "Other",
                           temperature:
                             command.temperature == undefined || command.temperature == "" ? "1.0" : command.temperature,
-                          setupConfig: command.setupConfig ? JSON.stringify(command.setupConfig) : "",
+                          setupConfig: command.setupConfig ? JSON.stringify(command.setupConfig) : "None",
                         },
                       }),
                     }).then((res) => {
@@ -301,6 +301,7 @@ ${command.setupConfig.fields
                         toast.title = "Success";
                         toast.message = `Added ${command.name} to the PromptLab Store`;
                       } else {
+                        console.log(res.statusText)
                         toast.style = Toast.Style.Failure;
                         toast.title = "Error";
                         toast.message = "Couldn't upload command";
