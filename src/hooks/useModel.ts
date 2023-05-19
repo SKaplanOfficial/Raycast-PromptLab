@@ -118,7 +118,7 @@ export default function useModel(
     if (execute) {
       if (targetModel.outputTiming == "sync") {
         // Send the request and wait for the complete response
-        setNumRequests(numRequests + 1)
+        setNumRequests(numRequests + 1);
         fetch(targetModel.endpoint, {
           method: "POST",
           headers: headers,
@@ -145,7 +145,7 @@ export default function useModel(
               const jsonData = await response.json();
               const output = get(jsonData as modelOutput, targetModel.outputKeyPath) as string;
               setData(output);
-              setNumRequests(numRequests - 1)
+              setNumRequests(numRequests - 1);
             } catch {
               setError("Couldn't parse model output");
             }
@@ -173,7 +173,7 @@ export default function useModel(
         };
 
         setDataTag(request.body);
-        setNumRequests(numRequests + 1)
+        setNumRequests(numRequests + 1);
         fetch(targetModel.endpoint, request).then(async (response) => {
           if (response.ok && response.body != null) {
             let text = "";
@@ -204,7 +204,7 @@ export default function useModel(
             });
             response.body.on("end", () => {
               // Verify that the current prompt is still the same as the one that was sent
-              setNumRequests(numRequests - 1)
+              setNumRequests(numRequests - 1);
             });
           } else {
             setError(response.statusText);

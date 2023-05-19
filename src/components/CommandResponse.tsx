@@ -1,7 +1,7 @@
 import { closeMainWindow, showHUD, showToast, Toast, useNavigation } from "@raycast/api";
 import { ERRORTYPE, useFileContents } from "../utils/file-utils";
 import { useEffect, useState } from "react";
-import { CommandOptions } from "../utils/types";
+import { Command, CommandOptions } from "../utils/types";
 import { runActionScript, runReplacements } from "../utils/command-utils";
 import useModel from "../hooks/useModel";
 import { useReplacements } from "../hooks/useReplacements";
@@ -11,22 +11,25 @@ import CommandListView from "./CommandListView";
 import CommandGridView from "./CommandGridView";
 import { useCachedState } from "@raycast/utils";
 import { useModels } from "../hooks/useModels";
+import CommandSetupForm from "./CommandSetupForm";
 
 export default function CommandResponse(props: {
   commandName: string;
   prompt: string;
   input?: string;
   options: CommandOptions;
+  setCommands?: React.Dispatch<React.SetStateAction<Command[] | undefined>>;
 }) {
-  const { commandName, prompt, input, options } = props;
+  const { commandName, prompt, input, setCommands } = props;
   const [substitutedPrompt, setSubstitutedPrompt] = useState<string>(prompt);
   const [loadingData, setLoadingData] = useState<boolean>(true);
   const [shouldCancel, setShouldCancel] = useState<boolean>(false);
   const [, setPreviousCommand] = useCachedState<string>("promptlab-previous-command", "");
   const [, setPreviousResponse] = useCachedState<string>("promptlab-previous-response", "");
   const [, setPreviousPrompt] = useCachedState<string>("promptlab-previous-prompt", "");
+  const [options, setOptions] = useState<CommandOptions>({ ...props.options });
 
-  const { pop } = useNavigation();
+  const { push, pop } = useNavigation();
 
   const models = useModels();
 
@@ -46,7 +49,7 @@ export default function CommandResponse(props: {
       closeMainWindow();
     }
 
-    Promise.resolve(runReplacements(prompt, replacements, [commandName])).then((subbedPrompt) => {
+    Promise.resolve(runReplacements(prompt, replacements, [commandName], options)).then((subbedPrompt) => {
       setLoadingData(false);
 
       if (options.outputKind == "list") {
@@ -155,6 +158,15 @@ export default function CommandResponse(props: {
       pop();
     }
     return null;
+  }
+
+  if (
+    options.setupConfig &&
+    !options.setupConfig.fields.every((field) => field.value != undefined && field.value.toString().length > 0)
+  ) {
+    return (
+      <CommandSetupForm commandName={commandName} options={options} setCommands={setCommands} setOptions={setOptions} />
+    );
   }
 
   if (options.outputKind == "list") {

@@ -105,6 +105,41 @@ export interface CommandOptions {
   scriptKind?: string;
   temperature?: string;
   model?: string;
+  setupConfig?: CommandConfig;
+}
+
+export interface StringConfigField {
+  name: string;
+  description: string;
+  guideText: string;
+  maxLength: string;
+  minLength: string;
+  defaultValue: string;
+  regex: string;
+  value?: string;
+}
+
+export interface BooleanConfigField {
+  name: string;
+  description: string;
+  guideText: string;
+  defaultValue: boolean;
+  value?: boolean;
+}
+
+export interface NumberConfigField {
+  name: string;
+  description: string;
+  guideText: string;
+  defaultValue: string;
+  min: string;
+  max: string;
+  value?: string;
+}
+
+export interface CommandConfig {
+  fields: (NumberConfigField | BooleanConfigField | StringConfigField)[];
+  configVersion: string;
 }
 
 /**
@@ -138,6 +173,9 @@ export interface Command {
   temperature?: string;
   model?: string;
   favorited?: boolean;
+  setupConfig?: CommandConfig;
+  installedFromStore?: boolean;
+  setupLocked?: boolean;
 }
 
 /**
@@ -172,6 +210,7 @@ export interface StoreCommand {
   temperature?: string;
   model?: string;
   favorited?: boolean;
+  setupConfig?: string;
 }
 
 /** Output from a model endpoint */

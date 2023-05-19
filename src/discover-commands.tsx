@@ -2,7 +2,7 @@ import { Action, ActionPanel, Color, Icon, List, LocalStorage, Toast, showToast 
 import { useEffect, useState } from "react";
 import CommandResponse from "./components/CommandResponse";
 import CommandForm from "./components/CommandForm";
-import { Command, StoreCommand } from "./utils/types";
+import { Command, CommandConfig, StoreCommand } from "./utils/types";
 import { useCachedState, useFetch } from "@raycast/utils";
 import { STORE_ENDPOINT, STORE_KEY } from "./utils/constants";
 import { getCommandJSON } from "./utils/command-utils";
@@ -17,7 +17,8 @@ export default function Discover() {
     // Get installed commands from local storage
     Promise.resolve(LocalStorage.allItems()).then((commandData) => {
       const commandDataFiltered = Object.values(commandData).filter(
-        (cmd, index) => !Object.keys(commandData)[index].startsWith("--") && !Object.keys(cmd)[index].startsWith("id-")
+        (cmd, index) =>
+          !Object.keys(commandData)[index].startsWith("--") && !Object.keys(commandData)[index].startsWith("id-")
       );
       setMyCommands(commandDataFiltered.map((data) => JSON.parse(data)));
     });
@@ -114,28 +115,41 @@ ${
     : ``
 }
   
-  ## Options
-  | Option | Value |
-  | --- | --- |
-  | Output View | ${(command.outputKind?.at(0)?.toUpperCase() || "") + (command.outputKind?.substring(1) || "")} |
-  | Show Response View | ${command.showResponse == "TRUE" ? "Yes" : "No"} |
-  | Minimum File Count | ${command.minNumFiles} |
-  | Accepted File Extensions | ${
-    command.minNumFiles == "0"
-      ? "N/A"
-      : command.acceptedFileExtensions?.length && command.acceptedFileExtensions !== "None"
-      ? command.acceptedFileExtensions
-      : "Any"
-  } |
-  | Creativity | ${command.temperature == undefined || command.temperature == "" ? "1.0" : command.temperature} |
-  | Use File Metadata? | ${command.useMetadata == "TRUE" ? "Yes" : "No"} |
-  | Use Sound Classification? | ${command.useSoundClassification == "TRUE" ? "Yes" : "No"} |
-  | Use Subject Classification? | ${command.useSubjectClassification == "TRUE" ? "Yes" : "No"} |
-  | Use Audio Transcription? | ${command.useAudioDetails == "TRUE" ? "Yes" : "No"} |
-  | Use Barcode Detection? | ${command.useBarcodeDetection == "TRUE" ? "Yes" : "No"} |
-  | Use Face Detection? | ${command.useFaceDetection == "TRUE" ? "Yes" : "No"} |
-  | Use Rectangle Detection? | ${command.useRectangleDetection == "TRUE" ? "Yes" : "No"} |
-  | Use Saliency Analysis? | ${command.useSaliencyAnalysis == "TRUE" ? "Yes" : "No"} |`}
+## Options
+
+| Option | Value |
+| --- | --- |
+| Output View | ${(command.outputKind?.at(0)?.toUpperCase() || "") + (command.outputKind?.substring(1) || "")} |
+| Show Response View | ${command.showResponse == "TRUE" ? "Yes" : "No"} |
+| Minimum File Count | ${command.minNumFiles} |
+| Accepted File Extensions | ${
+              command.minNumFiles == "0"
+                ? "N/A"
+                : command.acceptedFileExtensions?.length && command.acceptedFileExtensions !== "None"
+                ? command.acceptedFileExtensions
+                : "Any"
+            } |
+| Creativity | ${command.temperature == undefined || command.temperature == "" ? "1.0" : command.temperature} |
+| Use File Metadata? | ${command.useMetadata == "TRUE" ? "Yes" : "No"} |
+| Use Sound Classification? | ${command.useSoundClassification == "TRUE" ? "Yes" : "No"} |
+| Use Subject Classification? | ${command.useSubjectClassification == "TRUE" ? "Yes" : "No"} |
+| Use Audio Transcription? | ${command.useAudioDetails == "TRUE" ? "Yes" : "No"} |
+| Use Barcode Detection? | ${command.useBarcodeDetection == "TRUE" ? "Yes" : "No"} |
+| Use Face Detection? | ${command.useFaceDetection == "TRUE" ? "Yes" : "No"} |
+| Use Rectangle Detection? | ${command.useRectangleDetection == "TRUE" ? "Yes" : "No"} |
+| Use Saliency Analysis? | ${command.useSaliencyAnalysis == "TRUE" ? "Yes" : "No"} |
+  
+${
+  command.setupConfig?.length
+    ? `## Setup Config
+
+| Field | Description |
+${(JSON.parse(command.setupConfig) as CommandConfig).fields
+  .map((field) => `| ${field.name} | ${field.description} |`)
+  .join("\n")}
+`
+    : ``
+}`}
           />
         }
         actions={
@@ -181,6 +195,9 @@ ${
                   categories: command.categories?.split(", ") || ["Other"],
                   temperature: command.temperature,
                   favorited: false,
+                  setupConfig: command.setupConfig?.length ? JSON.parse(command.setupConfig) : undefined,
+                  installedFromStore: true,
+                  setupLocked: true,
                 };
                 LocalStorage.setItem(cmdName, JSON.stringify(commandData)).then(() => {
                   showToast({ title: "Command Installed", message: `${command.name}" has been installed.` });
@@ -195,36 +212,38 @@ ${
               }}
             />
 
-            <Action.Push
-              title="Run Command Without Installing"
-              target={
-                <CommandResponse
-                  commandName={command.name}
-                  prompt={command.prompt}
-                  options={{
-                    minNumFiles: parseInt(command.minNumFiles as string),
-                    acceptedFileExtensions: command.acceptedFileExtensions?.length
-                      ? command.acceptedFileExtensions?.split(",").map((item) => item.trim())
-                      : undefined,
-                    useMetadata: command.useMetadata == "TRUE" ? true : false,
-                    useSoundClassification: command.useSoundClassification == "TRUE" ? true : false,
-                    useAudioDetails: command.useAudioDetails == "TRUE" ? true : false,
-                    useBarcodeDetection: command.useBarcodeDetection == "TRUE" ? true : false,
-                    useFaceDetection: command.useFaceDetection == "TRUE" ? true : false,
-                    useRectangleDetection: command.useRectangleDetection == "TRUE" ? true : false,
-                    useSubjectClassification: command.useSubjectClassification == "TRUE" ? true : false,
-                    outputKind: command.outputKind,
-                    actionScript: command.actionScript,
-                    showResponse: command.showResponse == "TRUE" ? true : false,
-                    useSaliencyAnalysis: command.useSaliencyAnalysis == "TRUE" ? true : false,
-                    scriptKind: command.scriptKind,
-                    temperature: command.temperature,
-                  }}
-                />
-              }
-              icon={Icon.ArrowRight}
-              shortcut={{ modifiers: ["cmd"], key: "r" }}
-            />
+            {command.setupConfig?.length ? null : (
+              <Action.Push
+                title="Run Command Without Installing"
+                target={
+                  <CommandResponse
+                    commandName={command.name}
+                    prompt={command.prompt}
+                    options={{
+                      minNumFiles: parseInt(command.minNumFiles as string),
+                      acceptedFileExtensions: command.acceptedFileExtensions?.length
+                        ? command.acceptedFileExtensions?.split(",").map((item) => item.trim())
+                        : undefined,
+                      useMetadata: command.useMetadata == "TRUE" ? true : false,
+                      useSoundClassification: command.useSoundClassification == "TRUE" ? true : false,
+                      useAudioDetails: command.useAudioDetails == "TRUE" ? true : false,
+                      useBarcodeDetection: command.useBarcodeDetection == "TRUE" ? true : false,
+                      useFaceDetection: command.useFaceDetection == "TRUE" ? true : false,
+                      useRectangleDetection: command.useRectangleDetection == "TRUE" ? true : false,
+                      useSubjectClassification: command.useSubjectClassification == "TRUE" ? true : false,
+                      outputKind: command.outputKind,
+                      actionScript: command.actionScript,
+                      showResponse: command.showResponse == "TRUE" ? true : false,
+                      useSaliencyAnalysis: command.useSaliencyAnalysis == "TRUE" ? true : false,
+                      scriptKind: command.scriptKind,
+                      temperature: command.temperature,
+                    }}
+                  />
+                }
+                icon={Icon.ArrowRight}
+                shortcut={{ modifiers: ["cmd"], key: "r" }}
+              />
+            )}
 
             <ActionPanel.Section title="Copy Actions">
               <Action.CopyToClipboard
@@ -273,6 +292,9 @@ ${
                       temperature:
                         command.temperature == undefined || command.temperature == "" ? "1.0" : command.temperature,
                       favorited: false,
+                      setupConfig: command.setupConfig?.length ? JSON.parse(command.setupConfig) : undefined,
+                      installedFromStore: false,
+                      setupLocked: false,
                     }}
                     setCommands={setMyCommands}
                     duplicate={true}
@@ -327,6 +349,9 @@ ${
                       categories: command.categories?.split(", ") || ["Other"],
                       temperature: command.temperature,
                       favorited: false,
+                      setupConfig: command.setupConfig?.length ? JSON.parse(command.setupConfig) : undefined,
+                      installedFromStore: true,
+                      setupLocked: true,
                     };
                     await LocalStorage.setItem(cmdName, JSON.stringify(commandData));
                     successes.push(command.name);
@@ -335,7 +360,7 @@ ${
                     const filteredCommands = Object.values(allCommands).filter(
                       (cmd, index) =>
                         Object.keys(allCommands)[index] != "--defaults-installed" &&
-                        !Object.keys(cmd)[index].startsWith("id-")
+                        !Object.keys(allCommands)[index].startsWith("id-")
                     );
                     setMyCommands(filteredCommands.map((data) => JSON.parse(data)));
                   }

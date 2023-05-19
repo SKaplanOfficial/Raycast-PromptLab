@@ -68,11 +68,7 @@ export default function CommandChatView(props: {
     revalidate: revalidateFiles,
   } = useFileContents(options);
   const replacements = useReplacements(input, selectedFiles);
-  const {
-    data,
-    isLoading: loadingData,
-    dataTag,
-  } = useModel(basePrompt, sentQuery, sentQuery, "1.0", enableModel);
+  const { data, isLoading: loadingData, dataTag } = useModel(basePrompt, sentQuery, sentQuery, "1.0", enableModel);
 
   const submitQuery = async (newQuery: string, sender = "USER_QUERY") => {
     if (newQuery.trim() == "" && query == undefined) {
@@ -87,19 +83,18 @@ export default function CommandChatView(props: {
       setPreviousResponse(currentResponse);
       setCurrentResponse("Loading...");
       const subbedQuery = await applyReplacements(newQuery || query);
-          setSentQuery(subbedQuery);
-          setEnableModel(true);
-          const cmdMatch = (newQuery || query).match(/.*{{cmd:(.*?):(.*?)}}.*/);
-          if (cmdMatch) {
-            setRunningCommand(true);
-          }
-      
+      setSentQuery(subbedQuery);
+      setEnableModel(true);
+      const cmdMatch = (newQuery || query).match(/.*{{cmd:(.*?):(.*?)}}.*/);
+      if (cmdMatch) {
+        setRunningCommand(true);
+      }
+
       const namePrompt =
         "Come up with a title, in Title Case, for a conversation started with the following query. The title must summarize the intent of the query. The title must be three words or shorter. Output only the title without commentary or labels. For example, if the query is 'What are galaxies?', the title you output might be 'Question About Galaxies'. Here is the query: ";
       const nameComponent =
         (await runModel(namePrompt, namePrompt + `'''${newQuery || query}'''`, newQuery || query)) ||
         query.trim().split(" ").splice(0, 2).join(" ");
-      console.log(nameComponent)
       const dateComponent = new Date().toLocaleDateString("en-US", {
         year: "numeric",
         month: "long",

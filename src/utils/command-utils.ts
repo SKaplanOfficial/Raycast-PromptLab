@@ -17,7 +17,7 @@ import {
 } from "./context-utils";
 import { exec } from "child_process";
 import * as os from "os";
-import { Command, StoreCommand } from "./types";
+import { Command, CommandOptions, StoreCommand } from "./types";
 import { LocalStorage, AI } from "@raycast/api";
 
 /**
@@ -226,6 +226,10 @@ export const getCommandJSON = (command: Command | StoreCommand) => {
   return JSON.stringify(cmdObj).replaceAll(/\\([^"])/g, "\\\\$1");
 };
 
+const camelize = (str: string) => {
+  return str.toLowerCase().replace(/[^a-zA-Z0-9]+(.)/g, (m, chr) => chr.toUpperCase());
+}
+
 /**
  * Run placeholder replacements on a prompt.
  *
@@ -239,10 +243,23 @@ export const runReplacements = async (
   replacements: {
     [key: string]: () => Promise<string>;
   },
-  disallowedCommands: string[]
+  disallowedCommands: string[],
+  options?: CommandOptions
 ): Promise<string> => {
-  // Replace simple placeholders (i.e. {{date}})
   let subbedPrompt = prompt;
+
+  // Replace config placeholders
+  if (options != undefined && options.setupConfig != undefined) {
+    for (const field of options.setupConfig.fields) {
+      const regex = new RegExp(`{{config:${camelize(field.name.trim())}}}`, "g");
+      const configFieldMatches = subbedPrompt.match(regex) || [];
+      for (const m of configFieldMatches) {
+        subbedPrompt = subbedPrompt.replaceAll(m, (field.value as string) || "");
+      }
+    }
+  }
+
+  // Replace simple placeholders (i.e. {{date}})
   for (const key in replacements) {
     if (prompt.includes(key)) {
       subbedPrompt = subbedPrompt.replaceAll(key, await replacements[key]());

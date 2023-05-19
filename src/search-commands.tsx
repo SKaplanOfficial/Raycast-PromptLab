@@ -39,7 +39,7 @@ export default function SearchCommand(props: { arguments: { commandName: string;
       Promise.resolve(LocalStorage.allItems()).then((commandData) => {
         const commandDataFiltered = Object.values(commandData).filter(
           (cmd, index) =>
-            !Object.keys(commandData)[index].startsWith("--") && !Object.keys(cmd)[index].startsWith("id-")
+            !Object.keys(commandData)[index].startsWith("--") && !Object.keys(commandData)[index].startsWith("id-")
         );
         setCommands(commandDataFiltered.map((data) => JSON.parse(data)));
 
@@ -77,7 +77,9 @@ export default function SearchCommand(props: { arguments: { commandName: string;
           useSaliencyAnalysis: command.useSaliencyAnalysis,
           temperature: command.temperature,
           model: command.model,
+          setupConfig: command.setupConfig,
         }}
+        setCommands={setCommands}
       />
     );
   }
@@ -103,6 +105,8 @@ export default function SearchCommand(props: { arguments: { commandName: string;
           detail={
             <List.Item.Detail
               markdown={`# ${command.name}
+
+${command.installedFromStore ? `_Installed From **PromptLab Store**_<br/>` : ``}
           
 Version: ${command.version || "1.0.0"}
 
@@ -173,7 +177,25 @@ ${command.categories?.sort((a, b) => (a > b ? 1 : -1)).join(", ") || "Other"}
 | Use Barcode Detection? | ${command.useBarcodeDetection ? "Yes" : "No"} |
 | Use Face Detection? | ${command.useFaceDetection ? "Yes" : "No"} |
 | Use Rectangle Detection? | ${command.useRectangleDetection ? "Yes" : "No"} |
-| Use Saliency Analysis? | ${command.useSaliencyAnalysis ? "Yes" : "No"} |`}
+| Use Saliency Analysis? | ${command.useSaliencyAnalysis ? "Yes" : "No"} |
+
+${
+  command.setupConfig
+    ? `## Setup Config
+
+| Field | Description | Value |
+| --- | --- | --- |
+${command.setupConfig.fields
+  .map(
+    (field) =>
+      `| ${field.name} | ${
+        field.description == undefined || field.description.trim().length == 0 ? "None" : field.description
+      } | ${field.value == undefined || field.value.toString().trim().length == 0 ? "None" : field.value} |`
+  )
+  .join("\n")}
+`
+    : ``
+}`}
             />
           }
           actions={
@@ -204,7 +226,9 @@ ${command.categories?.sort((a, b) => (a > b ? 1 : -1)).join(", ") || "Other"}
                       scriptKind: command.scriptKind,
                       temperature: command.temperature,
                       model: command.model,
+                      setupConfig: command.setupConfig,
                     }}
+                    setCommands={setCommands}
                   />
                 }
                 icon={Icon.ArrowRight}
@@ -268,6 +292,7 @@ ${command.categories?.sort((a, b) => (a > b ? 1 : -1)).join(", ") || "Other"}
                           categories: command.categories?.join(", ") || "Other",
                           temperature:
                             command.temperature == undefined || command.temperature == "" ? "1.0" : command.temperature,
+                          setupConfig: command.setupConfig ? JSON.stringify(command.setupConfig) : "",
                         },
                       }),
                     }).then((res) => {
@@ -399,6 +424,9 @@ ${command.categories?.sort((a, b) => (a > b ? 1 : -1)).join(", ") || "Other"}
                           command.temperature == undefined || command.temperature == "" ? "1.0" : command.temperature,
                         favorited: command.favorited ? command.favorited : false,
                         model: command.model,
+                        setupConfig: command.setupConfig,
+                        installedFromStore: command.installedFromStore,
+                        setupLocked: command.setupLocked,
                       }}
                       setCommands={setCommands}
                     />
@@ -439,6 +467,9 @@ ${command.categories?.sort((a, b) => (a > b ? 1 : -1)).join(", ") || "Other"}
                           command.temperature == undefined || command.temperature == "" ? "1.0" : command.temperature,
                         favorited: false,
                         model: command.model,
+                        setupConfig: command.setupConfig,
+                        installedFromStore: command.installedFromStore,
+                        setupLocked: command.setupLocked,
                       }}
                       setCommands={setCommands}
                       duplicate={true}

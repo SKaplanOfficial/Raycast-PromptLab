@@ -11,9 +11,18 @@ import {
   getPreferenceValues,
 } from "@raycast/api";
 import { useForm, FormValidation } from "@raycast/utils";
-import { Command, ExtensionPreferences } from "../utils/types";
-import { useState } from "react";
 import { useModels } from "../hooks/useModels";
+import {
+  BooleanConfigField,
+  Command,
+  CommandConfig,
+  ExtensionPreferences,
+  NumberConfigField,
+  StringConfigField,
+} from "../utils/types";
+import { Fragment, useEffect, useState } from "react";
+import * as crypto from "crypto";
+import { useRef } from "react";
 
 interface CommandFormValues {
   name: string;
@@ -57,8 +66,148 @@ export default function CommandForm(props: {
   const models = useModels();
   const { pop } = useNavigation();
 
+  const [setupFields, setSetupFields] = useState<
+    {
+      associatedConfigField: string;
+      name: string;
+      value: string | boolean;
+      placeholder: string;
+      info: string;
+    }[]
+  >([]);
+  const [enableSetupEditing, setEnableSetupEditing] = useState<boolean>(oldData != undefined && !oldData.setupLocked);
+  const lastAddedFieldRef = useRef<Form.TextField>(null);
+  const [currentFieldFocus, setCurrentFieldFocus] = useState<number>(-1);
+  let lastFieldContext = "";
+  const setupFieldSections = setupFields.reduce((acc, current) => {
+    if (!acc.find((entry) => entry[1] == current.associatedConfigField)) {
+      return [
+        ...acc,
+        [
+          current.value == undefined || current.value.toString().trim() == ""
+            ? `Setup Field ${acc.length + 1}`
+            : (current.value as string),
+          current.associatedConfigField,
+        ],
+      ];
+    }
+    return acc;
+  }, [] as string[][]);
+
   let maxPromptLength = oldData?.minNumFiles == "0" ? 3000 : 500;
   const preferences = getPreferenceValues<ExtensionPreferences>();
+
+  useEffect(() => {
+    lastAddedFieldRef.current?.focus();
+  }, [currentFieldFocus]);
+
+  useEffect(() => {
+    if (oldData && oldData.setupConfig) {
+      const fields = [] as {
+        associatedConfigField: string;
+        name: string;
+        value: string | boolean;
+        placeholder: string;
+        info: string;
+      }[];
+
+      oldData.setupConfig.fields.forEach((field) => {
+        const configFieldID = crypto.randomUUID();
+        if (enableSetupEditing) {
+          fields.push({
+            associatedConfigField: configFieldID,
+            name: "Field Name",
+            value: field.name,
+            placeholder: "Name of the field",
+            info: "The name of the field to be displayed in the command setup form.",
+          });
+
+          fields.push({
+            associatedConfigField: configFieldID,
+            name: "Description",
+            value: field.description,
+            placeholder: "What is this field for?",
+            info: "A description of what this field is for. This will be displayed as field information in the command setup form.",
+          });
+
+          fields.push({
+            associatedConfigField: configFieldID,
+            name: "Guide Text",
+            value: field.guideText,
+            placeholder: "Instructions for the user",
+            info: "Instructions for the user to follow when filling out this field. This will be displayed as a description above the field in the command setup form.",
+          });
+
+          fields.push({
+            associatedConfigField: configFieldID,
+            name: "Default Value",
+            value: field.value || field.defaultValue || "",
+            placeholder: "Default value for the field",
+            info: "The initial value for the field, if any. Leave blank for no default value.",
+          });
+        }
+
+        if ("regex" in field && enableSetupEditing) {
+          // StringConfigField
+          fields.push({
+            associatedConfigField: configFieldID,
+            name: "Minimum Length",
+            value: field.minLength,
+            placeholder: "Minimum number of characters",
+            info: "The minimum number of characters that must be entered for the field to be valid. Leave blank for no minimum length.",
+          });
+
+          fields.push({
+            associatedConfigField: configFieldID,
+            name: "Maximum Length",
+            value: field.maxLength,
+            placeholder: "Maximum number of characters",
+            info: "The maximum number of characters that can be entered for the field to be valid. Leave blank for no maximum length.",
+          });
+
+          fields.push({
+            associatedConfigField: configFieldID,
+            name: "Regex Test",
+            value: field.regex,
+            placeholder: "Regular expression to test",
+            info: "A regular expression that the field's value must match for it to be valid. Leave blank for no regular expression test.",
+          });
+        }
+
+        if ("min" in field && enableSetupEditing) {
+          fields.push({
+            associatedConfigField: configFieldID,
+            name: "Minimum Value",
+            value: "",
+            placeholder: "Minimum allowed value",
+            info: "The minimum value that can be entered for the field to be valid. Leave blank for no minimum value.",
+          });
+
+          fields.push({
+            associatedConfigField: configFieldID,
+            name: "Maximum Length",
+            value: "",
+            placeholder: "Maximum allowed value",
+            info: "The maximum value that can be entered for the field to be valid. Leave blank for no maximum value.",
+          });
+        }
+
+        if (!enableSetupEditing) {
+          fields.push({
+            associatedConfigField: configFieldID,
+            name: field.name == "Default Value" ? "Value" : field.name,
+            value:
+              "regex" in field || "min" in field
+                ? field.value || field.defaultValue || ""
+                : field.value || field.defaultValue || false,
+            placeholder: field.description,
+            info: field.guideText,
+          });
+        }
+      });
+      setSetupFields(fields);
+    }
+  }, [enableSetupEditing]);
 
   const { handleSubmit, itemProps } = useForm<CommandFormValues>({
     async onSubmit(values) {
@@ -66,7 +215,119 @@ export default function CommandForm(props: {
         values["outputKind"] = "none";
       }
 
-      await LocalStorage.setItem(values.name, JSON.stringify(values));
+      const commandObj: Command = {
+        name: values.name,
+        prompt: values.prompt,
+        icon: values.icon,
+        iconColor: values.iconColor,
+        minNumFiles: values.minNumFiles,
+        acceptedFileExtensions: values.acceptedFileExtensions,
+        useMetadata: values.useMetadata,
+        useAudioDetails: values.useAudioDetails,
+        useSoundClassification: values.useSoundClassification,
+        useSubjectClassification: values.useSubjectClassification,
+        useRectangleDetection: values.useRectangleDetection,
+        useBarcodeDetection: values.useBarcodeDetection,
+        useFaceDetection: values.useFaceDetection,
+        outputKind: values.outputKind,
+        actionScript: values.actionScript,
+        showResponse: values.showResponse,
+        description: values.description,
+        useSaliencyAnalysis: values.useSaliencyAnalysis,
+        author: values.author,
+        website: values.website,
+        version: values.version,
+        requirements: values.requirements,
+        scriptKind: values.scriptKind,
+        categories: values.categories,
+        temperature: values.temperature,
+        installedFromStore: oldData ? (oldData.installedFromStore == true ? true : false) : false,
+        setupLocked: !enableSetupEditing,
+      };
+
+      if (setupFields.length > 0) {
+        const commandConfig: CommandConfig = {
+          configVersion: "1.0.0",
+          fields: [],
+        };
+
+        const uniqueFields = setupFields.reduce((acc, current) => {
+          if (!acc.includes(current.associatedConfigField)) {
+            return acc.concat([current.associatedConfigField]);
+          }
+          return acc;
+        }, [] as string[]);
+
+        if (enableSetupEditing) {
+          uniqueFields.forEach((field) => {
+            const newField: NumberConfigField | BooleanConfigField | StringConfigField | object = {};
+            setupFields.forEach((setupField) => {
+              if (setupField.associatedConfigField == field) {
+                switch (setupField.name) {
+                  case "Field Name":
+                    (newField as NumberConfigField | BooleanConfigField | StringConfigField).name =
+                      setupField.value as string;
+                    break;
+                  case "Description":
+                    (newField as NumberConfigField | BooleanConfigField | StringConfigField).description =
+                      setupField.value as string;
+                    break;
+                  case "Guide Text":
+                    (newField as NumberConfigField | BooleanConfigField | StringConfigField).guideText =
+                      setupField.value as string;
+                    break;
+                  case "Default Value":
+                    (newField as NumberConfigField | BooleanConfigField | StringConfigField).defaultValue =
+                      setupField.value;
+                    break;
+                  case "Minimum Length":
+                    (newField as StringConfigField).minLength = setupField.value as string;
+                    break;
+                  case "Maximum Length":
+                    (newField as StringConfigField).maxLength = setupField.value as string;
+                    break;
+                  case "Regex Test":
+                    (newField as StringConfigField).regex = setupField.value as string;
+                    break;
+                  case "Minimum Value":
+                    (newField as NumberConfigField).min = setupField.value as string;
+                    break;
+                  case "Maximum Value":
+                    (newField as NumberConfigField).max = setupField.value as string;
+                    break;
+                }
+              }
+            });
+            if (oldData && oldData.setupConfig) {
+              const oldField = oldData.setupConfig.fields.find(
+                (field) => field.name == (newField as NumberConfigField | BooleanConfigField | StringConfigField).name
+              );
+              if (oldField) {
+                (newField as NumberConfigField | BooleanConfigField | StringConfigField).value = oldField.value;
+              }
+            }
+            commandConfig.fields.push(newField as NumberConfigField | BooleanConfigField | StringConfigField);
+          });
+        } else {
+          setupFields.forEach((field) => {
+            if (oldData && oldData.setupConfig) {
+              const oldField = oldData.setupConfig.fields.find((field) => field.name == field.name);
+              const newField = { ...oldField, value: field.value };
+              const newFields = [
+                ...oldData.setupConfig.fields
+                  .map((field) => ({ ...field }))
+                  .filter((field) => field.name != field.name),
+                newField,
+              ];
+              commandConfig.fields = newFields as (NumberConfigField | BooleanConfigField | StringConfigField)[];
+            }
+          });
+        }
+        commandObj.setupConfig = commandConfig;
+      }
+
+      await LocalStorage.setItem(values.name, JSON.stringify(commandObj));
+
       if (oldData && oldData.name != values.name) {
         await LocalStorage.removeItem(oldData.name);
       }
@@ -146,6 +407,220 @@ export default function CommandForm(props: {
             title={oldData && !duplicate ? "Save Command" : "Create Command"}
             onSubmit={handleSubmit}
           />
+          <Action
+            title={enableSetupEditing ? "Lock Setup Fields" : "Unlock Setup Fields"}
+            icon={enableSetupEditing ? Icon.Lock : Icon.LockUnlocked}
+            shortcut={{ modifiers: ["cmd", "shift"], key: "s" }}
+            onAction={async () => {
+              const currentValue = enableSetupEditing;
+              setEnableSetupEditing(!enableSetupEditing);
+              await showToast({
+                title: `Setup Fields ${currentValue ? "Locked" : "Unlocked"}`,
+                message: `Setup fields are now ${
+                  currentValue
+                    ? "locked, meaning that you cannot configure their parameters apart from the current value."
+                    : "unlocked, meaning that you can edit their parameters, but not their active value."
+                }`,
+              });
+            }}
+          />
+
+          {enableSetupEditing ? (
+            <>
+              <ActionPanel.Section title="Add Setup Fields">
+                <Action
+                  title="Add Text Entry Field"
+                  icon={Icon.TextInput}
+                  shortcut={{ modifiers: ["cmd", "shift"], key: "t" }}
+                  onAction={() => {
+                    const fields = [...setupFields];
+                    const configFieldID = crypto.randomUUID();
+                    fields.push({
+                      associatedConfigField: configFieldID,
+                      name: "Field Name",
+                      value: "",
+                      placeholder: "Name of the field",
+                      info: "The name of the field to be displayed in the command setup form.",
+                    });
+
+                    fields.push({
+                      associatedConfigField: configFieldID,
+                      name: "Description",
+                      value: "",
+                      placeholder: "What is this field for?",
+                      info: "A description of what this field is for. This will be displayed as field information in the command setup form.",
+                    });
+
+                    fields.push({
+                      associatedConfigField: configFieldID,
+                      name: "Guide Text",
+                      value: "",
+                      placeholder: "Instructions for the user",
+                      info: "Instructions for the user to follow when filling out this field. This will be displayed as a description above the field in the command setup form.",
+                    });
+
+                    fields.push({
+                      associatedConfigField: configFieldID,
+                      name: "Default Value",
+                      value: "",
+                      placeholder: "Default value for the field",
+                      info: "The initial value for the field, if any. Leave blank for no default value.",
+                    });
+
+                    fields.push({
+                      associatedConfigField: configFieldID,
+                      name: "Minimum Length",
+                      value: "",
+                      placeholder: "Minimum number of characters",
+                      info: "The minimum number of characters that must be entered for the field to be valid. Leave blank for no minimum length.",
+                    });
+
+                    fields.push({
+                      associatedConfigField: configFieldID,
+                      name: "Maximum Length",
+                      value: "",
+                      placeholder: "Maximum number of characters",
+                      info: "The maximum number of characters that can be entered for the field to be valid. Leave blank for no maximum length.",
+                    });
+
+                    fields.push({
+                      associatedConfigField: configFieldID,
+                      name: "Regex Test",
+                      value: "",
+                      placeholder: "Regular expression to test",
+                      info: "A regular expression that the field's value must match for it to be valid. Leave blank for no regular expression test.",
+                    });
+                    setSetupFields(fields);
+                    setCurrentFieldFocus(fields.length - 7);
+                  }}
+                />
+                <Action
+                  title="Add Number Entry Field"
+                  icon={Icon.Hashtag}
+                  shortcut={{ modifiers: ["cmd", "shift"], key: "n" }}
+                  onAction={() => {
+                    const fields = [...setupFields];
+                    const configFieldID = crypto.randomUUID();
+                    fields.push({
+                      associatedConfigField: configFieldID,
+                      name: "Field Name",
+                      value: "",
+                      placeholder: "Name of the field",
+                      info: "The name of the field to be displayed in the command setup form.",
+                    });
+
+                    fields.push({
+                      associatedConfigField: configFieldID,
+                      name: "Description",
+                      value: "",
+                      placeholder: "What is this field for?",
+                      info: "A description of what this field is for. This will be displayed as field information in the command setup form.",
+                    });
+
+                    fields.push({
+                      associatedConfigField: configFieldID,
+                      name: "Guide Text",
+                      value: "",
+                      placeholder: "Instructions for the user",
+                      info: "Instructions for the user to follow when filling out this field. This will be displayed as a description above the field in the command setup form.",
+                    });
+
+                    fields.push({
+                      associatedConfigField: configFieldID,
+                      name: "Default Value",
+                      value: "",
+                      placeholder: "Default value for the field",
+                      info: "The initial value for the field, if any. Leave blank for no default value.",
+                    });
+
+                    fields.push({
+                      associatedConfigField: configFieldID,
+                      name: "Minimum Value",
+                      value: "",
+                      placeholder: "Minimum allowed value",
+                      info: "The minimum value that can be entered for the field to be valid. Leave blank for no minimum value.",
+                    });
+
+                    fields.push({
+                      associatedConfigField: configFieldID,
+                      name: "Maximum Length",
+                      value: "",
+                      placeholder: "Maximum allowed value",
+                      info: "The maximum value that can be entered for the field to be valid. Leave blank for no maximum value.",
+                    });
+                    setSetupFields(fields);
+                    setCurrentFieldFocus(fields.length - 6);
+                  }}
+                />
+                <Action
+                  title="Add Boolean Selection Field"
+                  icon={Icon.LightBulbOff}
+                  shortcut={{ modifiers: ["cmd", "shift"], key: "b" }}
+                  onAction={() => {
+                    const fields = [...setupFields];
+                    const configFieldID = crypto.randomUUID();
+                    fields.push({
+                      associatedConfigField: configFieldID,
+                      name: "Field Name",
+                      value: "",
+                      placeholder: "Name of the field",
+                      info: "The name of the field to be displayed in the command setup form.",
+                    });
+
+                    fields.push({
+                      associatedConfigField: configFieldID,
+                      name: "Description",
+                      value: "",
+                      placeholder: "What is this field for?",
+                      info: "A description of what this field is for. This will be displayed as field information in the command setup form.",
+                    });
+
+                    fields.push({
+                      associatedConfigField: configFieldID,
+                      name: "Guide Text",
+                      value: "",
+                      placeholder: "Instructions for the user",
+                      info: "Instructions for the user to follow when filling out this field. This will be displayed as a description above the field in the command setup form.",
+                    });
+
+                    fields.push({
+                      associatedConfigField: configFieldID,
+                      name: "Default Value",
+                      value: false,
+                      placeholder: "Default value for the field",
+                      info: "The initial value for the field, if any. Leave blank for no default value.",
+                    });
+                    setSetupFields(fields);
+                    setCurrentFieldFocus(fields.length - 4);
+                  }}
+                />
+              </ActionPanel.Section>
+
+              {setupFieldSections.length > 0 ? (
+                <ActionPanel.Section title="Remove Setup Fields">
+                  {setupFieldSections.map((section) => {
+                    const sectionName = section[0];
+                    return (
+                      <Action
+                        title={`Delete ${sectionName}`}
+                        icon={Icon.Trash}
+                        style={Action.Style.Destructive}
+                        key={`removeField-${sectionName}`}
+                        onAction={async () => {
+                          const fields = [...setupFields.map((field) => ({ ...field }))].filter(
+                            (field) => field.associatedConfigField != section[1]
+                          );
+                          setSetupFields(fields);
+                          setCurrentFieldFocus(-1);
+                          await showToast({ title: `Deleted ${sectionName}` });
+                        }}
+                      />
+                    );
+                  })}
+                </ActionPanel.Section>
+              ) : null}
+            </>
+          ) : null}
         </ActionPanel>
       }
     >
@@ -278,14 +753,9 @@ export default function CommandForm(props: {
         />
       ) : null}
 
-      <Form.Dropdown
-        title="Model"
-        info="The model to use for this command."
-        defaultValue={models.models.find((model) => model.isDefault)?.id || ""}
-        {...itemProps.model}
-      >
+      <Form.Dropdown title="Model" info="The model to use for this command." {...itemProps.model}>
         {models.models.map((model) => (
-          <Form.Dropdown.Item title={model.name} value={model.id} />
+          <Form.Dropdown.Item title={model.name} value={model.id} key={model.id} />
         ))}
       </Form.Dropdown>
 
@@ -427,6 +897,108 @@ export default function CommandForm(props: {
           icon={{ source: Icon.Calculator, tintColor: Color.Green }}
         />
       </Form.TagPicker>
+
+      {setupFields.length > 0 ? <Form.Separator /> : null}
+      {setupFields.length > 0 ? (
+        <Form.Description title="Config Options" text="Customization options for this command." />
+      ) : null}
+      {setupFields.map((field, index) => {
+        let showSeparator = false;
+        const sectionIndex = setupFieldSections.findIndex((section) => section[1] == field.associatedConfigField);
+        if (lastFieldContext != field.associatedConfigField && sectionIndex != 0 && enableSetupEditing) {
+          showSeparator = true;
+          lastFieldContext = field.associatedConfigField;
+        }
+
+        const isBoolean =
+          setupFields
+            .filter((f) => f.associatedConfigField == field.associatedConfigField)
+            .find((f) => {
+              return f.name == "Regex Test" || f.name == "Minimum Value";
+            }) == undefined;
+
+        if (!enableSetupEditing) {
+          return (
+            <Fragment key={`fragment${field.associatedConfigField}${index}`}>
+              {showSeparator ? <Form.Separator key={`separator${field.associatedConfigField}${index}`} /> : null}
+              <Form.Description
+                title={field.name}
+                text={field.info || ""}
+                key={`setupFieldDescriptions${field.associatedConfigField}${index}`}
+              />
+              {field.name == "Value" && isBoolean ? (
+                <Form.Checkbox
+                  label={field.name}
+                  info={field.placeholder}
+                  key={`${field.associatedConfigField}${index}`}
+                  id={`${field.associatedConfigField}${field.name}`}
+                  defaultValue={field.value as boolean}
+                  onChange={(value) => {
+                    const fields = [...setupFields.map((field) => ({ ...field }))];
+                    fields[index].value = value;
+                    setSetupFields(fields);
+                  }}
+                />
+              ) : (
+                <Form.TextField
+                  title={field.name}
+                  placeholder="Value for the field"
+                  info={field.placeholder}
+                  key={`${field.associatedConfigField}${index}`}
+                  id={`${field.associatedConfigField}${field.name}`}
+                  defaultValue={field.value as string}
+                  onChange={(value) => {
+                    const fields = [...setupFields.map((field) => ({ ...field }))];
+                    fields[index].value = value;
+                    setSetupFields(fields);
+                  }}
+                />
+              )}
+            </Fragment>
+          );
+        }
+
+        if (field.name == "Default Value" && isBoolean) {
+          return (
+            <Fragment key={`fragment${field.associatedConfigField}${index}`}>
+              {showSeparator ? <Form.Separator key={`separator${field.associatedConfigField}${index}`} /> : null}
+              <Form.Checkbox
+                title={field.name}
+                label={field.value ? "True" : "False"}
+                info={field.info}
+                key={`${field.associatedConfigField}${index}`}
+                id={`${field.associatedConfigField}${field.name}`}
+                defaultValue={field.value as boolean}
+                onChange={(value) => {
+                  const fields = [...setupFields];
+                  fields[index].value = value;
+                  setSetupFields(fields);
+                }}
+              />
+            </Fragment>
+          );
+        } else {
+          return (
+            <Fragment key={`fragment${field.associatedConfigField}${index}`}>
+              {showSeparator ? <Form.Separator key={`separator${field.associatedConfigField}${index}`} /> : null}
+              <Form.TextField
+                title={field.name}
+                placeholder={field.placeholder}
+                info={field.info}
+                key={`${field.associatedConfigField}${index}`}
+                id={`${field.associatedConfigField}${field.name}`}
+                defaultValue={field.value as string}
+                ref={index == currentFieldFocus ? lastAddedFieldRef : null}
+                onChange={(value) => {
+                  const fields = [...setupFields];
+                  fields[index].value = value;
+                  setSetupFields(fields);
+                }}
+              />
+            </Fragment>
+          );
+        }
+      })}
     </Form>
   );
 }
