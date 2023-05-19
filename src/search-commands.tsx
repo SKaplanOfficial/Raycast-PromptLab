@@ -22,6 +22,7 @@ import { getCommandJSON } from "./utils/command-utils";
 import CategoryDropdown from "./components/CategoryDropdown";
 import * as fs from "fs";
 import path from "path";
+import { execScript } from "./utils/scripts";
 
 export default function SearchCommand(props: { arguments: { commandName: string; queryInput: string } }) {
   const { commandName, queryInput } = props.arguments;
@@ -161,6 +162,7 @@ ${command.categories?.sort((a, b) => (a > b ? 1 : -1)).join(", ") || "Other"}
 | --- | --- |
 | Output View | ${(command.outputKind?.at(0)?.toUpperCase() || "") + (command.outputKind?.substring(1) || "")} |
 | Show Response View | ${command.showResponse ? "Yes" : "No"} |
+| Speech Input? | ${command.useSpeech ? "Yes" : "No"} |
 | Minimum File Count | ${command.minNumFiles} |
 | Accepted File Extensions | ${
                 command.minNumFiles == "0"
@@ -178,6 +180,7 @@ ${command.categories?.sort((a, b) => (a > b ? 1 : -1)).join(", ") || "Other"}
 | Use Face Detection? | ${command.useFaceDetection ? "Yes" : "No"} |
 | Use Rectangle Detection? | ${command.useRectangleDetection ? "Yes" : "No"} |
 | Use Saliency Analysis? | ${command.useSaliencyAnalysis ? "Yes" : "No"} |
+| Model | ${command.model || "Not Specified"} |
 
 ${
   command.setupConfig
@@ -227,6 +230,7 @@ ${command.setupConfig.fields
                       temperature: command.temperature,
                       model: command.model,
                       setupConfig: command.setupConfig,
+                      useSpeech: command.useSpeech,
                     }}
                     setCommands={setCommands}
                   />
@@ -293,6 +297,7 @@ ${command.setupConfig.fields
                           temperature:
                             command.temperature == undefined || command.temperature == "" ? "1.0" : command.temperature,
                           setupConfig: command.setupConfig ? JSON.stringify(command.setupConfig) : "None",
+                          useSpeech: command.useSpeech ? "TRUE" : "FALSE",
                         },
                       }),
                     }).then((res) => {
@@ -301,7 +306,7 @@ ${command.setupConfig.fields
                         toast.title = "Success";
                         toast.message = `Added ${command.name} to the PromptLab Store`;
                       } else {
-                        console.log(res.statusText)
+                        console.log(res.statusText);
                         toast.style = Toast.Style.Failure;
                         toast.title = "Error";
                         toast.message = "Couldn't upload command";
@@ -428,6 +433,7 @@ ${command.setupConfig.fields
                         setupConfig: command.setupConfig,
                         installedFromStore: command.installedFromStore,
                         setupLocked: command.setupLocked,
+                        useSpeech: command.useSpeech,
                       }}
                       setCommands={setCommands}
                     />
@@ -471,6 +477,7 @@ ${command.setupConfig.fields
                         setupConfig: command.setupConfig,
                         installedFromStore: command.installedFromStore,
                         setupLocked: command.setupLocked,
+                        useSpeech: command.useSpeech,
                       }}
                       setCommands={setCommands}
                       duplicate={true}

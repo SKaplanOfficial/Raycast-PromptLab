@@ -19,7 +19,6 @@ export default async function runModel(basePrompt: string, prompt: string, input
     if (!environment.canAccess(AI)) {
       ("");
     }
-    console.log("here");
     return await AI.ask(preferences.promptPrefix + prompt + preferences.promptSuffix);
   } else if (preferences.modelEndpoint.includes(":")) {
     // If the endpoint is a URL, use the fetch hook

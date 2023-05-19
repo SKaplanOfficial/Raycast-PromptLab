@@ -121,6 +121,7 @@ ${
 | --- | --- |
 | Output View | ${(command.outputKind?.at(0)?.toUpperCase() || "") + (command.outputKind?.substring(1) || "")} |
 | Show Response View | ${command.showResponse == "TRUE" ? "Yes" : "No"} |
+| Speech Input? | ${command.useSpeech ? "Yes" : "No"} |
 | Minimum File Count | ${command.minNumFiles} |
 | Accepted File Extensions | ${
               command.minNumFiles == "0"
@@ -195,9 +196,13 @@ ${(JSON.parse(command.setupConfig) as CommandConfig).fields
                   categories: command.categories?.split(", ") || ["Other"],
                   temperature: command.temperature,
                   favorited: false,
-                  setupConfig: command.setupConfig?.length && command.setupConfig != "None" ? JSON.parse(command.setupConfig) : undefined,
+                  setupConfig:
+                    command.setupConfig?.length && command.setupConfig != "None"
+                      ? JSON.parse(command.setupConfig)
+                      : undefined,
                   installedFromStore: true,
                   setupLocked: true,
+                  useSpeech: command.useSpeech == "TRUE" ? true : false,
                 };
                 LocalStorage.setItem(cmdName, JSON.stringify(commandData)).then(() => {
                   showToast({ title: "Command Installed", message: `${command.name}" has been installed.` });
@@ -237,6 +242,7 @@ ${(JSON.parse(command.setupConfig) as CommandConfig).fields
                       useSaliencyAnalysis: command.useSaliencyAnalysis == "TRUE" ? true : false,
                       scriptKind: command.scriptKind,
                       temperature: command.temperature,
+                      useSpeech: command.useSpeech == "TRUE" ? true : false,
                     }}
                   />
                 }
@@ -292,9 +298,13 @@ ${(JSON.parse(command.setupConfig) as CommandConfig).fields
                       temperature:
                         command.temperature == undefined || command.temperature == "" ? "1.0" : command.temperature,
                       favorited: false,
-                      setupConfig: command.setupConfig?.length && command.setupConfig != "None" ? JSON.parse(command.setupConfig) : undefined,
+                      setupConfig:
+                        command.setupConfig?.length && command.setupConfig != "None"
+                          ? JSON.parse(command.setupConfig)
+                          : undefined,
                       installedFromStore: false,
                       setupLocked: false,
+                      useSpeech: command.useSpeech == "TRUE" ? true : false,
                     }}
                     setCommands={setMyCommands}
                     duplicate={true}
@@ -349,9 +359,13 @@ ${(JSON.parse(command.setupConfig) as CommandConfig).fields
                       categories: command.categories?.split(", ") || ["Other"],
                       temperature: command.temperature,
                       favorited: false,
-                      setupConfig: command.setupConfig?.length && command.setupConfig != "None" ? JSON.parse(command.setupConfig) : undefined,
+                      setupConfig:
+                        command.setupConfig?.length && command.setupConfig != "None"
+                          ? JSON.parse(command.setupConfig)
+                          : undefined,
                       installedFromStore: true,
                       setupLocked: true,
+                      useSpeech: command.useSpeech == "TRUE" ? true : false,
                     };
                     await LocalStorage.setItem(cmdName, JSON.stringify(commandData));
                     successes.push(command.name);

@@ -12,6 +12,7 @@ import CommandGridView from "./CommandGridView";
 import { useCachedState } from "@raycast/utils";
 import { useModels } from "../hooks/useModels";
 import CommandSetupForm from "./CommandSetupForm";
+import SpeechInputView from "./SpeechInputView";
 
 export default function CommandResponse(props: {
   commandName: string;
@@ -27,6 +28,7 @@ export default function CommandResponse(props: {
   const [, setPreviousCommand] = useCachedState<string>("promptlab-previous-command", "");
   const [, setPreviousResponse] = useCachedState<string>("promptlab-previous-response", "");
   const [, setPreviousPrompt] = useCachedState<string>("promptlab-previous-prompt", "");
+  const [speechInput, setSpeechInput] = useState<string>();
   const [options, setOptions] = useState<CommandOptions>({ ...props.options });
 
   const { pop } = useNavigation();
@@ -38,10 +40,13 @@ export default function CommandResponse(props: {
       ? useFileContents(options)
       : { selectedFiles: [], contentPrompts: [], loading: false, errorType: undefined };
 
-  const replacements = useReplacements(input, selectedFiles);
+  const replacements =
+    options.useSpeech != undefined || speechInput?.length
+      ? useReplacements(speechInput, selectedFiles)
+      : useReplacements(input, selectedFiles);
 
   useEffect(() => {
-    if (loading || !loadingData) {
+    if (loading || (!loadingData && !(options.useSpeech == undefined || speechInput?.length))) {
       return;
     }
 
@@ -62,7 +67,7 @@ export default function CommandResponse(props: {
 
       setSubstitutedPrompt(subbedPrompt);
     });
-  }, [replacements, loading]);
+  }, [loading, speechInput]);
 
   const contentPromptString = contentPrompts.join("\n");
   const fullPrompt = (substitutedPrompt.replaceAll("{{contents}}", contentPromptString) + contentPromptString).replace(
@@ -76,7 +81,9 @@ export default function CommandResponse(props: {
     input || contentPromptString,
     options.temperature == undefined ? "1.0" : options.temperature,
     !loadingData &&
-      ((options.minNumFiles != undefined && options.minNumFiles == 0) || (contentPrompts.length > 0 && !shouldCancel)),
+      ((options.minNumFiles != undefined && options.minNumFiles == 0) ||
+        (contentPrompts.length > 0 && !shouldCancel)) &&
+      (!options.useSpeech || (speechInput != "" && speechInput != undefined)),
     models.models.find((model) => model.id == options.model)
   );
 
@@ -167,6 +174,10 @@ export default function CommandResponse(props: {
     return (
       <CommandSetupForm commandName={commandName} options={options} setCommands={setCommands} setOptions={setOptions} />
     );
+  }
+
+  if (options.useSpeech && !speechInput) {
+    return <SpeechInputView prompt={prompt} setSpeechInput={setSpeechInput} />;
   }
 
   if (options.outputKind == "list") {

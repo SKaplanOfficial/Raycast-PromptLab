@@ -52,6 +52,7 @@ interface CommandFormValues {
   temperature?: string;
   favorited?: boolean;
   model?: string;
+  useSpeech?: boolean;
 }
 
 export default function CommandForm(props: {
@@ -243,6 +244,7 @@ export default function CommandForm(props: {
         temperature: values.temperature,
         installedFromStore: oldData ? (oldData.installedFromStore == true ? true : false) : false,
         setupLocked: !enableSetupEditing,
+        useSpeech: values.useSpeech,
       };
 
       if (setupFields.length > 0) {
@@ -373,6 +375,7 @@ export default function CommandForm(props: {
       temperature: "1.0",
       favorited: false,
       model: "",
+      useSpeech: false,
     },
     validation: {
       name: FormValidation.Required,
@@ -722,6 +725,13 @@ export default function CommandForm(props: {
         value={showResponse}
         onChange={setShowResponse}
         info="If checked, the AI's output will be displayed in Raycast. Disabling this is only useful if you provide an action script."
+      />
+
+      <Form.Checkbox
+        title="Speech Input"
+        label="Use Speech Input"
+        {...itemProps.useSpeech}
+        info="If checked, the command will accept speech input from the user prior to running the prompt. The speech input can be accessed using the {{input}} placeholder."
       />
 
       <Form.TextField

@@ -106,6 +106,7 @@ export interface CommandOptions {
   temperature?: string;
   model?: string;
   setupConfig?: CommandConfig;
+  useSpeech?: boolean;
 }
 
 export interface StringConfigField {
@@ -176,6 +177,7 @@ export interface Command {
   setupConfig?: CommandConfig;
   installedFromStore?: boolean;
   setupLocked?: boolean;
+  useSpeech?: boolean;
 }
 
 /**
@@ -211,6 +213,7 @@ export interface StoreCommand {
   model?: string;
   favorited?: boolean;
   setupConfig?: string;
+  useSpeech?: string;
 }
 
 /** Output from a model endpoint */

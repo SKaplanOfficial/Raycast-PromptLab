@@ -12,18 +12,53 @@ import * as util from "util";
 export const execScript = async (
   script: string,
   args: (string | boolean | number)[],
-  language = "AppleScript"
+  language = "AppleScript",
+  stderrCallback?: (data: string) => void
 ): Promise<string> => {
+  let data = "";
+  let loading = true;
   if (script.startsWith("/")) {
-    const execPromise = util.promisify(exec);
-    const { stdout, stderr } = await execPromise(`osascript '${script}' -l ${language} ${args.join(" ")}`);
-    if (stderr) {
-      console.error(stderr);
-    }
-    return stdout;
+    const { stdout, stderr } = exec(`osascript '${script}' -l ${language} ${args.join(" ")}`);
+    stdout?.on("data", (chunk) => {
+      data += chunk.toString();
+    });
+    stdout?.on("end", () => {
+      loading = false;
+    });
+    stderr?.on("data", (chunk) => {
+      if (stderrCallback) {
+        stderrCallback(chunk.toString());
+      }
+    });
+    stderr?.on("end", () => {
+      loading = false;
+    });
   } else {
-    return await runAppleScript(script);
+    const { stdout, stderr } = exec(`osascript -e '${script}' -l ${language} ${args.join(" ")}`);
+    stdout?.on("data", (chunk) => {
+      data += chunk.toString();
+    });
+    stdout?.on("end", () => {
+      loading = false;
+    });
+    stderr?.on("data", (chunk) => {
+      if (stderrCallback) {
+        stderrCallback(chunk.toString());
+      }
+    });
+    stderr?.on("end", () => {
+      loading = false;
+    });
   }
+
+  const waitForFinish = async () => {
+    while (loading) {
+      await util.promisify(setTimeout)(100);
+    }
+    return data;
+  };
+
+  return await waitForFinish();
 };
 
 /** AppleScriptObjC framework and library imports */

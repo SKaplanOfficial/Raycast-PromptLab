@@ -39,7 +39,13 @@ export const useReplacements = (
 
   return {
     "{{input}}": async () => {
-      return input || (await getSelectedText()).substring(0, 3000);
+      return input || await (async () => {
+        try {
+          return await getSelectedText();
+        } catch (error) {
+          return "";
+        }
+      })();
     },
 
     // File Data
@@ -97,7 +103,7 @@ export const useReplacements = (
       try {
         return (await getSelectedText()).substring(0, 3000);
       } catch (error) {
-        console.log(error)
+        console.log(error);
         return "";
       }
     },

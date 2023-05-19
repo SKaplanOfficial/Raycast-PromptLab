@@ -1,11 +1,4 @@
-import {
-  Action,
-  ActionPanel,
-  Form,
-  showToast,
-  LocalStorage,
-  useNavigation,
-} from "@raycast/api";
+import { Action, ActionPanel, Form, showToast, LocalStorage, useNavigation } from "@raycast/api";
 import {
   BooleanConfigField,
   Command,
@@ -75,6 +68,7 @@ export default function CommandSetupForm(props: {
 
   return (
     <Form
+      navigationTitle={commandName}
       actions={
         <ActionPanel>
           <Action.SubmitForm title="Save Configuration" onSubmit={() => setFormSubmitted(true)} />
@@ -84,13 +78,13 @@ export default function CommandSetupForm(props: {
       <Form.Description title="Setup" text="Please fill out the following fields to set up this command." />
       {setupFields.map((field, index) => (
         <Fragment key={`fragment${index}`}>
-          <Form.Description title={field.name} text={field.guideText} key={`fieldDescription${index}`} />
+          <Form.Description title={field.name} text={field.description} key={`fieldDescription${index}`} />
           {"regex" in field || "min" in field ? (
             <Form.TextField
               key={`field${index}`}
               id={`field${index}`}
               title="Value"
-              placeholder={field.description}
+              info={field.guideText}
               error={field.error}
               defaultValue={field.defaultValue as string}
               onChange={(value) => {
@@ -107,6 +101,7 @@ export default function CommandSetupForm(props: {
               key={`field${index}`}
               id={`field${index}`}
               label="Value"
+              info={field.guideText}
               error={field.error}
               defaultValue={field.defaultValue as boolean}
               onChange={(value) => {

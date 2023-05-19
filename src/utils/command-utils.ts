@@ -228,7 +228,7 @@ export const getCommandJSON = (command: Command | StoreCommand) => {
 
 const camelize = (str: string) => {
   return str.toLowerCase().replace(/[^a-zA-Z0-9]+(.)/g, (m, chr) => chr.toUpperCase());
-}
+};
 
 /**
  * Run placeholder replacements on a prompt.
