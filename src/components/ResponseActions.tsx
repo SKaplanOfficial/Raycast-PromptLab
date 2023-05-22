@@ -32,8 +32,24 @@ export default function ResponseActions(props: {
   files?: string[];
   listItem?: string;
   cancel: () => void;
+  speaking?: boolean;
+  stopSpeech?: () => void;
+  restartSpeech?: () => void;
 }) {
-  const { commandName, commandSummary, options, responseText, promptText, reattempt, files, listItem, cancel } = props;
+  const {
+    commandName,
+    commandSummary,
+    options,
+    responseText,
+    promptText,
+    reattempt,
+    files,
+    listItem,
+    cancel,
+    stopSpeech,
+    speaking,
+    restartSpeech,
+  } = props;
   const preferences = getPreferenceValues<ExtensionPreferences>();
 
   const actions = [
@@ -110,18 +126,41 @@ export default function ResponseActions(props: {
           <Action.CopyToClipboard title="Copy Item" content={listItem} />
         </ActionPanel.Section>
       ) : null}
+
+      {options.speakResponse ? (
+        <ActionPanel.Section title="Speech Actions">
+          {speaking ? (
+            <Action
+              title="Stop Speech"
+              icon={Icon.SpeakerOff}
+              onAction={() => stopSpeech?.()}
+              shortcut={{ modifiers: ["cmd", "shift"], key: "s" }}
+            />
+          ) : (
+            <Action
+              title="Restart Speech"
+              icon={Icon.SpeakerOff}
+              onAction={() => restartSpeech?.()}
+              shortcut={{ modifiers: ["cmd", "shift"], key: "r" }}
+            />
+          )}
+        </ActionPanel.Section>
+      ) : null}
+
       <ActionPanel.Section title="Prompt Actions">{actionComponents}</ActionPanel.Section>
 
-      <ActionPanel.Section title="File Actions">
-        {files?.map((file, index) => (
-          <Action.Open
-            title={`Open ${file.split("/").at(-1)}`}
-            target={file}
-            shortcut={{ modifiers: ["cmd", "shift"], key: (index + 1).toString() as Keyboard.KeyEquivalent }}
-            key={file}
-          />
-        ))}
-      </ActionPanel.Section>
+      {files?.length ? (
+        <ActionPanel.Section title="File Actions">
+          {files?.map((file, index) => (
+            <Action.Open
+              title={`Open ${file.split("/").at(-1)}`}
+              target={file}
+              shortcut={{ modifiers: ["cmd", "shift"], key: (index + 1).toString() as Keyboard.KeyEquivalent }}
+              key={file}
+            />
+          ))}
+        </ActionPanel.Section>
+      ) : null}
     </ActionPanel>
   );
 }

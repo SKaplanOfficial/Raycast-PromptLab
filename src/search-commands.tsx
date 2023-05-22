@@ -22,7 +22,6 @@ import { getCommandJSON } from "./utils/command-utils";
 import CategoryDropdown from "./components/CategoryDropdown";
 import * as fs from "fs";
 import path from "path";
-import { DebugStyle, logDebug } from "./utils/dev-utils";
 
 export default function SearchCommand(props: { arguments: { commandName: string; queryInput: string } }) {
   const { commandName, queryInput } = props.arguments;
@@ -33,8 +32,6 @@ export default function SearchCommand(props: { arguments: { commandName: string;
   );
 
   const preferences = getPreferenceValues<searchPreferences & ExtensionPreferences>();
-
-  logDebug(commands, DebugStyle.Trace)
 
   useEffect(() => {
     /* Add default commands if necessary, then get all commands */

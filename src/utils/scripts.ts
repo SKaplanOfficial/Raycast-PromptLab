@@ -1,6 +1,7 @@
-import { exec } from "child_process";
-import { runAppleScript, runAppleScriptSync } from "run-applescript";
+import { spawn } from "child_process";
+import { runAppleScript } from "run-applescript";
 import * as util from "util";
+import { DebugStyle, logDebug } from "./dev-utils";
 
 /**
  * Executes an OSA script using the `osascript` command.
@@ -9,56 +10,65 @@ import * as util from "util";
  * @param language The language of the script, defaults to AppleScript
  * @returns A promise that resolves to the output of the script.
  */
-export const execScript = async (
+export const execScript = (
   script: string,
   args: (string | boolean | number)[],
   language = "AppleScript",
   stderrCallback?: (data: string) => void
-): Promise<string> => {
+): { data: Promise<string>; sendMessage: (msg: string) => void } => {
   let data = "";
-  let loading = true;
-  if (script.startsWith("/")) {
-    const { stdout, stderr } = exec(`osascript '${script}' -l ${language} ${args.join(" ")}`);
-    stdout?.on("data", (chunk) => {
-      data += chunk.toString();
-    });
-    stdout?.on("end", () => {
-      loading = false;
-    });
-    stderr?.on("data", (chunk) => {
-      if (stderrCallback) {
-        stderrCallback(chunk.toString());
-      }
-    });
-    stderr?.on("end", () => {
-      loading = false;
-    });
-  } else {
-    const { stdout, stderr } = exec(`osascript -e '${script}' -l ${language} ${args.join(" ")}`);
-    stdout?.on("data", (chunk) => {
-      data += chunk.toString();
-    });
-    stdout?.on("end", () => {
-      loading = false;
-    });
-    stderr?.on("data", (chunk) => {
-      if (stderrCallback) {
-        stderrCallback(chunk.toString());
-      }
-    });
-    stderr?.on("end", () => {
-      loading = false;
-    });
-  }
+  let sendMessage: (msg: string) => void = (msg: string) => {
+    msg;
+  };
+  const proc = spawn("osascript", [
+    ...(script.startsWith("/") ? [] : ["-e"]),
+    script,
+    "-l",
+    language,
+    ...args.map((x) => x.toString()),
+  ]);
+
+  logDebug(
+    `Running shell command "osascript ${[
+      ...(script.startsWith("/") ? [] : ["-e"]),
+      script,
+      "-l",
+      language,
+      ...args.map((x) => x.toString()),
+    ].join(" ")}"`
+  );
+
+  proc.stdout?.on("data", (chunk) => {
+    data += chunk.toString();
+  });
+
+  proc.stderr?.on("data", (chunk) => {
+    if (stderrCallback) {
+      stderrCallback(chunk.toString());
+    }
+  });
+
+  proc.stdin.on("error", (err) => {
+    logDebug(`Error writing to stdin: ${err}`, DebugStyle.Error);
+  });
+
+  sendMessage = async (message: string) => {
+    if (message?.length > 0) {
+      proc.stdin.cork();
+      proc.stdin.write(`${message}\r\n`);
+      proc.stdin.pipe(proc.stdin, { end: false });
+      process.nextTick(() => proc.stdin.uncork());
+    }
+  };
 
   const waitForFinish = async () => {
-    while (loading) {
+    while (proc.stdout?.readable && proc.stderr?.readable && proc.stdin?.writable) {
       await util.promisify(setTimeout)(100);
     }
     return data;
   };
 
-  return await waitForFinish();
+  return { data: waitForFinish(), sendMessage: sendMessage };
 };
 
 /** AppleScriptObjC framework and library imports */
@@ -143,7 +153,7 @@ export const searchNearbyLocations = async (query: string) => {
         let addresses = [];
         search.startWithCompletionHandler((response, error) => {
           if (error.localizedDescription) {
-            console.log(error.localizedDescription.js);
+            console.error(error.localizedDescription.js);
           } else {
             const numItems = response.mapItems.count > 10 ? 10 : response.mapItems.count;
             for (let i = 0; i < numItems; i++) {

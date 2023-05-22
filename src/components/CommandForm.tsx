@@ -53,6 +53,8 @@ interface CommandFormValues {
   favorited?: boolean;
   model?: string;
   useSpeech?: boolean;
+  speakResponse?: boolean;
+  showInMenuBar?: boolean;
 }
 
 export default function CommandForm(props: {
@@ -245,6 +247,8 @@ export default function CommandForm(props: {
         installedFromStore: oldData ? (oldData.installedFromStore == true ? true : false) : false,
         setupLocked: !enableSetupEditing,
         useSpeech: values.useSpeech,
+        speakResponse: values.speakResponse,
+        showInMenuBar: values.showInMenuBar,
       };
 
       if (setupFields.length > 0) {
@@ -376,6 +380,8 @@ export default function CommandForm(props: {
       favorited: false,
       model: "",
       useSpeech: false,
+      speakResponse: false,
+      showInMenuBar: false,
     },
     validation: {
       name: FormValidation.Required,
@@ -681,6 +687,12 @@ export default function CommandForm(props: {
         />
       </Form.Dropdown>
 
+      <Form.Checkbox
+        label="Show In Menu Bar"
+        {...itemProps.showInMenuBar}
+        info="If checked, the command will appear in PromptLab's menu bar menu, if enabled."
+      />
+
       <Form.Separator />
 
       <Form.Description
@@ -728,8 +740,14 @@ export default function CommandForm(props: {
       />
 
       <Form.Checkbox
-        title="Speech Input"
-        label="Use Speech Input"
+        title="Speech"
+        label="Speak Response"
+        {...itemProps.speakResponse}
+        info="If checked, the output of the command will be spoken aloud by your computer using the system's text-to-speech engine. An action to stop speech will be added to the command's action panel."
+      />
+
+      <Form.Checkbox
+        label="Speak Input"
         {...itemProps.useSpeech}
         info="If checked, the command will accept speech input from the user prior to running the prompt. The speech input can be accessed using the {{input}} placeholder."
       />

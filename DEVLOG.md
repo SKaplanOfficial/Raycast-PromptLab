@@ -1,5 +1,12 @@
 # PromptLab DevLog - A More Detailed ChangeLog
 
+### 2023-05-21
+
+- Added "PromptLab Menu Bar" menu-bar command
+- Added option to show a command in the menu bar menu
+- Added option to speak responses
+- Added {{prompt:text}} placeholder
+ 
 ### 2023-05-17
 
 #### v1.1.0

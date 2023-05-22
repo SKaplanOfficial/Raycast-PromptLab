@@ -18,8 +18,9 @@ import {
 import { exec } from "child_process";
 import * as os from "os";
 import { Command, CommandOptions, StoreCommand } from "./types";
-import { LocalStorage, AI } from "@raycast/api";
+import { LocalStorage, AI, open } from "@raycast/api";
 import runModel from "./runModel";
+import { getExtensions } from "./file-utils";
 
 /**
  * Runs the action script of a PromptLab command, providing the AI response as the `response` variable.
@@ -243,6 +244,51 @@ export const replacePromptPlaceholders = async (prompt: string): Promise<string>
 };
 
 /**
+ * Runs commands specified by the `{{cmd:...}}` placeholder and removes the placeholder from the prompt.
+ * @param prompt The prompt to operate on.
+ * @returns A promise resolving to the prompt with the `{{cmd:...}}` placeholders removed.
+ */
+export const replaceCommandPlaceholders = async (prompt: string): Promise<string> => {
+  let subbedPrompt = prompt;
+  const commandMatches =
+    prompt.matchAll(/{{cmd:([^:}]*[\s\n\r]*)*?(:([^:}]*[\s\n\r]*)*?)?(:([^:}]*[\s\n\r]*)*?)?}}/g) || [];
+
+  let commandMatch = commandMatches.next();
+  while (!commandMatch.done) {
+    const cmd = commandMatch.value[1];
+    let ext = "";
+    let input = "";
+    if (commandMatch.value[3] != undefined && commandMatch.value[5] == undefined) {
+      input = commandMatch.value[3];
+    } else if (commandMatch.value[5] != undefined) {
+      ext = commandMatch.value[3];
+      input = commandMatch.value[5];
+    }
+
+    const extensions = await getExtensions();
+    const targetExtension = extensions.find((extension) => {
+      if (ext != "") {
+        return extension.name == ext || extension.title == ext;
+      } else {
+        return extension.commands.find((command) => command.name == cmd) != undefined;
+      }
+    });
+
+    if (targetExtension != undefined) {
+      const targetCommand = targetExtension.commands.find((command) => command.name == cmd);
+      if (targetCommand != undefined) {
+        open(targetCommand.deeplink);
+      }
+    }
+
+    subbedPrompt = subbedPrompt.replaceAll(commandMatch.value[0], "");
+    commandMatch = commandMatches.next();
+  }
+
+  return subbedPrompt;
+};
+
+/**
  * Gets the importable JSON string representation of a command.
  *
  * @param command The command to get the JSON representation of.
@@ -303,6 +349,7 @@ export const runReplacements = async (
   subbedPrompt = await replaceURLPlaceholders(subbedPrompt);
   subbedPrompt = await replaceFileSelectionPlaceholders(subbedPrompt);
   subbedPrompt = await replacePromptPlaceholders(subbedPrompt);
+  subbedPrompt = await replaceCommandPlaceholders(subbedPrompt);
 
   // Replace command placeholders
   for (const cmdString of Object.values(await LocalStorage.allItems())) {

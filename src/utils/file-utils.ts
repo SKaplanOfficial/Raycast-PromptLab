@@ -5,7 +5,7 @@ import { runAppleScript, runAppleScriptSync } from "run-applescript";
 import { audioFileExtensions, imageFileExtensions, textFileExtensions, videoFileExtensions } from "./file-extensions";
 import { useEffect, useState } from "react";
 import { defaultCommands } from "../data/default-commands";
-import { CommandOptions, ExtensionPreferences } from "./types";
+import { CommandOptions, Extension, ExtensionCommand, ExtensionPreferences } from "./types";
 import { execScript } from "./scripts";
 import path from "path";
 import { defaultModels } from "../data/default-models";
@@ -839,4 +839,89 @@ const getAudioTranscription = (filePath: string): string => {
     end speechRecognitionTask:didFinishSuccessfully:
     
     return analyzeSpeech("${filePath}")`);
+};
+
+/**
+ * Gets the list of extensions installed in Raycast.
+ * @returns The list of extensions as an array of {@link Extension} objects.
+ */
+export const getExtensions = async (): Promise<Extension[]> => {
+  return new Promise((resolve, reject) => {
+    const extensionsDir = environment.assetsPath.split("/").slice(0, -2).join("/");
+    fs.readdir(extensionsDir, (err, files) => {
+      const extensions: Extension[] = [];
+      if (err) {
+        console.error(err);
+        reject(err);
+      }
+
+      files
+        .filter((file) => !file.startsWith("."))
+        .forEach((file) => {
+          const extensionPath = `${extensionsDir}/${file}`;
+          const packagePath = `${extensionPath}/package.json`;
+          if (fs.existsSync(packagePath)) {
+            const extension: Extension = {
+              title: "",
+              name: "",
+              path: extensionPath,
+              author: "",
+              description: "",
+              commands: [],
+            };
+
+            const content = fs.readFileSync(packagePath).toString();
+            const packageJSON = JSON.parse(content);
+
+            if (packageJSON.title) {
+              extension.title = packageJSON.title;
+            }
+
+            if (packageJSON.author) {
+              extension.author = packageJSON.author;
+            }
+
+            if (packageJSON.description) {
+              extension.description = packageJSON.description;
+            }
+
+            if (packageJSON.author) {
+              extension.author = packageJSON.author;
+            }
+
+            if (packageJSON.commands) {
+              packageJSON.commands.forEach((entry: { [key: string]: string }) => {
+                const command: ExtensionCommand = {
+                  title: "",
+                  name: "",
+                  description: "",
+                  deeplink: "",
+                };
+
+                if (entry.title) {
+                  command.title = entry.title;
+                }
+
+                if (entry.name) {
+                  command.name = entry.name;
+                }
+
+                if (entry.description) {
+                  command.description = entry.description;
+                }
+
+                if (packageJSON.name && packageJSON.author && entry.name) {
+                  command.deeplink = `raycast://extensions/${packageJSON.author}/${packageJSON.name}/${entry.name}`;
+                }
+
+                extension.commands.push(command);
+              });
+            }
+
+            extensions.push(extension);
+          }
+        });
+      resolve(extensions);
+    });
+  });
 };

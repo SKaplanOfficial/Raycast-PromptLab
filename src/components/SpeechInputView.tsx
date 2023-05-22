@@ -20,7 +20,7 @@ export default function SpeechInputView(props: SpeechInputProps) {
       Promise.race([
         execScript(scriptPath, [], "JavaScript", (output) => {
           setCurrentInput((current: string) => current + output);
-        }),
+        }).data,
         new Promise((resolve) => setTimeout(resolve, 600000)),
       ]).then((final) => {
         if (typeof final == "string") {

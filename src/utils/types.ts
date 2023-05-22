@@ -66,6 +66,9 @@ export interface ModelManager {
   dummyModel: () => Model;
 }
 
+/**
+ * A PromptLab custom model.
+ */
 export interface Model {
   name: string;
   description: string;
@@ -139,6 +142,9 @@ export interface NumberConfigField {
   value?: string;
 }
 
+/**
+ * A PromptLab command setup configuration.
+ */
 export interface CommandConfig {
   fields: (NumberConfigField | BooleanConfigField | StringConfigField)[];
   configVersion: string;
@@ -261,4 +267,26 @@ export interface Chat {
   condensingStrategy: string;
   summaryLength: string;
   stats?: ChatStatistics;
+}
+
+/**
+ * A Raycast extension.
+ */
+export interface Extension {
+  title: string;
+  name: string;
+  path: string;
+  author: string;
+  description: string;
+  commands: ExtensionCommand[];
+}
+
+/**
+ * A Raycast extension command.
+ */
+export interface ExtensionCommand {
+  title: string;
+  name: string;
+  description: string;
+  deeplink: string;
 }
