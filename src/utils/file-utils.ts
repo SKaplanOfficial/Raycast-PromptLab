@@ -355,7 +355,7 @@ const getVideoDetails = async (filePath: string, options: CommandOptions): Promi
         options.useRectangleDetection || false,
       ],
       "JavaScript"
-    )
+    ).data
   );
   return `${videoVisionInstructions}`;
 };

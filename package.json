@@ -296,6 +296,12 @@
       "title": "Manage Models",
       "description": "Manage the models used to generate PromptLab command output",
       "mode": "view"
+    },
+    {
+      "name": "menubar-item",
+      "title": "PromptLab Menu Item",
+      "description": "Show PromptLab shortcut in the menu bar",
+      "mode": "menu-bar"
     }
   ],
   "dependencies": {

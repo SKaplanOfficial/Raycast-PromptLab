@@ -107,6 +107,7 @@ export interface CommandOptions {
   model?: string;
   setupConfig?: CommandConfig;
   useSpeech?: boolean;
+  speakResponse?: boolean;
 }
 
 export interface StringConfigField {
@@ -178,6 +179,8 @@ export interface Command {
   installedFromStore?: boolean;
   setupLocked?: boolean;
   useSpeech?: boolean;
+  speakResponse?: boolean;
+  showInMenuBar?: boolean;
 }
 
 /**
@@ -214,6 +217,7 @@ export interface StoreCommand {
   favorited?: boolean;
   setupConfig?: string;
   useSpeech?: string;
+  speakResponse?: string;
 }
 
 /** Output from a model endpoint */

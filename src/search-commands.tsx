@@ -22,7 +22,7 @@ import { getCommandJSON } from "./utils/command-utils";
 import CategoryDropdown from "./components/CategoryDropdown";
 import * as fs from "fs";
 import path from "path";
-import { execScript } from "./utils/scripts";
+import { DebugStyle, logDebug } from "./utils/dev-utils";
 
 export default function SearchCommand(props: { arguments: { commandName: string; queryInput: string } }) {
   const { commandName, queryInput } = props.arguments;
@@ -33,6 +33,8 @@ export default function SearchCommand(props: { arguments: { commandName: string;
   );
 
   const preferences = getPreferenceValues<searchPreferences & ExtensionPreferences>();
+
+  logDebug(commands, DebugStyle.Trace)
 
   useEffect(() => {
     /* Add default commands if necessary, then get all commands */
@@ -79,6 +81,8 @@ export default function SearchCommand(props: { arguments: { commandName: string;
           temperature: command.temperature,
           model: command.model,
           setupConfig: command.setupConfig,
+          useSpeech: command.useSpeech,
+          speakResponse: command.speakResponse,
         }}
         setCommands={setCommands}
       />
@@ -162,6 +166,7 @@ ${command.categories?.sort((a, b) => (a > b ? 1 : -1)).join(", ") || "Other"}
 | --- | --- |
 | Output View | ${(command.outputKind?.at(0)?.toUpperCase() || "") + (command.outputKind?.substring(1) || "")} |
 | Show Response View | ${command.showResponse ? "Yes" : "No"} |
+| Speak Response? | ${command.speakResponse ? "Yes" : "No"} |
 | Speech Input? | ${command.useSpeech ? "Yes" : "No"} |
 | Minimum File Count | ${command.minNumFiles} |
 | Accepted File Extensions | ${
@@ -231,6 +236,7 @@ ${command.setupConfig.fields
                       model: command.model,
                       setupConfig: command.setupConfig,
                       useSpeech: command.useSpeech,
+                      speakResponse: command.speakResponse,
                     }}
                     setCommands={setCommands}
                   />
@@ -298,6 +304,7 @@ ${command.setupConfig.fields
                             command.temperature == undefined || command.temperature == "" ? "1.0" : command.temperature,
                           setupConfig: command.setupConfig ? JSON.stringify(command.setupConfig) : "None",
                           useSpeech: command.useSpeech ? "TRUE" : "FALSE",
+                          speakResponse: command.speakResponse ? "TRUE" : "FALSE",
                         },
                       }),
                     }).then((res) => {
@@ -434,6 +441,8 @@ ${command.setupConfig.fields
                         installedFromStore: command.installedFromStore,
                         setupLocked: command.setupLocked,
                         useSpeech: command.useSpeech,
+                        speakResponse: command.speakResponse,
+                        showInMenuBar: command.showInMenuBar,
                       }}
                       setCommands={setCommands}
                     />
@@ -478,6 +487,8 @@ ${command.setupConfig.fields
                         installedFromStore: command.installedFromStore,
                         setupLocked: command.setupLocked,
                         useSpeech: command.useSpeech,
+                        speakResponse: command.speakResponse,
+                        showInMenuBar: command.showInMenuBar,
                       }}
                       setCommands={setCommands}
                       duplicate={true}

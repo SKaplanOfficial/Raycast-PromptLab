@@ -121,7 +121,8 @@ ${
 | --- | --- |
 | Output View | ${(command.outputKind?.at(0)?.toUpperCase() || "") + (command.outputKind?.substring(1) || "")} |
 | Show Response View | ${command.showResponse == "TRUE" ? "Yes" : "No"} |
-| Speech Input? | ${command.useSpeech ? "Yes" : "No"} |
+| Speak Response? | ${command.speakResponse == "TRUE" ? "Yes" : "No"} |
+| Speech Input? | ${command.useSpeech == "TRUE" ? "Yes" : "No"} |
 | Minimum File Count | ${command.minNumFiles} |
 | Accepted File Extensions | ${
               command.minNumFiles == "0"
@@ -203,6 +204,8 @@ ${(JSON.parse(command.setupConfig) as CommandConfig).fields
                   installedFromStore: true,
                   setupLocked: true,
                   useSpeech: command.useSpeech == "TRUE" ? true : false,
+                  speakResponse: command.speakResponse == "TRUE" ? true : false,
+                  showInMenuBar: false,
                 };
                 LocalStorage.setItem(cmdName, JSON.stringify(commandData)).then(() => {
                   showToast({ title: "Command Installed", message: `${command.name}" has been installed.` });
@@ -243,6 +246,7 @@ ${(JSON.parse(command.setupConfig) as CommandConfig).fields
                       scriptKind: command.scriptKind,
                       temperature: command.temperature,
                       useSpeech: command.useSpeech == "TRUE" ? true : false,
+                      speakResponse: command.speakResponse == "TRUE" ? true : false,
                     }}
                   />
                 }
@@ -305,6 +309,8 @@ ${(JSON.parse(command.setupConfig) as CommandConfig).fields
                       installedFromStore: false,
                       setupLocked: false,
                       useSpeech: command.useSpeech == "TRUE" ? true : false,
+                      speakResponse: command.speakResponse == "TRUE" ? true : false,
+                      showInMenuBar: false,
                     }}
                     setCommands={setMyCommands}
                     duplicate={true}
@@ -366,6 +372,8 @@ ${(JSON.parse(command.setupConfig) as CommandConfig).fields
                       installedFromStore: true,
                       setupLocked: true,
                       useSpeech: command.useSpeech == "TRUE" ? true : false,
+                      speakResponse: command.speakResponse == "TRUE" ? true : false,
+                      showInMenuBar: false,
                     };
                     await LocalStorage.setItem(cmdName, JSON.stringify(commandData));
                     successes.push(command.name);

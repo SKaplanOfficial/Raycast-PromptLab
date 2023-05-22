@@ -19,6 +19,7 @@ import { exec } from "child_process";
 import * as os from "os";
 import { Command, CommandOptions, StoreCommand } from "./types";
 import { LocalStorage, AI } from "@raycast/api";
+import runModel from "./runModel";
 
 /**
  * Runs the action script of a PromptLab command, providing the AI response as the `response` variable.
@@ -195,6 +196,10 @@ export const replaceYouTubePlaceholders = async (prompt: string): Promise<string
   const youtubeMatches = prompt.match(/{{youtube:(.*?[\s\n\r]*)*?}}/g) || [];
   for (const m of youtubeMatches) {
     const specifier = m.substring(10, m.length - 2);
+    if (specifier.trim().length == 0) {
+      subbedPrompt = subbedPrompt.replaceAll(m, "No YouTube video specified.");
+      continue;
+    }
     const transcriptText = specifier.startsWith("http")
       ? await getYouTubeVideoTranscriptByURL(specifier)
       : await getYouTubeVideoTranscriptById(getMatchingYouTubeVideoID(specifier));
@@ -203,6 +208,11 @@ export const replaceYouTubePlaceholders = async (prompt: string): Promise<string
   return subbedPrompt;
 };
 
+/**
+ * Replaces nearby locations placeholders with the results of a nearby locations search.
+ * @param prompt The prompt to replace placeholders in.
+ * @returns A promise resolving to the prompt with the nearby locations placeholders replaced.
+ */
 export const replaceLocationsSearchPlaceholders = async (prompt: string): Promise<string> => {
   let subbedPrompt = prompt;
   const searchNearbyMatches = prompt.match(/{{nearbyLocations:(.*?[\s\n\r]*)*?}}/g) || [];
@@ -210,6 +220,24 @@ export const replaceLocationsSearchPlaceholders = async (prompt: string): Promis
     const query = m.substring(18, m.length - 2);
     const nearbyLocations = await searchNearbyLocations(query);
     subbedPrompt = subbedPrompt.replaceAll(m, filterString(nearbyLocations));
+  }
+  return subbedPrompt;
+};
+
+/**
+ * Replaces prompt placeholders with the response to the prompt.
+ * @param prompt The prompt to replace placeholders in.
+ * @returns A promise resolving to the prompt with the prompt placeholders replaced.
+ */
+export const replacePromptPlaceholders = async (prompt: string): Promise<string> => {
+  let subbedPrompt = prompt;
+  const promptMatches = prompt.match(/{{prompt:(.*?[\s\n\r]*)*?}}/g) || [];
+  for (const m of promptMatches) {
+    const prompt = m.substring(9, m.length - 2);
+    const response = await runModel("", prompt, "");
+    if (response) {
+      subbedPrompt = subbedPrompt.replaceAll(m, filterString(response));
+    }
   }
   return subbedPrompt;
 };
@@ -274,6 +302,7 @@ export const runReplacements = async (
   subbedPrompt = await replaceShellScriptPlaceholders(subbedPrompt);
   subbedPrompt = await replaceURLPlaceholders(subbedPrompt);
   subbedPrompt = await replaceFileSelectionPlaceholders(subbedPrompt);
+  subbedPrompt = await replacePromptPlaceholders(subbedPrompt);
 
   // Replace command placeholders
   for (const cmdString of Object.values(await LocalStorage.allItems())) {
