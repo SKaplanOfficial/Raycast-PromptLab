@@ -22,6 +22,7 @@ import { getCommandJSON } from "./utils/command-utils";
 import CategoryDropdown from "./components/CategoryDropdown";
 import * as fs from "fs";
 import path from "path";
+import { Placeholders } from "./utils/placeholders";
 
 export default function SearchCommand(props: { arguments: { commandName: string; queryInput: string } }) {
   const { commandName, queryInput } = props.arguments;
@@ -48,6 +49,8 @@ export default function SearchCommand(props: { arguments: { commandName: string;
         }
       });
     });
+
+    Promise.resolve(Placeholders.bulkApply("Say {{currentTabText}}"))
   }, []);
 
   const commandNames = commands ? commands.map((command) => command.name) : [];
