@@ -92,7 +92,13 @@ export const getUpcomingCalendarEvents = async (duration: CalendarDuration): Pro
       
       set eventStore to ca's EKEventStore's alloc()'s init()
       eventStore's reset()
-      eventStore's requestAccessToEntityType:((get ca's EKEntityMaskEvent) + (get ca's EKEntityMaskReminder)) completion:(missing value)
+      
+      set isSonoma to current application's NSProcessInfo's processInfo's isOperatingSystemAtLeastVersion:{majorVersion:14, minorVersion:0, patchVersion:0}
+      if isSonoma then
+        eventStore's requestFullAccessToEventsWithCompletion:(missing value)
+      else
+        eventStore's requestAccessToEntityType:((get ca's EKEntityMaskEvent) + (get ca's EKEntityMaskReminder)) completion:(missing value)
+      end if
       delay 0.1
       
       set startDate to ca's NSDate's |date|()
@@ -163,7 +169,13 @@ export const getUpcomingReminders = async (duration: CalendarDuration): Promise<
       
       set eventStore to ca's EKEventStore's alloc()'s init()
       eventStore's reset()
-      eventStore's requestAccessToEntityType:((get ca's EKEntityMaskEvent) + (get ca's EKEntityMaskReminder)) completion:(missing value)
+
+      set isSonoma to current application's NSProcessInfo's processInfo's isOperatingSystemAtLeastVersion:{majorVersion:14, minorVersion:0, patchVersion:0}
+      if isSonoma then
+        eventStore's requestFullAccessToRemindersWithCompletion:(missing value)
+      else
+        eventStore's requestAccessToEntityType:((get ca's EKEntityMaskEvent) + (get ca's EKEntityMaskReminder)) completion:(missing value)
+      end if
       delay 0.1
       
       set startDate to ca's NSDate's |date|()

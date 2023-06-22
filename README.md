@@ -364,7 +364,7 @@ Contributions are welcome! Please see the [contributing guidelines](./CONTRIBUTI
 - [x] Upload & Download Commands To/From PromptLab Command Store
 - [x] Custom Model Endpoints with Synchronous or Asynchronous Responses
 - [x] Save & Run Commands as Quicklinks 
-- [ ] Release to the Raycast store (~May 20, 2023)
+- [x] Release to the Raycast store (June 22, 2023)
 
 ### Next Release: v1.1.0
 
@@ -379,12 +379,27 @@ Contributions are welcome! Please see the [contributing guidelines](./CONTRIBUTI
 - [x] Command Setup On Install
     - [x] Custom Configuration Fields [example](./examples/promptlab-1.1.0/commandConfig.png) [example2](./examples/promptlab-1.1.0/commandConfig2.png) [example](./examples/promptlab-1.1.0/)
     - [x] Post-Install Configuration [example](./examples/promptlab-1.1.0/commandConfig4.png)
-- [ ] Speak Response
-- [ ] Voice Input
+- [x] Speak Response
+- [x] Voice Input
 - [x] New Placeholders
     - [x] Nearby Locations [example](./examples/promptlab-1.1.0/nearbyLocations.png)
     - [x] Running Applications
     - [x] System Language
+    - [ ] Siri Shortcuts
+    - [ ] Day name
+    - [ ] Custom date/time formats
+    - [ ] UUIDs
+    - [ ] Persistent variables
+    - [ ] JavaScript script
+ 
+### Future Releases
+
+- LangChain integration
+- New Placeholders
+- Dashboard
+- Command Suggestions
+- Command Templates
+- GPT Function Calling
 
 ## Useful Resources
 
