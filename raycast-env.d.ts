@@ -69,7 +69,24 @@ declare namespace Preferences {
   /** Preferences accessible in the `manage-models` command */
   export type ManageModels = ExtensionPreferences & {}
   /** Preferences accessible in the `menubar-item` command */
-  export type MenubarItem = ExtensionPreferences & {}
+  export type MenubarItem = ExtensionPreferences & {
+  /** Shortcuts To Show - Whether to show the 'New Chat' shortcut in the menu. */
+  "showNewChatShortcut"?: boolean,
+  /**  - Whether to show the 'All Commands' shortcut in the menu. */
+  "showAllCommandsShortcut"?: boolean,
+  /**  - Whether to show the 'PromptLab Store' shortcut in the menu. */
+  "showPromptLabStoreShortcut"?: boolean,
+  /**  - Whether to show the 'New Command' shortcut in the menu. */
+  "showNewCommandShortcut"?: boolean,
+  /** Display Settings - Whether to display icons next to the menu items. */
+  "displayIcons"?: boolean,
+  /**  - Whether to display colors in the menu item icons. */
+  "displayColors"?: boolean,
+  /**  - Whether to separate favorite commands from the rest of the menu items. */
+  "displayFavorites"?: boolean,
+  /**  - Whether to separate commands by category. */
+  "displayCategories"?: boolean
+}
 }
 
 declare namespace Arguments {

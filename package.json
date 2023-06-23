@@ -301,7 +301,75 @@
       "name": "menubar-item",
       "title": "PromptLab Menu Item",
       "description": "Show PromptLab shortcut in the menu bar",
-      "mode": "menu-bar"
+      "mode": "menu-bar",
+      "preferences": [
+        {
+          "title": "Shortcuts To Show",
+          "name": "showNewChatShortcut",
+          "label": "New Chat",
+          "type": "checkbox",
+          "default": true,
+          "description": "Whether to show the 'New Chat' shortcut in the menu.",
+          "required": false
+        },
+        {
+          "name": "showAllCommandsShortcut",
+          "label": "All Commands",
+          "type": "checkbox",
+          "default": true,
+          "description": "Whether to show the 'All Commands' shortcut in the menu.",
+          "required": false
+        },
+        {
+          "name": "showPromptLabStoreShortcut",
+          "label": "PromptLab Store",
+          "type": "checkbox",
+          "default": false,
+          "description": "Whether to show the 'PromptLab Store' shortcut in the menu.",
+          "required": false
+        },
+        {
+          "name": "showNewCommandShortcut",
+          "label": "New Command",
+          "type": "checkbox",
+          "default": true,
+          "description": "Whether to show the 'New Command' shortcut in the menu.",
+          "required": false
+        },
+        {
+          "title": "Display Settings",
+          "name": "displayIcons",
+          "label": "Display Icons",
+          "type": "checkbox",
+          "default": true,
+          "description": "Whether to display icons next to the menu items.",
+          "required": false
+        },
+        {
+          "name": "displayColors",
+          "label": "Display Icon Colors",
+          "type": "checkbox",
+          "default": true,
+          "description": "Whether to display colors in the menu item icons.",
+          "required": false
+        },
+        {
+          "name": "displayFavorites",
+          "label": "Display Favorites",
+          "type": "checkbox",
+          "default": true,
+          "description": "Whether to separate favorite commands from the rest of the menu items.",
+          "required": false
+        },
+        {
+          "name": "displayCategories",
+          "label": "Display Categories",
+          "type": "checkbox",
+          "default": true,
+          "description": "Whether to separate commands by category.",
+          "required": false
+        }
+      ]
     }
   ],
   "dependencies": {

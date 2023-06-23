@@ -18,6 +18,7 @@ PromptLab also supports "action scripts" -- AppleScripts which run with the AI's
 - [Create Your Own Commands](#create-your-own-commands)
     - [Placeholders](#placeholders)
         - [Command Placeholders](#command-placeholders)
+        - [Prompt Placeholders](#prompt-placeholders)
         - [Script Placeholders](#script-placeholders)
         - [URL Placeholders](#url-placeholders)
         - [API Data Placeholders](#api-data-placeholders)
@@ -71,6 +72,8 @@ PromptLab also supports "action scripts" -- AppleScripts which run with the AI's
     - Summarize the contents of selected text files, PDFs, images, audio files, and more.
 - PromptLab Chat
     - Start a back-and-forth conversation with AI with selected files provided as context.       
+- PromptLab Menu Item
+    - Displays a menu of PromptLab commands in your menu bar.
 - Import PromptLab Commands
     - Add custom commands from a JSON string.
 
@@ -97,7 +100,17 @@ When creating custom commands, you can use placeholders in your prompts that wil
 
 ### Command Placeholders
 
+#### PromptLab Commands
+
 You can use the name of any PromptLab command you have installed as a placeholder by surrounding it with double curly braces, `{{like this}}`. For example, if you have a command named "Summarize Selected Files", you can use the placeholder `{{Summarize Selected Files}}` to include the output of that command in your prompt for another command. This is useful for chaining commands together, but it also slows down the execution of your command, so use it wisely.
+
+#### Raycast Commands
+
+You can run commands of other Raycast extensions by specifying their name, optionally providing the extension name to disambiguate between commands with the same name, using this format: `{{command:commandName:extensionName}}`. For example, `{{command:PromptLab Chat:PromptLab}}` would run the "PromptLab" command from the PromptLab extension.
+
+### Prompt Placeholders
+
+To include sub-prompts within a command, use this placeholder format: `{{prompt:promptText}}`. Each prompt included in this way will be run sequentially, in order of occurrence. Apart from command placeholders, these are the last placeholders to be replaced, so you can use them to build complex prompts.
 
 ### Script Placeholders
 
@@ -352,21 +365,6 @@ Contributions are welcome! Please see the [contributing guidelines](./CONTRIBUTI
 
 ## Roadmap
 
-### Current Release: v1.0.0
-
-- [x] Create, Edit, and Run Custom Commands
-- [x] Detail, List, Chat, and No-View Command Types
-- [x] Placeholders in Prompts
-- [x] Get Content of Selected Files
-- [x] Extract Text, Subjects, QR Codes, etc. from Images
-- [x] Import/Export Commands
-- [x] Run AppleScript or Bash Scripts On Model Response
-- [x] PromptLab Chat with Autonomous Command Execution Capability
-- [x] Upload & Download Commands To/From PromptLab Command Store
-- [x] Custom Model Endpoints with Synchronous or Asynchronous Responses
-- [x] Save & Run Commands as Quicklinks 
-- [ ] Release to the Raycast store (~May 20, 2023)
-
 ### Next Release: v1.1.0
 
 - [ ] Command Favorites
@@ -383,6 +381,11 @@ Contributions are welcome! Please see the [contributing guidelines](./CONTRIBUTI
     - [ ] Nearby Locations
     - [ ] Running Applications
     - [ ] System Language
+
+### Next Release: v1.2.0
+
+- [ ] Command Suggestions
+- [ ]
 
 ## Useful Resources
 
