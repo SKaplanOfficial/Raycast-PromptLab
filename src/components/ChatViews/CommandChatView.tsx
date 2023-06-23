@@ -15,7 +15,6 @@ import { useEffect, useState } from "react";
 import useModel from "../../hooks/useModel";
 import { Chat, CommandOptions, ExtensionPreferences } from "../../utils/types";
 import { useFileContents } from "../../utils/file-utils";
-import { useReplacements } from "../../hooks/useReplacements";
 import { runActionScript, runReplacements } from "../../utils/command-utils";
 import ChatSettingsForm from "./ChatSettingsForm";
 import { useChats } from "../../hooks/useChats";
@@ -49,7 +48,6 @@ export default function CommandChatView(props: {
   const [currentResponse, setCurrentResponse] = useState<string>(response);
   const [previousResponse, setPreviousResponse] = useState<string>("");
   const [enableModel, setEnableModel] = useState<boolean>(false);
-  const [forceStop, setForceStop] = useState<boolean>(false);
   const [input, setInput] = useState<string>();
   const [currentChat, setCurrentChat] = useState<Chat>();
   const [runningCommand, setRunningCommand] = useState<boolean>(false);
@@ -67,28 +65,29 @@ export default function CommandChatView(props: {
     loading: loadingSelectedFiles,
     revalidate: revalidateFiles,
   } = useFileContents(options);
-  const replacements = useReplacements(input, selectedFiles);
-  const { data, isLoading: loadingData, dataTag } = useModel(basePrompt, sentQuery, sentQuery, "1.0", enableModel);
+  const {
+    data,
+    isLoading: loadingData,
+    dataTag,
+    stopModel,
+    revalidate: reQuery,
+  } = useModel(basePrompt, sentQuery, sentQuery, "1.0", enableModel);
 
   const submitQuery = async (newQuery: string, sender = "USER_QUERY") => {
     if (newQuery.trim() == "" && query == undefined) {
       return;
     }
 
-    setForceStop(false);
-    setRunningCommand(false);
     setEnableModel(false);
 
     if (currentChat == undefined) {
+      console.log("prev", currentResponse);
       setPreviousResponse(currentResponse);
       setCurrentResponse("Loading...");
       const subbedQuery = await applyReplacements(newQuery || query);
       setSentQuery(subbedQuery);
       setEnableModel(true);
-      const cmdMatch = (newQuery || query).match(/.*{{cmd:(.*?):(.*?)}}.*/);
-      if (cmdMatch) {
-        setRunningCommand(true);
-      }
+      reQuery();
 
       const namePrompt =
         "Come up with a title, in Title Case, for a conversation started with the following query. The title must summarize the intent of the query. The title must be three words or shorter. Output only the title without commentary or labels. For example, if the query is 'What are galaxies?', the title you output might be 'Question About Galaxies'. Here is the query: ";
@@ -103,7 +102,7 @@ export default function CommandChatView(props: {
         minute: "numeric",
         second: "numeric",
       });
-      const newChatName = `${nameComponent.trim()} - ${dateComponent}`;
+      const newChatName = `${nameComponent.trim().substring(0, 25)} - ${dateComponent}`;
 
       chats.createChat(newChatName, basePrompt).then((chat) => {
         chats.revalidate().then(() => {
@@ -114,9 +113,10 @@ export default function CommandChatView(props: {
         });
       });
     } else {
+      console.log("prev", currentResponse);
       setPreviousResponse(currentResponse);
-      const subbedQuery = await applyReplacements(newQuery);
       setCurrentResponse("Loading...");
+      const subbedQuery = await applyReplacements(newQuery);
       setSentQuery(subbedQuery);
       setEnableModel(true);
       chats.appendToChat(currentChat, `\n[${sender}]:${newQuery}\n`);
@@ -124,7 +124,12 @@ export default function CommandChatView(props: {
   };
 
   const applyReplacements = async (query: string) => {
-    let subbedQuery = await runReplacements(query, replacements, [commandName]);
+    const context = {
+      input: input || "",
+      selectedFiles: selectedFiles?.join(", ") || "",
+    }
+    
+    let subbedQuery = await runReplacements(query, context, [commandName]);
 
     const cmdMatch = data.match(/.*{{cmd:(.*?):(.*?)}}.*/);
     if (cmdMatch) {
@@ -164,9 +169,9 @@ export default function CommandChatView(props: {
     }${
       useConversation
         ? `You will also consider our conversation history. The history so far: ###${conversation
-            .map((entry) => entry.replaceAll(/(USER_QUERY|MODEL_REPONSE):/g, ""))
+            .map((entry) => entry.replaceAll(/(USER_QUERY|MODEL_REPONSE):/g, "").replaceAll(/{{cmd:(.*?):(.*?)}}/g, ""))
             .join("\n")}###`
-        : `You will also consider your previous response. Your previous response was: ###${currentResponse}###`
+        : `You will also consider your previous response. Your previous response was: ###${currentResponse.replaceAll(/{{cmd:(.*?):(.*?)}}/g, "")}###`
     }${
       useAutonomousFeatures
         ? `Try to answer my next query using your knowledge. If you cannot fulfill the query, if the query requires new information, or if the query invokes an action such as searching, choose the command from the following list that is most likely to carries out the goal expressed in my next query, and then respond with the number of the command you want to run in the format {{cmd:commandNumber:input}}. Replace the input with a short string according to my query. For example, if I say 'search google for AI', the input would be 'AI'. Here are the commands: ###${commandDescriptions.join(
@@ -198,26 +203,20 @@ export default function CommandChatView(props: {
   }, [response, isLoading]);
 
   useEffect(() => {
-    if (forceStop) {
-      setRunningCommand(false);
-      setEnableModel(false);
-    }
-  }, [forceStop]);
-
-  useEffect(() => {
-    if (data?.length > 0 && !forceStop) {
-      if (
-        dataTag != undefined &&
-        (dataTag.includes(sentQuery) ||
-          dataTag.includes(sentQuery.replaceAll(/[\n\r\s]+/g, " ").replaceAll('"', '\\"')))
-      ) {
+    if (data?.length > 0 && enableModel) {
+      if (dataTag != undefined && dataTag.includes(sentQuery)) {
         // Update the response field as the model generates text
-        setCurrentResponse(data.replaceAll("MODEL_RESPONSE:", "").replaceAll("USER_QUERY:", ""));
+        if (!data.includes(previousResponse)) {
+          setCurrentResponse(data.replaceAll("MODEL_RESPONSE:", "").replaceAll("USER_QUERY:", ""));
+        }
 
         // If the model returns a command number and input, set the input
         // This will trigger running the command if autonomous features are enabled
-        const cmdMatch = data.match(/.*{{cmd:(.*?):(.*?)}}.*/);
-        if (cmdMatch && useAutonomousFeatures && !runningCommand && data != previousResponse) {
+        const cmdMatch = currentResponse.match(/.*{{cmd:(.*?):(.*?)}}.*/);
+        const cmdMatchPrevious = previousResponse.match(/.*{{cmd:(.*?):(.*?)\}{0,2}.*/);
+        if (cmdMatch && useAutonomousFeatures && !runningCommand && data != previousResponse && enableModel && data.includes(currentResponse) && !cmdMatchPrevious) {
+          console.log("command command", cmdMatch)
+          setRunningCommand(true);
           if (currentChat) {
             chats.appendToChat(currentChat, `\n[MODEL_RESPONSE]:${data}\n`);
           }
@@ -234,37 +233,25 @@ export default function CommandChatView(props: {
               // Run the command
               const cmdPrompt = commandPrompts[nameIndex];
               setEnableModel(false);
-              setCurrentResponse("");
               submitQuery(cmdPrompt, "MODEL_RESPONSE");
             }
           });
         }
-      } else if (dataTag != undefined) {
-        // Disable the model if the data tag is not found
-        setEnableModel(false);
-        setRunningCommand(false);
       }
     }
-  }, [data, forceStop, dataTag, sentQuery]);
+  }, [data, dataTag, sentQuery, runningCommand, enableModel, previousResponse, currentResponse]);
 
   useEffect(() => {
-    if ((forceStop || (!loadingData && currentResponse == data)) && enableModel && data != previousResponse) {
+    if (!loadingData && data.includes(currentResponse) && dataTag?.includes(sentQuery)) {
       // Disable the model once the response is generated
       if (currentChat) {
         chats.appendToChat(currentChat, `\n[MODEL_RESPONSE]:${currentResponse}\n`);
       }
-
-      if (
-        dataTag &&
-        dataTag.includes(sentQuery) &&
-        dataTag.includes(sentQuery.replaceAll(/[\n\r\s]+/g, " ").replaceAll('"', '\\"'))
-      ) {
-        setEnableModel(false);
-      }
     }
 
-    const cmdMatchPrevious = previousResponse.match(/.*{{cmd:(.*?):(.*?)}}.*/);
+    const cmdMatchPrevious = previousResponse.match(/.*{{cmd:(.*?):(.*?)\}{0,2}.*/);
     if (cmdMatchPrevious && useAutonomousFeatures && !loadingData && runningCommand && data != previousResponse) {
+      setPreviousResponse(data)
       setEnableModel(false);
       setRunningCommand(false);
       if (currentChat) {
@@ -303,12 +290,11 @@ export default function CommandChatView(props: {
         }
       });
     }
-  }, [data, loadingData, forceStop, dataTag]);
+  }, [data, loadingData, dataTag, runningCommand, previousResponse]);
 
   useEffect(() => {
     if (currentChat == undefined) {
       setQuery("");
-      setForceStop(true);
       setCurrentResponse("Ready for your query.");
     } else if (currentChat != undefined) {
       const convo = chats.loadConversation(currentChat.name) || [];
@@ -346,15 +332,17 @@ export default function CommandChatView(props: {
 
   return (
     <Form
-      isLoading={isLoading || (loadingData && enableModel) || loadingSelectedFiles || runningCommand}
+      isLoading={isLoading || loadingData || loadingSelectedFiles || runningCommand}
       actions={
         <ActionPanel>
-          {isLoading || (loadingData && enableModel) || runningCommand ? (
+          {isLoading || loadingData || runningCommand ? (
             <Action
               title="Cancel"
               onAction={() => {
                 if (previousResponse?.length > 0 || typeof cancel !== "function") {
-                  setForceStop(true);
+                  setEnableModel(false);
+                  setRunningCommand(false);
+                  stopModel();
                 } else {
                   Function.call(cancel);
                 }
@@ -364,7 +352,8 @@ export default function CommandChatView(props: {
             <Action.SubmitForm
               title="Submit Query"
               onSubmit={(values) => {
-                setInput(undefined);
+                console.log(loadingData, enableModel);
+                setInput("");
                 setRunningCommand(false);
                 submitQuery(values.queryField);
               }}
@@ -554,10 +543,11 @@ export default function CommandChatView(props: {
                   const toast = await showToast({ title: "Deleting Chats...", style: Toast.Style.Animated });
                   const totalCount = chats.chats.length;
                   setCurrentChat(undefined);
-                  chats.chats.forEach(async (chat, index) => {
+                  for (let i = 0; i < chats.chats.length; i++) {
+                    const chat = chats.chats[i];
                     await chats.deleteChat(chat.name);
-                    toast.message = `${index + 1} of ${totalCount}`;
-                  });
+                    toast.message = `${i + 1} of ${totalCount}`;
+                  }
                   chats.revalidate();
                   toast.title = `${totalCount} Chats Deleted`;
                   toast.message = "";

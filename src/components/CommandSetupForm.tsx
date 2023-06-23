@@ -13,7 +13,7 @@ export default function CommandSetupForm(props: {
   commandName: string;
   options: CommandOptions;
   setOptions: React.Dispatch<React.SetStateAction<CommandOptions>>;
-  setCommands?: React.Dispatch<React.SetStateAction<Command[] | undefined>>;
+  setCommands?: React.Dispatch<React.SetStateAction<Command[]>>;
 }) {
   const { commandName, options, setOptions, setCommands } = props;
   const [setupFields, setSetupFields] = useState<

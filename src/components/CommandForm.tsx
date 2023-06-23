@@ -59,7 +59,7 @@ interface CommandFormValues {
 
 export default function CommandForm(props: {
   oldData?: Command;
-  setCommands?: React.Dispatch<React.SetStateAction<Command[] | undefined>>;
+  setCommands?: React.Dispatch<React.SetStateAction<Command[]>>;
   duplicate?: boolean;
 }) {
   const { oldData, setCommands, duplicate } = props;
@@ -249,6 +249,7 @@ export default function CommandForm(props: {
         useSpeech: values.useSpeech,
         speakResponse: values.speakResponse,
         showInMenuBar: values.showInMenuBar,
+        favorited: values.favorited,
       };
 
       if (setupFields.length > 0) {
@@ -691,6 +692,12 @@ export default function CommandForm(props: {
         label="Show In Menu Bar"
         {...itemProps.showInMenuBar}
         info="If checked, the command will appear in PromptLab's menu bar menu, if enabled."
+      />
+
+      <Form.Checkbox
+        label="Favorite"
+        {...itemProps.favorited}
+        info="Mark this command as a favorite. Favorited commands will appear at the top of the command list."
       />
 
       <Form.Separator />

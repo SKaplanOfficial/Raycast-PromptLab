@@ -1,5 +1,31 @@
 # PromptLab DevLog - A More Detailed ChangeLog
 
+### 2023-06-22
+
+- Redesigned the placeholders system to be more efficient and more versatile
+    - Added several new placeholders
+        - {{day locale="en-US"}} - Returns the name of the current day of the week
+        - {{jxa:...}} - Run a JXA script and return the output
+        - {{shortcuts}} - List of names of all Siri Shortcuts
+        - {{shortcut:shortcutName:input}} - Run a Siri Shortcut with the given input and return the output
+        - {{uuid}} - Generate a UUID
+        - {{usedUUIDs}} - List of all UUIDs generated via the {{uuid}} placeholder thus far
+    - Expanded functionality of many placeholders by adding support for optional customizations
+        - {{date format="d MMMM, YYYY"}} - Added optional format parameter
+        - {{time format="h:mm a"}} - Added optional format parameter
+    - Expanded persistent variable support with new directives
+        - {{set x:y}} - Set the persistent variable x to y
+        - {{get x}} - Get the value of the persistent variable x
+        - {{reset x}} - Reset the persistent variable x to its initial value
+        - {{delete x}} - Delete the persistent variable x
+        - {{vars}} - List of stored persistent variable names
+    - Now using bulkApply strategy that uses memoization to improve performance, especially when using multiple placeholders in a single command
+        
+- Added settings for displaying icons & icon colors in menu bar menu
+- Added settings for displaying core PromptLab commands in menu bar menu
+- Added settings for displaying favorites & categories in menu bar menu
+- Fixed placeholders for events and reminders not working on macOS Ventura
+
 ### 2023-05-21
 
 - Added "PromptLab Menu Bar" menu-bar command

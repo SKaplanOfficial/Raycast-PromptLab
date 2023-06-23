@@ -13,7 +13,7 @@ export default function SpeechInputView(props: SpeechInputProps) {
   const [currentInput, setCurrentInput] = useState<string>("");
 
   useEffect(() => {
-    const blah = async () => {
+    const startSpeechInput = async () => {
       const toast = await showToast({ title: "Listening...", style: Toast.Style.Animated });
       const scriptPath = path.resolve(environment.assetsPath, "scripts", "SpeechInput.scpt");
 
@@ -37,7 +37,7 @@ export default function SpeechInputView(props: SpeechInputProps) {
       });
     };
 
-    Promise.resolve(blah()).then(() => console.log("done"));
+    Promise.resolve(startSpeechInput()).then(() => console.log("Finished speech input"));
   }, []);
 
   return <Detail markdown={`_Prompt: ${prompt}_\n\nYour input: ${currentInput}`} />;

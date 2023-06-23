@@ -1,16 +1,44 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */ // Disable since many placeholder functions have unused parameters that are kept for consistency.
-import { environment, getFrontmostApplication, getSelectedText, showHUD, showToast } from "@raycast/api";
+import {
+  LocalStorage,
+  environment,
+  getFrontmostApplication,
+  getSelectedText,
+  open,
+  showHUD,
+  showToast,
+} from "@raycast/api";
 import { Clipboard } from "@raycast/api";
 import { runAppleScript } from "run-applescript";
-import { SupportedBrowsers, getCurrentURL, getTextOfWebpage } from "./context-utils";
+import {
+  SupportedBrowsers,
+  getComputerName,
+  getCurrentTrack,
+  getCurrentURL,
+  getInstalledApplications,
+  getJSONResponse,
+  getLastEmail,
+  getLastNote,
+  getMatchingYouTubeVideoID,
+  getSafariBookmarks,
+  getSafariTopSites,
+  getTextOfWebpage,
+  getTrackNames,
+  getWeatherData,
+  getYouTubeVideoTranscriptById,
+  getYouTubeVideoTranscriptByURL,
+} from "./context-utils";
 import * as fs from "fs";
 import * as os from "os";
 import * as crypto from "crypto";
 import * as vm from "vm";
 import { execSync } from "child_process";
-import path from "path";
 import { StorageKeys } from "./constants";
 import { getStorage, setStorage } from "./storage-utils";
+import { CalendarDuration, filterString, getUpcomingCalendarEvents, getUpcomingReminders } from "./calendar-utils";
+import { addFileToSelection, getRunningApplications, searchNearbyLocations } from "./scripts";
+import { getExtensions, getSelectedFiles } from "./file-utils";
+import runModel from "./runModel";
 
 /**
  * A placeholder type that associates Regex patterns with functions that applies the placeholder to a string, rules that determine whether or not the placeholder should be replaced, and aliases that can be used to achieve the same result.
@@ -40,14 +68,26 @@ export type Placeholder = {
     apply: (str: string, context?: { [key: string]: string }) => Promise<{ result: string; [key: string]: string }>;
 
     /**
-     * The keys of the result object relevant to the placeholder. When placeholders are applied in bulk, using the {@link as_rep} and/or {@link js_rep}, this list is used to determine which keys to return as well as to make optimizations when determining which placeholders to apply. The first key in the list is the key for the placeholder's value.
+     * The keys of the result object relevant to the placeholder. When placeholders are applied in bulk, this list is used to determine which keys to return as well as to make optimizations when determining which placeholders to apply. The first key in the list is the key for the placeholder's value.
      */
     result_keys?: string[];
 
     /**
-     * The dependencies of the placeholder. When placeholders are applied in bulk, using the {@link as_rep} and/or {@link js_rep}, this list is used to determine the order in which placeholders are applied.
+     * The dependencies of the placeholder. When placeholders are applied in bulk, this list is used to determine the order in which placeholders are applied.
      */
     dependencies?: string[];
+
+    /**
+     * Whether or not the placeholder has a constant value during the placeholder substitution process. For example, users can use multiple URL placeholders, therefore it is not constant, while {{clipboardText}} is constant for the duration of the substitution process.
+     */
+    constant: boolean;
+
+    /**
+     * The function that applies the placeholder to a string. This function is used when the placeholder is used a {{js:...}} placeholder.
+     * @param args
+     * @returns
+     */
+    fn: (...args: never[]) => Promise<{ [key: string]: string; result: string }>;
   };
 };
 
@@ -59,7 +99,7 @@ const placeholders: Placeholder = {
    * Directive to reset the value of a persistent variable to its initial value. If the variable does not exist, nothing will happen. The placeholder will always be replaced with an empty string.
    */
   "{{reset [a-zA-Z0-9_]+}}": {
-    name: "resetPersistentVariable",
+    name: "reset",
     rules: [],
     apply: async (str: string, context?: { [key: string]: string }) => {
       const matches = str.match(/{{reset ([a-zA-Z0-9_]+)}}/);
@@ -70,13 +110,15 @@ const placeholders: Placeholder = {
       }
       return { result: "" };
     },
+    constant: false,
+    fn: async (id: string) => await Placeholders.allPlaceholders["{{reset [a-zA-Z0-9_]+}}"].apply(`{{reset ${id}}}`),
   },
 
   /**
    * Directive to get the value of a persistent variable. If the variable does not exist, the placeholder will be replaced with an empty string.
    */
   "{{get [a-zA-Z0-9_]+}}": {
-    name: "getPersistentVariable",
+    name: "get",
     rules: [],
     apply: async (str: string, context?: { [key: string]: string }) => {
       const matches = str.match(/{{get ([a-zA-Z0-9_]+)}}/);
@@ -86,13 +128,15 @@ const placeholders: Placeholder = {
       }
       return { result: "" };
     },
+    constant: false,
+    fn: async (id: string) => await Placeholders.allPlaceholders["{{get [a-zA-Z0-9_]+}}"].apply(`{{get ${id}}}`),
   },
 
   /**
    * Directive to delete a persistent variable. If the variable does not exist, nothing will happen. The placeholder will always be replaced with an empty string.
    */
   "{{delete [a-zA-Z0-9_]+}}": {
-    name: "deletePersistentVariable",
+    name: "delete",
     rules: [],
     apply: async (str: string, context?: { [key: string]: string }) => {
       const matches = str.match(/{{delete ([a-zA-Z0-9_]+)}}/);
@@ -102,50 +146,44 @@ const placeholders: Placeholder = {
       }
       return { result: "" };
     },
+    constant: false,
+    fn: async (id: string) => await Placeholders.allPlaceholders["{{delete [a-zA-Z0-9_]+}}"].apply(`{{delete ${id}}}`),
+  },
+
+  "{{vars}}": {
+    name: "vars",
+    rules: [],
+    apply: async (str: string, context?: { [key: string]: string }) => {
+      const vars: PersistentVariable[] = await getStorage(StorageKeys.PERSISTENT_VARIABLES);
+      if (Array.isArray(vars)) {
+        const varNames = vars.map((v) => v.name);
+        return { result: varNames.join(", "), vars: varNames.join(", ") };
+      }
+      return { result: "", vars: "" };
+    },
+    result_keys: ["vars"],
+    constant: true,
+    fn: async () => await Placeholders.allPlaceholders["{{vars}}"].apply("{{vars}}"),
   },
 
   /**
    * Directive/placeholder to ask the user for input via a dialog window. The placeholder will be replaced with the user's input. If the user cancels the dialog, the placeholder will be replaced with an empty string.
    */
-  "{{input( prompt=(\"|').*?(\"|'))?}}": {
+  "{{input}}": {
     name: "input",
     rules: [],
     apply: async (str: string, context?: { [key: string]: string }) => {
-      const pinsIcon = path.join(environment.assetsPath, "pins.icns");
-      const prompt = str.match(/(?<=prompt=("|')).*?(?=("|'))/)?.[0] || "Input:";
-      const res = await runAppleScript(`try
-          return text returned of (display dialog "${prompt}" default answer "" giving up after 60 with title "Input" with icon (POSIX file "${pinsIcon}"))
-        on error
-          return ""
-        end try`);
-      return { result: res, input: res };
+      let input = context && "input" in context ? context["input"] : "";
+      try {
+        input = await getSelectedText();
+      } catch (error) {
+        input = "";
+      }
+      return { result: input, input: input };
     },
     result_keys: ["input"],
-  },
-
-  /**
-   * Directive/placeholder to execute a Siri Shortcut by name, optionally supplying input, and insert the result. If the result is null, the placeholder will be replaced with an empty string.
-   */
-  "{{shortcut:([\\s\\S]+?)( input=(\"|').*?(\"|'))?}}": {
-    name: "runSiriShortcut",
-    rules: [],
-    apply: async (str: string, context?: { [key: string]: string }) => {
-      const matches = str.match(/{{shortcut:([\s\S]+?)( input=("|')(.*?)("|'))?}}/);
-      if (matches) {
-        const shortcutName = matches[1];
-        const input = matches[4] || "";
-        const result = await runAppleScript(`tell application "Shortcuts Events"
-          set res to run shortcut "${shortcutName}" with input "${input}"
-          if res is not missing value then
-            return res
-          else
-            return ""
-          end if 
-        end tell`);
-        return { result: result || "" };
-      }
-      return { result: "" };
-    },
+    constant: true,
+    fn: async () => await Placeholders.allPlaceholders["{{input}}"].apply("{{input}}"),
   },
 
   /**
@@ -172,6 +210,8 @@ const placeholders: Placeholder = {
       }
     },
     result_keys: ["clipboardText"],
+    constant: true,
+    fn: async () => await Placeholders.allPlaceholders["{{clipboardText}}"].apply("{{clipboardText}}"),
   },
 
   /**
@@ -198,6 +238,8 @@ const placeholders: Placeholder = {
       }
     },
     result_keys: ["selectedText"],
+    constant: true,
+    fn: async () => await Placeholders.allPlaceholders["{{selectedText}}"].apply("{{selectedText}}"),
   },
 
   /**
@@ -205,31 +247,11 @@ const placeholders: Placeholder = {
    */
   "{{selectedFiles}}": {
     name: "selectedFiles",
-    aliases: ["{{selectedFile}}"],
+    aliases: ["{{selectedFile}}", "{{files}}"],
     rules: [
       async (str: string, context?: { [key: string]: string }) => {
         try {
-          const data = await runAppleScript(
-            `tell application "Finder"
-            set oldDelimiters to AppleScript's text item delimiters
-            set AppleScript's text item delimiters to "::"
-            set theSelection to selection
-            if theSelection is {} then
-              return
-            else if (theSelection count) is equal to 1 then
-                return the POSIX path of (theSelection as alias)
-            else
-              set thePaths to {}
-              repeat with i from 1 to (theSelection count)
-                  copy (POSIX path of (item i of theSelection as alias)) to end of thePaths
-              end repeat
-              set thePathsString to thePaths as text
-              set AppleScript's text item delimiters to oldDelimiters
-              return thePathsString
-            end if
-          end tell`,
-            { humanReadableOutput: true }
-          );
+          const data = await getSelectedFiles();
           return data.split("::").length > 0;
         } catch (e) {
           return false;
@@ -239,39 +261,192 @@ const placeholders: Placeholder = {
     apply: async (str: string, context?: { [key: string]: string }) => {
       if (!context || !("selectedFiles" in context)) return { result: "", selectedFiles: "" };
       try {
-        const files =
-          context && "selectedFiles" in context
-            ? context["selectedFiles"]
-            : await runAppleScript(
-                `tell application "Finder"
-            set theSelection to selection
-            if theSelection is {} then
-              return
-            else if (theSelection count) is equal to 1 then
-                return the POSIX path of (theSelection as alias)
-            else
-              set thePaths to {}
-              repeat with i from 1 to (theSelection count)
-                  copy (POSIX path of (item i of theSelection as alias)) to end of thePaths
-              end repeat
-              set thePathsString to thePaths as text
-              return thePathsString
-            end if
-          end tell`
-              );
+        const files = context && "selectedFiles" in context ? context["selectedFiles"] : await getSelectedFiles();
         return { result: files, selectedFiles: files };
       } catch (e) {
         return { result: "", selectedFiles: "" };
       }
     },
     result_keys: ["selectedFiles"],
+    constant: true,
+    fn: async () => await Placeholders.allPlaceholders["{{selectedFiles}}"].apply("{{selectedFiles}}"),
+  },
+
+  "{{fileNames}}": {
+    name: "fileNames",
+    rules: [
+      async (str: string, context?: { [key: string]: string }) => {
+        try {
+          const data = await getSelectedFiles();
+          return data.split("::").length > 0;
+        } catch (e) {
+          return false;
+        }
+      },
+    ],
+    apply: async (str: string, context?: { [key: string]: string }) => {
+      const files = context && "selectedFiles" in context ? context["selectedFiles"] : await getSelectedFiles();
+      const fileNames = files
+        .split("::")
+        .map((file) => file.split("/").pop())
+        .join(", ");
+      return { result: fileNames, fileNames: fileNames, selectedFiles: files };
+    },
+    result_keys: ["fileNames", "selectedFiles"],
+    constant: true,
+    fn: async () => await Placeholders.allPlaceholders["{{fileNames}}"].apply("{{fileNames}}"),
+  },
+
+  /**
+   * Placeholder for metadata of the currently selected files in Finder as a comma-separated list.
+   */
+  "{{metadata}}": {
+    name: "metadata",
+    rules: [
+      async (str: string, context?: { [key: string]: string }) => {
+        try {
+          const data = await getSelectedFiles();
+          return data.split("::").length > 0;
+        } catch (e) {
+          return false;
+        }
+      },
+    ],
+    apply: async (str: string, context?: { [key: string]: string }) => {
+      const files = (context && "selectedFiles" in context ? context["selectedFiles"] : await getSelectedFiles()).split(
+        ", "
+      );
+      const metadata =
+        context && "metadata" in context
+          ? context["metadata"]
+          : files
+              .map((file) => {
+                const fileMetadata = Object.entries(fs.lstatSync(file))
+                  .map(([key, value]) => `${key}:${value}`)
+                  .join("\n");
+                return `${file}:\n${fileMetadata}`;
+              })
+              .join("\n\n");
+      return { result: metadata, metadata: metadata, selectedFiles: files.join(", ") };
+    },
+    result_keys: ["metadata", "selectedFiles"],
+    constant: true,
+    fn: async () => await Placeholders.allPlaceholders["{{metadata}}"].apply("{{metadata}}"),
+  },
+
+  "{{imageText}}": {
+    name: "imageText",
+    rules: [],
+    apply: async (str: string, context?: { [key: string]: string }) => {
+      const imageText = context && "imageText" in context ? context["imageText"] : "";
+      return { result: imageText, imageText: imageText };
+    },
+    result_keys: ["imageText"],
+    constant: true,
+    fn: async () => await Placeholders.allPlaceholders["{{imageText}}"].apply("{{imageText}}"),
+  },
+
+  "{{imageFaces}}": {
+    name: "imageFaces",
+    rules: [],
+    apply: async (str: string, context?: { [key: string]: string }) => {
+      const imageFaces = context && "imageFaces" in context ? context["imageFaces"] : "";
+      return { result: imageFaces, imageFaces: imageFaces };
+    },
+    result_keys: ["imageFaces"],
+    constant: true,
+    fn: async () => await Placeholders.allPlaceholders["{{imageFaces}}"].apply("{{imageFaces}}"),
+  },
+
+  "{{imageAnimals}}": {
+    name: "imageAnimals",
+    rules: [],
+    apply: async (str: string, context?: { [key: string]: string }) => {
+      const imageAnimals = context && "imageAnimals" in context ? context["imageAnimals"] : "";
+      return { result: imageAnimals, imageAnimals: imageAnimals };
+    },
+    result_keys: ["imageAnimals"],
+    constant: true,
+    fn: async () => await Placeholders.allPlaceholders["{{imageAnimals}}"].apply("{{imageAnimals}}"),
+  },
+
+  "{{imageSubjects}}": {
+    name: "imageSubjects",
+    rules: [],
+    apply: async (str: string, context?: { [key: string]: string }) => {
+      const imageSubjects = context && "imageSubjects" in context ? context["imageSubjects"] : "";
+      return { result: imageSubjects, imageSubjects: imageSubjects };
+    },
+    result_keys: ["imageSubjects"],
+    constant: true,
+    fn: async () => await Placeholders.allPlaceholders["{{imageSubjects}}"].apply("{{imageSubjects}}"),
+  },
+
+  "{{imageSaliency}}": {
+    name: "imageSaliency",
+    rules: [],
+    apply: async (str: string, context?: { [key: string]: string }) => {
+      const imageSaliency = context && "imageSaliency" in context ? context["imageSaliency"] : "";
+      return { result: imageSaliency, imageSaliency: imageSaliency };
+    },
+    result_keys: ["imageSaliency"],
+    constant: true,
+    fn: async () => await Placeholders.allPlaceholders["{{imageSaliency}}"].apply("{{imageSaliency}}"),
+  },
+
+  "{{imageBarcodes}}": {
+    name: "imageBarcodes",
+    rules: [],
+    apply: async (str: string, context?: { [key: string]: string }) => {
+      const imageBarcodes = context && "imageBarcodes" in context ? context["imageBarcodes"] : "";
+      return { result: imageBarcodes, imageBarcodes: imageBarcodes };
+    },
+    result_keys: ["imageBarcodes"],
+    constant: true,
+    fn: async () => await Placeholders.allPlaceholders["{{imageBarcodes}}"].apply("{{imageBarcodes}}"),
+  },
+
+  "{{imageRectangles}}": {
+    name: "imageRectangles",
+    rules: [],
+    apply: async (str: string, context?: { [key: string]: string }) => {
+      const imageRectangles = context && "imageRectangles" in context ? context["imageRectangles"] : "";
+      return { result: imageRectangles, imageRectangles: imageRectangles };
+    },
+    result_keys: ["imageRectangles"],
+    constant: true,
+    fn: async () => await Placeholders.allPlaceholders["{{imageRectangles}}"].apply("{{imageRectangles}}"),
+  },
+
+  "{{pdfRawText}}": {
+    name: "pdfRawText",
+    rules: [],
+    apply: async (str: string, context?: { [key: string]: string }) => {
+      const pdfRawText = context && "pdfRawText" in context ? context["pdfRawText"] : "";
+      return { result: pdfRawText, pdfRawText: pdfRawText };
+    },
+    result_keys: ["pdfRawText"],
+    constant: true,
+    fn: async () => await Placeholders.allPlaceholders["{{pdfRawText}}"].apply("{{pdfRawText}}"),
+  },
+
+  "{{pdfOCRText}}": {
+    name: "pdfOCRText",
+    rules: [],
+    apply: async (str: string, context?: { [key: string]: string }) => {
+      const pdfOCRText = context && "pdfOCRText" in context ? context["pdfOCRText"] : "";
+      return { result: pdfOCRText, pdfOCRText: pdfOCRText };
+    },
+    result_keys: ["pdfOCRText"],
+    constant: true,
+    fn: async () => await Placeholders.allPlaceholders["{{pdfOCRText}}"].apply("{{pdfOCRText}}"),
   },
 
   /**
    * Placeholder for the contents of the currently selected files in Finder as a newline-separated list. If no files are selected, this placeholder will not be replaced.
    */
   "{{selectedFileContents}}": {
-    name: "Selected File Contents",
+    name: "selectedFileContents",
     aliases: [
       "{{selectedFilesContents}}",
       "{{selectedFileContent}}",
@@ -283,24 +458,7 @@ const placeholders: Placeholder = {
     rules: [
       async (str: string, context?: { [key: string]: string }) => {
         try {
-          const data = await runAppleScript(`tell application "Finder"
-          set oldDelimiters to AppleScript's text item delimiters
-            set AppleScript's text item delimiters to "::"
-            set theSelection to selection
-            if theSelection is {} then
-                return
-            else if (theSelection count) is equal to 1 then
-                return the POSIX path of (theSelection as alias)
-            else
-                set thePaths to {}
-                repeat with i from 1 to (theSelection count)
-                    copy (POSIX path of (item i of theSelection as alias)) to end of thePaths
-                end repeat
-                set thePathsString to thePaths as text
-                set AppleScript's text item delimiters to oldDelimiters
-                return thePathsString
-            end if
-            end tell`);
+          const data = await getSelectedFiles();
           const files = data.split("::");
           return files.length > 0;
         } catch (e) {
@@ -311,32 +469,19 @@ const placeholders: Placeholder = {
     apply: async (str: string, context?: { [key: string]: string }) => {
       if (!context || !("selectedFiles" in context)) return { result: "", selectedFileContents: "", selectedFiles: "" };
       try {
-        const data = context && "selectedFiles" in context ? context["selectedFiles"] : await runAppleScript(`tell application "Finder"
-        set oldDelimiters to AppleScript's text item delimiters
-        set AppleScript's text item delimiters to "::"
-        set theSelection to selection
-        if theSelection is {} then
-          return
-        else if (theSelection count) is equal to 1 then
-            return the POSIX path of (theSelection as alias)
-        else
-          set thePaths to {}
-          repeat with i from 1 to (theSelection count)
-              copy (POSIX path of (item i of theSelection as alias)) to end of thePaths
-          end repeat
-          set thePathsString to thePaths as text
-          set AppleScript's text item delimiters to oldDelimiters
-          return thePathsString
-        end if
-      end tell`)
-        const files = data.split("::");
+        const files =
+          context && "selectedFiles" in context
+            ? context["selectedFiles"].split(", ")
+            : (await getSelectedFiles()).split(", ");
         const fileContents = files.map((file) => fs.readFileSync(file)).join("\n\n");
-        return { result: fileContents, selectedFileContents: fileContents, selectedFiles: data };
+        return { result: fileContents, selectedFileContents: fileContents, selectedFiles: files.join(", ") };
       } catch (e) {
         return { result: "", selectedFileContents: "", selectedFiles: "" };
       }
     },
     result_keys: ["selectedFileContents"],
+    constant: true,
+    fn: async () => await Placeholders.allPlaceholders["{{selectedFileContents}}"].apply("{{selectedFileContents}}"),
   },
 
   /**
@@ -355,6 +500,8 @@ const placeholders: Placeholder = {
       }
     },
     result_keys: ["currentAppName"],
+    constant: true,
+    fn: async () => await Placeholders.allPlaceholders["{{currentAppName}}"].apply("{{currentAppName}}"),
   },
 
   /**
@@ -373,6 +520,8 @@ const placeholders: Placeholder = {
       }
     },
     result_keys: ["currentAppPath"],
+    constant: true,
+    fn: async () => await Placeholders.allPlaceholders["{{currentAppPath}}"].apply("{{currentAppPath}}"),
   },
 
   /**
@@ -396,6 +545,8 @@ const placeholders: Placeholder = {
       return { result: dir, currentDirectory: dir };
     },
     result_keys: ["currentDirectory"],
+    constant: true,
+    fn: async () => await Placeholders.allPlaceholders["{{currentDirectory}}"].apply("{{currentDirectory}}"),
   },
 
   /**
@@ -426,6 +577,8 @@ const placeholders: Placeholder = {
     },
     result_keys: ["currentURL", "currentAppName"],
     dependencies: ["currentAppName"],
+    constant: true,
+    fn: async () => await Placeholders.allPlaceholders["{{currentURL}}"].apply("{{currentURL}}"),
   },
 
   /**
@@ -457,6 +610,8 @@ const placeholders: Placeholder = {
     },
     result_keys: ["currentTabText", "currentURL", "currentAppName"],
     dependencies: ["currentAppName", "currentURL"],
+    constant: true,
+    fn: async () => await Placeholders.allPlaceholders["{{currentTabText}}"].apply("{{currentTabText}}"),
   },
 
   /**
@@ -468,9 +623,11 @@ const placeholders: Placeholder = {
     rules: [],
     apply: async (str: string, context?: { [key: string]: string }) => {
       const user = os.userInfo().username;
-        return { result: user, user: user };
+      return { result: user, user: user };
     },
     result_keys: ["user"],
+    constant: true,
+    fn: async () => await Placeholders.allPlaceholders["{{user}}"].apply("{{user}}"),
   },
 
   /**
@@ -482,9 +639,11 @@ const placeholders: Placeholder = {
     rules: [],
     apply: async (str: string, context?: { [key: string]: string }) => {
       const dir = os.homedir();
-        return { result: dir, homedir: dir };
+      return { result: dir, homedir: dir };
     },
     result_keys: ["homedir"],
+    constant: true,
+    fn: async () => await Placeholders.allPlaceholders["{{homedir}}"].apply("{{homedir}}"),
   },
 
   /**
@@ -495,9 +654,27 @@ const placeholders: Placeholder = {
     rules: [],
     apply: async (str: string, context?: { [key: string]: string }) => {
       const name = os.hostname();
-        return { result: name, hostname: name };
+      return { result: name, hostname: name };
     },
     result_keys: ["hostname"],
+    constant: true,
+    fn: async () => await Placeholders.allPlaceholders["{{hostname}}"].apply("{{hostname}}"),
+  },
+
+  "{{computerName}}": {
+    name: "computerName",
+    rules: [],
+    apply: async (str: string, context?: { [key: string]: string }) => {
+      if (context && "computerName" in context) {
+        return { result: context["computerName"], computerName: context["computerName"] };
+      }
+
+      const name = await getComputerName();
+      return { result: name, computerName: name };
+    },
+    result_keys: ["computerName"],
+    constant: true,
+    fn: async () => await Placeholders.allPlaceholders["{{computerName}}"].apply("{{computerName}}"),
   },
 
   /**
@@ -507,10 +684,15 @@ const placeholders: Placeholder = {
     name: "shortcuts",
     rules: [],
     apply: async (str: string, context?: { [key: string]: string }) => {
-      const shortcuts = context && "shortcuts" in context ? context["shortcuts"] : await runAppleScript(`tell application "Shortcuts Events" to return name of every shortcut`);
-        return { result: shortcuts, shortcuts: shortcuts };
+      const shortcuts =
+        context && "shortcuts" in context
+          ? context["shortcuts"]
+          : await runAppleScript(`tell application "Shortcuts Events" to return name of every shortcut`);
+      return { result: shortcuts, shortcuts: shortcuts };
     },
     result_keys: ["shortcuts"],
+    constant: true,
+    fn: async () => await Placeholders.allPlaceholders["{{shortcuts}}"].apply("{{shortcuts}}"),
   },
 
   /**
@@ -522,7 +704,10 @@ const placeholders: Placeholder = {
     rules: [],
     apply: async (str: string, context?: { [key: string]: string }) => {
       const format = str.match(/(?<=format=("|')).*?(?=("|'))/)?.[0] || "MMMM d, yyyy";
-      const dateStr = context && "date" in context ? context["date"] : await runAppleScript(`use framework "Foundation"
+      const dateStr =
+        context && "date" in context
+          ? context["date"]
+          : await runAppleScript(`use framework "Foundation"
         set currentDate to current application's NSDate's alloc()'s init()
         try
           set formatter to current application's NSDateFormatter's alloc()'s init()
@@ -532,9 +717,14 @@ const placeholders: Placeholder = {
           formatter's setDateFormat:format
           return (formatter's stringFromDate:currentDate) as string
         end try`);
-        return { result: dateStr, date: dateStr };
+      return { result: dateStr, date: dateStr };
     },
     result_keys: ["date"],
+    constant: false,
+    fn: async (format: string) =>
+      await Placeholders.allPlaceholders["{{date( format=(\"|').*?(\"|'))?}}"].apply(
+        `{{date${format?.length ? ` format="${format}"` : ""}}`
+      ),
   },
 
   /**
@@ -551,9 +741,14 @@ const placeholders: Placeholder = {
     apply: async (str: string, context?: { [key: string]: string }) => {
       const locale = str.match(/(?<=locale=("|')).*?(?=("|'))/)?.[0] || "en-US";
       const day = new Date().toLocaleDateString(locale, { weekday: "long" });
-        return { result: day, day: day };
+      return { result: day, day: day };
     },
     result_keys: ["day"],
+    constant: false,
+    fn: async (locale: string) =>
+      await Placeholders.allPlaceholders["{{day( locale=(\"|').*?(\"|'))?}}"].apply(
+        `{{day${locale?.length ? ` locale="${locale}"` : ""}}}`
+      ),
   },
 
   /**
@@ -565,7 +760,10 @@ const placeholders: Placeholder = {
     rules: [],
     apply: async (str: string, context?: { [key: string]: string }) => {
       const format = str.match(/(?<=format=("|')).*?(?=("|'))/)?.[0] || "HH:mm:s a";
-      const time = context && "time" in context ? context["time"] : await runAppleScript(`use framework "Foundation"
+      const time =
+        context && "time" in context
+          ? context["time"]
+          : await runAppleScript(`use framework "Foundation"
         set currentDate to current application's NSDate's alloc()'s init()
         try
           set formatter to current application's NSDateFormatter's alloc()'s init()
@@ -575,9 +773,14 @@ const placeholders: Placeholder = {
           formatter's setDateFormat:format
           return (formatter's stringFromDate:currentDate) as string
         end try`);
-        return { result: time, time: time };
+      return { result: time, time: time };
     },
     result_keys: ["time"],
+    constant: false,
+    fn: async (format?: string) =>
+      await Placeholders.allPlaceholders["{{time( format=(\"|').*?(\"|'))?}}"].apply(
+        `{{time${format?.length ? ` format="${format}"` : ""}}}`
+      ),
   },
 
   /**
@@ -588,49 +791,191 @@ const placeholders: Placeholder = {
     aliases: ["{{language}}"],
     rules: [],
     apply: async (str: string, context?: { [key: string]: string }) => {
-      const lang = context && "lang" in context ? context["lang"] : await runAppleScript(`use framework "Foundation"
+      const lang =
+        context && "lang" in context
+          ? context["lang"]
+          : await runAppleScript(`use framework "Foundation"
                 set locale to current application's NSLocale's autoupdatingCurrentLocale()
                 set langCode to locale's languageCode()
                 return (locale's localizedStringForLanguageCode:langCode) as text`);
-        return { result: lang, systemLanguage: lang };
+      return { result: lang, systemLanguage: lang };
     },
     result_keys: ["systemLanguage"],
+    constant: true,
+    fn: async () => await Placeholders.allPlaceholders["{{systemLanguage}}"].apply("{{systemLanguage}}"),
   },
 
-  //   /**
-  //    * Placeholder for the last application focused before the current application. If there is no previous application, this placeholder will not be replaced.
-  //    */
-  //   "{{previousApp}}": {
-  //     name: "Previous Application",
-  //     aliases: [
-  //       "{{previousAppName}}",
-  //       "{{lastApp}}",
-  //       "{{lastAppName}}",
-  //       "{{previousApplication}}",
-  //       "{{lastApplication}}",
-  //       "{{previousApplicationName}}",
-  //       "{{lastApplicationName}}",
-  //     ],
-  //     rules: [
-  //       async (str: string, context?: { [key: string]: string }) => {
-  //         try {
-  //           const recents = await getStorage(StorageKey.RECENT_APPS);
-  //           if (!recents) return false;
-  //           if (!Array.isArray(recents)) return false;
-  //           return recents.length > 1;
-  //         } catch (e) {
-  //           return false;
-  //         }
-  //       },
-  //     ],
-  //     apply: async (str: string, context?: { [key: string]: string }) => {
-  //       const recents = await getStorage(StorageKey.RECENT_APPS);
-  //       if (Array.isArray(recents)) {
-  //         return recents[1].name;
-  //       }
-  //       return "";
-  //     },
-  //   },
+  /**
+   * Placeholder for the comma-separated list of track names in Music.app.
+   */
+  "{{musicTracks}}": {
+    name: "musicTracks",
+    rules: [],
+    apply: async (str: string, context?: { [key: string]: string }) => {
+      if (context && "musicTracks" in context) {
+        return { result: context["musicTracks"], musicTracks: context["musicTracks"] };
+      }
+
+      const tracks = filterString(await getTrackNames());
+      return { result: tracks, musicTracks: tracks };
+    },
+    result_keys: ["musicTracks"],
+    constant: true,
+    fn: async () => await Placeholders.allPlaceholders["{{musicTracks}}"].apply("{{musicTracks}}"),
+  },
+
+  /**
+   * Placeholder for the name of the currently playing track in Music.app.
+   */
+  "{{currentTrack}}": {
+    name: "currentTrack",
+    rules: [],
+    apply: async (str: string, context?: { [key: string]: string }) => {
+      if (context && "currentTrack" in context) {
+        return { result: context["currentTrack"], currentTrack: context["currentTrack"] };
+      }
+
+      const track = filterString(await getCurrentTrack());
+      return { result: track, currentTrack: track };
+    },
+    result_keys: ["currentTrack"],
+    constant: true,
+    fn: async () => await Placeholders.allPlaceholders["{{currentTrack}}"].apply("{{currentTrack}}"),
+  },
+
+  /**
+   * Placeholder for the HTML text of the most recently edited note in Notes.app.
+   */
+  "{{lastNote}}": {
+    name: "lastNote",
+    rules: [],
+    apply: async (str: string, context?: { [key: string]: string }) => {
+      if (context && "lastNote" in context) {
+        return { result: context["lastNote"], lastNote: context["lastNote"] };
+      }
+
+      const note = filterString(await getLastNote());
+      return { result: note, lastNote: note };
+    },
+    result_keys: ["lastNote"],
+    constant: true,
+    fn: async () => await Placeholders.allPlaceholders["{{lastNote}}"].apply("{{lastNote}}"),
+  },
+
+  /**
+   * Placeholder for the text of the most recently received email in Mail.app.
+   */
+  "{{lastEmail}}": {
+    name: "lastEmail",
+    rules: [],
+    apply: async (str: string, context?: { [key: string]: string }) => {
+      if (context && "lastEmail" in context) {
+        return { result: context["lastEmail"], lastEmail: context["lastEmail"] };
+      }
+
+      const email = filterString(await getLastEmail());
+      return { result: email, lastEmail: email };
+    },
+    result_keys: ["lastEmail"],
+    constant: true,
+    fn: async () => await Placeholders.allPlaceholders["{{lastEmail}}"].apply("{{lastEmail}}"),
+  },
+
+  /**
+   * Placeholder for the comma-separated list of application names installed on the system.
+   */
+  "{{installedApps}}": {
+    name: "installedApps",
+    rules: [],
+    apply: async (str: string, context?: { [key: string]: string }) => {
+      if (context && "installedApps" in context) {
+        return { result: context["installedApps"], installedApps: context["installedApps"] };
+      }
+
+      const apps = filterString(await getInstalledApplications());
+      return { result: apps, installedApps: apps };
+    },
+    result_keys: ["installedApps"],
+    constant: true,
+    fn: async () => await Placeholders.allPlaceholders["{{installedApps}}"].apply("{{installedApps}}"),
+  },
+
+  /**
+   * Placeholder for the comma-separated list of names of all installed PromptLab commands.
+   */
+  "{{commands}}": {
+    name: "commands",
+    rules: [],
+    apply: async (str: string, context?: { [key: string]: string }) => {
+      if (context && "commands" in context) {
+        return { result: context["commands"], commands: context["commands"] };
+      }
+
+      const storedItems = await LocalStorage.allItems();
+      const commands = filterString(Object.keys(storedItems).join(", "));
+      return { result: commands, commands: commands };
+    },
+    result_keys: ["commands"],
+    constant: true,
+    fn: async () => await Placeholders.allPlaceholders["{{commands}}"].apply("{{commands}}"),
+  },
+
+  /**
+   * Placeholder for the comma-separated list of titles and URLs of the most frequently visited websites in Safari, obtained via plist.
+   */
+  "{{safariTopSites}}": {
+    name: "safariTopSites",
+    rules: [],
+    apply: async (str: string, context?: { [key: string]: string }) => {
+      if (context && "safariTopSites" in context) {
+        return { result: context["safariTopSites"], safariTopSites: context["safariTopSites"] };
+      }
+
+      const sites = filterString(await getSafariTopSites());
+      return { result: sites, safariTopSites: sites };
+    },
+    result_keys: ["safariTopSites"],
+    constant: true,
+    fn: async () => await Placeholders.allPlaceholders["{{safariTopSites}}"].apply("{{safariTopSites}}"),
+  },
+
+  /**
+   * Placeholder for the comma-separated list of titles and URLs of all bookmarks in Safari, obtained via plist.
+   */
+  "{{safariBookmarks}}": {
+    name: "safariBookmarks",
+    rules: [],
+    apply: async (str: string, context?: { [key: string]: string }) => {
+      if (context && "safariBookmarks" in context) {
+        return { result: context["safariBookmarks"], safariBookmarks: context["safariBookmarks"] };
+      }
+
+      const sites = filterString(await getSafariBookmarks());
+      return { result: sites, safariBookmarks: sites };
+    },
+    result_keys: ["safariBookmarks"],
+    constant: true,
+    fn: async () => await Placeholders.allPlaceholders["{{safariBookmarks}}"].apply("{{safariBookmarks}}"),
+  },
+
+  /**
+   * Placeholder for a comma-separated list of the names of all running applications that are visible to the user.
+   */
+  "{{runningApplications}}": {
+    name: "runningApplications",
+    rules: [],
+    apply: async (str: string, context?: { [key: string]: string }) => {
+      if (context && "runningApplications" in context) {
+        return { result: context["runningApplications"], runningApplications: context["runningApplications"] };
+      }
+
+      const apps = filterString(await getRunningApplications());
+      return { result: apps, runningApplications: apps };
+    },
+    result_keys: ["runningApplications"],
+    constant: true,
+    fn: async () => await Placeholders.allPlaceholders["{{runningApplications}}"].apply("{{runningApplications}}"),
+  },
 
   /**
    * Placeholder for a unique UUID. UUIDs are tracked in the {@link StorageKey.USED_UUIDS} storage key. The UUID will be unique for each use of the placeholder (but there is no guarantee that it will be unique across different instances of the extension, e.g. on different computers).
@@ -654,6 +999,8 @@ const placeholders: Placeholder = {
       return { result: newUUID, uuid: newUUID };
     },
     result_keys: ["uuid" + crypto.randomUUID()],
+    constant: false,
+    fn: async () => await Placeholders.allPlaceholders["{{uuid}}"].apply("{{uuid}}"),
   },
 
   /**
@@ -670,6 +1017,280 @@ const placeholders: Placeholder = {
       return { result: "", usedUUIDs: "" };
     },
     result_keys: ["usedUUIDs"],
+    constant: false,
+    fn: async () => await Placeholders.allPlaceholders["{{usedUUIDs}}"].apply("{{usedUUIDs}}"),
+  },
+
+  /**
+   * Placeholder for the user's current location in the format "city, region, country".
+   * The location is determined by the user's IP address.
+   */
+  "{{location}}": {
+    name: "location",
+    rules: [],
+    apply: async (str: string, context?: { [key: string]: string }) => {
+      if (context && "location" in context) {
+        return { result: context["location"], location: context["location"] };
+      }
+
+      const jsonObj = getJSONResponse("https://get.geojs.io/v1/ip/geo.json");
+      const city = jsonObj["city"];
+      const region = jsonObj["region"];
+      const country = jsonObj["country"];
+      const location = `${city}, ${region}, ${country}`;
+      return { result: location, location: location };
+    },
+    result_keys: ["location"],
+    constant: true,
+    fn: async () => await Placeholders.allPlaceholders["{{location}}"].apply("{{location}}"),
+  },
+
+  /**
+   * Placeholder for 24-hour weather forecast data at the user's current location, in JSON format.
+   */
+  "{{todayWeather}}": {
+    name: "todayWeather",
+    rules: [],
+    apply: async (str: string, context?: { [key: string]: string }) => {
+      if (context && "todayWeather" in context) {
+        return { result: context["todayWeather"], todayWeather: context["todayWeather"] };
+      }
+
+      const weather = JSON.stringify(getWeatherData(1));
+      return { result: weather, todayWeather: weather };
+    },
+    result_keys: ["todayWeather"],
+    constant: true,
+    fn: async () => await Placeholders.allPlaceholders["{{todayWeather}}"].apply("{{todayWeather}}"),
+  },
+
+  /**
+   * Placeholder for 7-day weather forecast data at the user's current location, in JSON format.
+   */
+  "{{weekWeather}}": {
+    name: "weekWeather",
+    rules: [],
+    apply: async (str: string, context?: { [key: string]: string }) => {
+      if (context && "weekWeather" in context) {
+        return { result: context["weekWeather"], weekWeather: context["weekWeather"] };
+      }
+
+      const weather = JSON.stringify(getWeatherData(7));
+      return { result: weather, weekWeather: weather };
+    },
+    result_keys: ["weekWeather"],
+    constant: true,
+    fn: async () => await Placeholders.allPlaceholders["{{weekWeather}}"].apply("{{weekWeather}}"),
+  },
+
+  /**
+   * Placeholder for a comma-separated list of the name, start time, and end time of all calendar events that are scheduled over the next 24 hours.
+   */
+  "{{todayEvents}}": {
+    name: "todayEvents",
+    rules: [],
+    apply: async (str: string, context?: { [key: string]: string }) => {
+      if (context && "todayEvents" in context) {
+        return { result: context["todayEvents"], todayEvents: context["todayEvents"] };
+      }
+
+      const events = filterString(await getUpcomingCalendarEvents(CalendarDuration.DAY));
+      return { result: events, todayEvents: events };
+    },
+    result_keys: ["todayEvents"],
+    constant: true,
+    fn: async () => await Placeholders.allPlaceholders["{{todayEvents}}"].apply("{{todayEvents}}"),
+  },
+
+  /**
+   * Placeholder for a comma-separated list of the name, start time, and end time of all calendar events that are scheduled over the next 7 days.
+   */
+  "{{weekEvents}}": {
+    name: "weekEvents",
+    rules: [],
+    apply: async (str: string, context?: { [key: string]: string }) => {
+      if (context && "weekEvents" in context) {
+        return { result: context["weekEvents"], weekEvents: context["weekEvents"] };
+      }
+
+      const events = filterString(await getUpcomingCalendarEvents(CalendarDuration.WEEK));
+      return { result: events, weekEvents: events };
+    },
+    result_keys: ["weekEvents"],
+    constant: true,
+    fn: async () => await Placeholders.allPlaceholders["{{weekEvents}}"].apply("{{weekEvents}}"),
+  },
+
+  /**
+   * Placeholder for a comma-separated list of the name, start time, and end time of all calendar events that are scheduled over the next 30 days.
+   */
+  "{{monthEvents}}": {
+    name: "monthEvents",
+    rules: [],
+    apply: async (str: string, context?: { [key: string]: string }) => {
+      if (context && "monthEvents" in context) {
+        return { result: context["monthEvents"], monthEvents: context["monthEvents"] };
+      }
+
+      const events = filterString(await getUpcomingCalendarEvents(CalendarDuration.MONTH));
+      return { result: events, monthEvents: events };
+    },
+    result_keys: ["monthEvents"],
+    constant: true,
+    fn: async () => await Placeholders.allPlaceholders["{{monthEvents}}"].apply("{{monthEvents}}"),
+  },
+
+  /**
+   * Placeholder for a comma-separated list of the name, start time, and end time of all calendar events that are scheduled over the next 365 days.
+   */
+  "{{yearEvents}}": {
+    name: "yearEvents",
+    rules: [],
+    apply: async (str: string, context?: { [key: string]: string }) => {
+      if (context && "yearEvents" in context) {
+        return { result: context["yearEvents"], yearEvents: context["yearEvents"] };
+      }
+
+      const events = filterString(await getUpcomingCalendarEvents(CalendarDuration.YEAR));
+      return { result: events, yearEvents: events };
+    },
+    result_keys: ["yearEvents"],
+    constant: true,
+    fn: async () => await Placeholders.allPlaceholders["{{yearEvents}}"].apply("{{yearEvents}}"),
+  },
+
+  /**
+   * Placeholder for a comma-separated list of the name and due date/time of all calendar events that are scheduled over the next 24 hours.
+   */
+  "{{todayReminders}}": {
+    name: "todayReminders",
+    aliases: ["{{todayTasks}}", "{{todayTodos}}"],
+    rules: [],
+    apply: async (str: string, context?: { [key: string]: string }) => {
+      if (context && "todayReminders" in context) {
+        return { result: context["todayReminders"], todayReminders: context["todayReminders"] };
+      }
+
+      const reminders = filterString(await getUpcomingReminders(CalendarDuration.DAY));
+      return { result: reminders, todayReminders: reminders };
+    },
+    result_keys: ["todayReminders"],
+    constant: true,
+    fn: async () => await Placeholders.allPlaceholders["{{todayReminders}}"].apply("{{todayReminders}}"),
+  },
+
+  /**
+   * Placeholder for a comma-separated list of the name and due date/time of all calendar events that are scheduled over the next 7 days.
+   */
+  "{{weekReminders}}": {
+    name: "weekReminders",
+    aliases: ["{{weekTasks}}", "{{weekTodos}}"],
+    rules: [],
+    apply: async (str: string, context?: { [key: string]: string }) => {
+      if (context && "weekReminders" in context) {
+        return { result: context["weekReminders"], weekReminders: context["weekReminders"] };
+      }
+
+      const reminders = filterString(await getUpcomingReminders(CalendarDuration.WEEK));
+      return { result: reminders, weekReminders: reminders };
+    },
+    result_keys: ["weekReminders"],
+    constant: true,
+    fn: async () => await Placeholders.allPlaceholders["{{weekReminders}}"].apply("{{weekReminders}}"),
+  },
+
+  /**
+   * Placeholder for a comma-separated list of the name and due date/time of all calendar events that are scheduled over the next 30 days.
+   */
+  "{{monthReminders}}": {
+    name: "monthReminders",
+    aliases: ["{{monthTasks}}", "{{monthTodos}}"],
+    rules: [],
+    apply: async (str: string, context?: { [key: string]: string }) => {
+      if (context && "monthReminders" in context) {
+        return { result: context["monthReminders"], monthReminders: context["monthReminders"] };
+      }
+
+      const reminders = filterString(await getUpcomingReminders(CalendarDuration.MONTH));
+      return { result: reminders, monthReminders: reminders };
+    },
+    result_keys: ["monthReminders"],
+    constant: true,
+    fn: async () => await Placeholders.allPlaceholders["{{monthReminders}}"].apply("{{monthReminders}}"),
+  },
+
+  /**
+   * Placeholder for a comma-separated list of the name and due date/time of all calendar events that are scheduled over the next 365 days.
+   */
+  "{{yearReminders}}": {
+    name: "yearReminders",
+    aliases: ["{{yearTasks}}", "{{yearTodos}}"],
+    rules: [],
+    apply: async (str: string, context?: { [key: string]: string }) => {
+      if (context && "yearReminders" in context) {
+        return { result: context["yearReminders"], yearReminders: context["yearReminders"] };
+      }
+
+      const reminders = filterString(await getUpcomingReminders(CalendarDuration.YEAR));
+      return { result: reminders, yearReminders: reminders };
+    },
+    result_keys: ["yearReminders"],
+    constant: true,
+    fn: async () => await Placeholders.allPlaceholders["{{yearReminders}}"].apply("{{yearReminders}}"),
+  },
+
+  /**
+   * Placeholder for the name of the last command executed by the user.
+   */
+  "{{previousCommand}}": {
+    name: "previousCommand",
+    aliases: ["{{lastCommand}}"],
+    rules: [],
+    apply: async (str: string, context?: { [key: string]: string }) => {
+      if (context && "previousCommand" in context) {
+        return { result: context["previousCommand"], previousCommand: context["previousCommand"] };
+      }
+      return { result: "", previousCommand: "" };
+    },
+    result_keys: ["previousCommand"],
+    constant: true,
+    fn: async () => await Placeholders.allPlaceholders["{{previousCommand}}"].apply("{{previousCommand}}"),
+  },
+
+  /**
+   * Placeholder for the fully substituted text of the AI's previous response.
+   */
+  "{{previousPrompt}}": {
+    name: "previousPrompt",
+    aliases: ["{{lastPrompt}}"],
+    rules: [],
+    apply: async (str: string, context?: { [key: string]: string }) => {
+      if (context && "previousPrompt" in context) {
+        return { result: context["previousPrompt"], previousPrompt: context["previousPrompt"] };
+      }
+      return { result: "", previousPrompt: "" };
+    },
+    result_keys: ["previousPrompt"],
+    constant: true,
+    fn: async () => await Placeholders.allPlaceholders["{{previousPrompt}}"].apply("{{previousPrompt}}"),
+  },
+
+  /**
+   * Placeholder for the text of the AI's previous response.
+   */
+  "{{previousResponse}}": {
+    name: "previousResponse",
+    aliases: ["{{lastResponse}}"],
+    rules: [],
+    apply: async (str: string, context?: { [key: string]: string }) => {
+      if (context && "previousResponse" in context) {
+        return { result: context["previousResponse"], previousResponse: context["previousResponse"] };
+      }
+      return { result: "", previousResponse: "" };
+    },
+    result_keys: ["previousResponse"],
+    constant: true,
+    fn: async () => await Placeholders.allPlaceholders["{{previousResponse}}"].apply("{{previousResponse}}"),
   },
 
   /**
@@ -683,12 +1304,13 @@ const placeholders: Placeholder = {
         const URL = str.match(/(?<=(url|URL):).*?(?=}})/)?.[0];
         if (!URL) return { result: "", url: "" };
         const urlText = await getTextOfWebpage(URL);
-        return { result: urlText, url: urlText };
+        return { result: filterString(urlText), url: filterString(urlText) };
       } catch (e) {
         return { result: "", url: "" };
       }
     },
-    result_keys: ["url" + crypto.randomUUID()],
+    constant: false,
+    fn: async (url: string) => await Placeholders.allPlaceholders["{(url|URL):.*?}}"].apply(`{{url:${url}}}`),
   },
 
   /**
@@ -698,7 +1320,7 @@ const placeholders: Placeholder = {
     name: "file",
     rules: [],
     apply: async (str: string, context?: { [key: string]: string }) => {
-      const target = str.match(/(?<=(file:)).*?(?=}})/)?.[0];
+      const target = str.match(/(?<=(file:))[\s\S]*?(?=}})/)?.[0];
       if (!target) return { result: "", file: "" };
 
       const filePath = target.startsWith("~") ? target.replace("~", os.homedir()) : target;
@@ -708,22 +1330,76 @@ const placeholders: Placeholder = {
 
       try {
         const text = fs.readFileSync(filePath, "utf-8");
-        return { result: text, file: text };
+        return { result: filterString(text), file: filterString(text) };
       } catch (e) {
         return { result: "", file: "" };
       }
     },
-    result_keys: ["file" + crypto.randomUUID()],
+    constant: false,
+    fn: async (path: string) =>
+      await Placeholders.allPlaceholders["{{file:(.|^[\\s\\n\\r])*?}}"].apply(`{{file:${path}}}`),
+  },
+
+  /**
+   * Directive to increment a persistent counter variable by 1. Returns the new value of the counter.
+   */
+  "{{increment:[\\s\\S]*?}}": {
+    name: "increment",
+    rules: [],
+    apply: async (str: string, context?: { [key: string]: string }) => {
+      const name = str.match(/(?<=(increment:))[\s\S]*?(?=}})/)?.[0];
+      const identifier = `id-${name}`;
+      const value = parseInt((await LocalStorage.getItem(identifier)) || "0") + 1;
+      await LocalStorage.setItem(identifier, value.toString());
+      return { result: value.toString() };
+    },
+    constant: false,
+    fn: async (id: string) =>
+      await Placeholders.allPlaceholders["{{increment:[\\s\\S]*?}}"].apply(`{{increment:${id}}}`),
+  },
+
+  /**
+   * Directive to decrement a persistent counter variable by 1. Returns the new value of the counter.
+   */
+  "{{decrement:[\\s\\S]*?}}": {
+    name: "decrement",
+    rules: [],
+    apply: async (str: string, context?: { [key: string]: string }) => {
+      const name = str.match(/(?<=(decrement:))[\s\S]*?(?=}})/)?.[0];
+      const identifier = `id-${name}`;
+      const value = parseInt((await LocalStorage.getItem(identifier)) || "0") + 1;
+      await LocalStorage.setItem(identifier, value.toString());
+      return { result: value.toString() };
+    },
+    constant: false,
+    fn: async (id: string) =>
+      await Placeholders.allPlaceholders["{{decrement:[\\s\\S]*?}}"].apply(`{{decrement:${id}}}`),
+  },
+
+  /**
+   * Placeholder for a comma-separated list of nearby locations based on the given search query.
+   */
+  "{{nearbyLocations:([\\s\\S]*)}}": {
+    name: "nearbyLocations",
+    rules: [],
+    apply: async (str: string, context?: { [key: string]: string }) => {
+      const query = str.match(/(?<=(nearbyLocations:))[\s\S]*?(?=}})/)?.[0];
+      const nearbyLocations = await searchNearbyLocations(query || "");
+      return { result: filterString(nearbyLocations) };
+    },
+    constant: false,
+    fn: async (query?: string) =>
+      await Placeholders.allPlaceholders["{{nearbyLocations:([\\s\\S]*)}}"].apply(`{{nearbyLocations:${query || ""}}}`),
   },
 
   /**
    * Directive to copy the provided text to the clipboard. The placeholder will always be replaced with an empty string.
    */
-  "{{copy:[^}]*?}}": {
+  "{{copy:[\\s\\S]*?}}": {
     name: "copy",
     rules: [],
     apply: async (str: string, context?: { [key: string]: string }) => {
-      const text = str.match(/(?<=(copy:))[^}]*?(?=}})/)?.[0];
+      const text = str.match(/(?<=(copy:))[\s\S]*?(?=}})/)?.[0];
       if (!text) return { result: "" };
       await Clipboard.copy(text);
       if (environment.commandName == "index") {
@@ -732,51 +1408,172 @@ const placeholders: Placeholder = {
         await showToast({ title: "Copied to Clipboard" });
       }
       return { result: "" };
-    }
+    },
+    constant: false,
+    fn: async (text: string) => await Placeholders.allPlaceholders["{{copy:[\\s\\S]*?}}"].apply(`{{copy:${text}}}`),
   },
 
   /**
    * Directive to paste the provided text in the frontmost application. The placeholder will always be replaced with an empty string.
    */
-  "{{paste:[^}]*?}}": {
-    name: "Paste from Clipboard",
+  "{{paste:[\\s\\S]*?}}": {
+    name: "paste",
     rules: [],
     apply: async (str: string, context?: { [key: string]: string }) => {
-      const text = str.match(/(?<=(paste:))[^}]*?(?=}})/)?.[0];
+      const text = str.match(/(?<=(paste:))[\s\S]*?(?=}})/)?.[0];
       if (!text) return { result: "" };
       await Clipboard.paste(text);
       await showHUD("Pasted Into Frontmost App");
       return { result: "" };
     },
+    constant: false,
+    fn: async (text: string) => await Placeholders.allPlaceholders["{{paste:[\\s\\S]*?}}"].apply(`{{paste:${text}}}`),
   },
 
   /**
-   * Directive to set the value of a persistent variable. If the variable does not exist, it will be created. The placeholder will always be replaced with an empty string.
+   * Directive to select files. The placeholder will always be replaced with an empty string.
    */
-  "{{set [a-zA-Z0-9_]+:.*?}}": {
-    name: "Set Persistent Variable",
+  "{{selectFile:[\\s\\S]*?}}": {
+    name: "selectFile",
     rules: [],
     apply: async (str: string, context?: { [key: string]: string }) => {
-      const matches = str.match(/{{set ([a-zA-Z0-9_]+):(.*?)}}/);
+      const file = str.match(/(?<=(selectFiles:))[\s\S]*?(?=}})/)?.[0];
+      if (!file) return { result: "" };
+      await addFileToSelection(file);
+      return { result: "" };
+    },
+    constant: false,
+    fn: async (path: string) =>
+      await Placeholders.allPlaceholders["{{selectFile:[\\s\\S]*?}}"].apply(`{{selectFile:${path}}}`),
+  },
+
+  /**
+   * Directive/placeholder to execute a Siri Shortcut by name, optionally supplying input, and insert the result. If the result is null, the placeholder will be replaced with an empty string.
+   */
+  "{{shortcut:([\\s\\S]+?)(:[\\s\\S]*?)?}}": {
+    name: "shortcut",
+    rules: [],
+    apply: async (str: string, context?: { [key: string]: string }) => {
+      const matches = str.match(/{{shortcut:([\s\S]+?)?(:[\s\S]*?)?}}/);
       if (matches) {
-        const key = matches[1];
-        const value = matches[2];
-        await setPersistentVariable(key, value);
+        const shortcutName = matches[1];
+        const input = matches[2] ? matches[2].slice(1) : "";
+        const result = await runAppleScript(`tell application "Shortcuts Events"
+          set res to run shortcut "${shortcutName}" with input "${input}"
+          if res is not missing value then
+            return res
+          else
+            return ""
+          end if 
+        end tell`);
+        return { result: result || "" };
       }
       return { result: "" };
     },
+    constant: false,
+    fn: async (shortcut: string, input?: string) =>
+      await Placeholders.allPlaceholders["{{shortcut:([\\s\\S]+?)(:[\\s\\S]*?)?}}"].apply(
+        `{{shortcut:${shortcut}${input?.length ? `:${input}` : ""}}}`
+      ),
+  },
+
+  /**
+   * Replaces prompt placeholders with the response to the prompt.
+   */
+  "{{prompt:([\\s\\S])*?}}": {
+    name: "prompt",
+    rules: [],
+    apply: async (str: string, context?: { [key: string]: string }) => {
+      const prompt = str.match(/(?<=(prompt:))[\s\S]*?(?=}})/)?.[0] || "";
+      if (prompt.trim().length == 0) return { result: "" };
+      const response = await runModel(prompt, prompt, "");
+      return { result: response || "" };
+    },
+    constant: false,
+    fn: async (text: string) =>
+      await Placeholders.allPlaceholders["{{prompt:([\\s\\S])*?}}"].apply(`{{prompt:${text}}}`),
+  },
+
+  /**
+   * Directive to run a Raycast command. The placeholder will always be replaced with an empty string. Commands are specified in the format {{command:commandName:extensionName}}.
+   */
+  "{{command:([^:}]*[\\s]*)*?(:([^:}]*[\\s]*)*?)?(:([^:}]*[\\s]*)*?)?}}": {
+    name: "command",
+    rules: [],
+    apply: async (str: string, context?: { [key: string]: string }) => {
+      const command = str.match(/command:([^:]*?)(:[^}:]*?)*(?=}})/)?.[1] || "";
+      const extension = str.match(/(?<=(command:[^:]*?:))([^:]*?)(:[^}:]*?)*(?=}})/)?.[2] || "";
+      const input = str.match(/(?<=(command:[^:]*?:[^:]*?:)).*?(?=}})/)?.[0] || "";
+
+      // Locate the extension and command
+      const cmd = command.trim();
+      const ext = extension.trim();
+      const extensions = await getExtensions();
+      const targetExtension = extensions.find((extension) => {
+        if (ext != "") {
+          return extension.name == ext || extension.title == ext;
+        } else {
+          return extension.commands.find((command) => command.name == cmd) != undefined;
+        }
+      });
+
+      if (targetExtension != undefined) {
+        // Run the command belonging to the exact extension
+        const targetCommand = targetExtension.commands.find((command) => command.name == cmd || command.title == cmd);
+        if (targetCommand != undefined) {
+          open(targetCommand.deeplink + (input.length > 0 ? `?fallbackText=${input}` : ``));
+        }
+      } else {
+        // Run a command with the specified name, not necessary belonging to the target extension
+        const targetCommand = extensions
+          .map((extension) => extension.commands)
+          .flat()
+          .find((command) => command.name == cmd || command.title == cmd);
+        if (targetCommand != undefined) {
+          open(targetCommand.deeplink + (input.length > 0 ? `?fallbackText=${input}` : ``));
+        }
+      }
+      return { result: "" };
+    },
+    constant: false,
+    fn: async (command: string, extension?: string, input?: string) =>
+      await Placeholders.allPlaceholders["{{command:([^:}]*[\\s]*)*?(:([^:}]*[\\s]*)*?)?(:([^:}]*[\\s]*)*?)?}}"].apply(
+        `{{command:${command}${extension?.length ? `:${extension}${input?.length ? `:${input}` : ``}` : ``}}`
+      ),
+  },
+
+  /**
+   * Replaces YouTube placeholders with the transcript of the corresponding YouTube video.
+   */
+  "{{(youtube|yt):([\\s\\S]*?)}}": {
+    name: "youtube",
+    rules: [],
+    apply: async (str: string, context?: { [key: string]: string }) => {
+      const specifier = str.match(/(?<=(youtube|yt):)[\s\S]*?(?=}})/)?.[0] || "";
+      if (specifier.trim().length == 0) {
+        return { result: "No video specified" };
+      }
+
+      const transcriptText = specifier.startsWith("http")
+        ? await getYouTubeVideoTranscriptByURL(specifier)
+        : await getYouTubeVideoTranscriptById(getMatchingYouTubeVideoID(specifier));
+      return { result: filterString(transcriptText) };
+    },
+    constant: false,
+    fn: async (idOrURL: string) =>
+      await Placeholders.allPlaceholders["{{(youtube|yt):([\\s\\S]*?)}}"].apply(`{{youtube:${idOrURL}}}`),
   },
 
   /**
    * Placeholder for output of an AppleScript script. If the script fails, this placeholder will be replaced with an empty string. No sanitization is done in the script input; the expectation is that users will only use this placeholder with trusted scripts.
    */
   "{{(as|AS):(.|[ \\n\\r\\s])*?}}": {
-    name: "applescript",
+    name: "as",
     rules: [],
     apply: async (str: string, context?: { [key: string]: string }) => {
       try {
         const script = str.match(/(?<=(as|AS):)(.|[ \n\r\s])*?(?=}})/)?.[0];
-        if (!script) return { result: "", applescript: ""};
+        if (!script) return { result: "", applescript: "" };
         const res = await runAppleScript(`try
           ${script}
           end try`);
@@ -785,18 +1582,21 @@ const placeholders: Placeholder = {
         return { result: "", applescript: "" };
       }
     },
+    constant: false,
+    fn: async (script: string) =>
+      await Placeholders.allPlaceholders["{{(as|AS):(.|[ \\n\\r\\s])*?}}"].apply(`{{as:${script}}}`),
   },
 
   /**
    * Placeholder for output of a JavaScript for Automation script. If the script fails, this placeholder will be replaced with an empty string. No sanitization is done in the script input; the expectation is that users will only use this placeholder with trusted scripts.
    */
   "{{(jxa|JXA):(.|[ \\n\\r\\s])*?}}": {
-    name: "JavaScript for Automation",
+    name: "jxa",
     rules: [],
     apply: async (str: string, context?: { [key: string]: string }) => {
       try {
         const script = str.match(/(?<=(jxa|JXA):)(.|[ \n\r\s])*?(?=}})/)?.[0];
-        if (!script) return { result: "", jxa: ""};
+        if (!script) return { result: "", jxa: "" };
         const res = execSync(
           `osascript -l JavaScript -e "${script
             .replaceAll('"', '\\"')
@@ -809,18 +1609,21 @@ const placeholders: Placeholder = {
         return { result: "", jxa: "" };
       }
     },
+    constant: false,
+    fn: async (script: string) =>
+      await Placeholders.allPlaceholders["{{(jxa|JXA):(.|[ \\n\\r\\s])*?}}"].apply(`{{jxa:${script}}}`),
   },
 
   /**
    * Placeholder for output of a shell script. If the script fails, this placeholder will be replaced with an empty string. No sanitization is done on the script input; the expectation is that users will only use this placeholder with trusted scripts.
    */
   "{{shell( .*)?:(.|[ \\n\\r\\s])*?}}": {
-    name: "Shell Script",
+    name: "shell",
     rules: [],
     apply: async (str: string, context?: { [key: string]: string }) => {
       try {
         const script = str.match(/(?<=shell( .*)?:)(.|[ \n\r\s])*?(?=}})/)?.[0];
-        if (!script) return { result: "", shell: ""};
+        if (!script) return { result: "", shell: "" };
 
         const bin =
           str
@@ -833,94 +1636,68 @@ const placeholders: Placeholder = {
         return { result: "", shell: "" };
       }
     },
+    constant: false,
+    fn: async (script: string) =>
+      await Placeholders.allPlaceholders["{{shell( .*)?:(.|[ \\n\\r\\s])*?}}"].apply(`{{shell:${script}}}`),
+  },
+
+  /**
+   * Directive to set the value of a persistent variable. If the variable does not exist, it will be created. The placeholder will always be replaced with an empty string.
+   */
+  "{{set [a-zA-Z0-9_]+:[\\s\\S]*?}}": {
+    name: "setPersistentVariable",
+    rules: [],
+    apply: async (str: string, context?: { [key: string]: string }) => {
+      const matches = str.match(/{{set ([a-zA-Z0-9_]+):([\s\S]*?)}}/);
+      if (matches) {
+        const key = matches[1];
+        const value = matches[2];
+        await setPersistentVariable(key, value);
+      }
+      return { result: "" };
+    },
+    constant: false,
+    fn: async (id: string, value: string) =>
+      await Placeholders.allPlaceholders["{{set [a-zA-Z0-9_]+:[\\s\\S]*?}}"].apply(`{{set ${id}:${value}}}`),
   },
 
   /**
    * Placeholder for output of a JavaScript script. If the script fails, this placeholder will be replaced with an empty string. The script is run in a sandboxed environment.
    */
   "{{(js|JS):(.|[ \\n\\r\\s])*?}}": {
-    name: "JavaScript",
+    name: "js",
     rules: [],
     apply: async (str: string, context?: { [key: string]: string }) => {
       try {
         const script = str.match(/(?<=(js|JS):)(.|[ \n\r\s])*?(?=}})/)?.[0];
-        if (!script) return { result: "", js: ""};
-        const sandbox = {
-          clipboardText: async () => await Placeholders.allPlaceholders["{{clipboardText}}"].apply("{{clipboardText}}"),
-          selectedText: async () => await Placeholders.allPlaceholders["{{selectedText}}"].apply("{{selectedText}}"),
-          currentAppName: async () =>
-            await Placeholders.allPlaceholders["{{currentAppName}}"].apply("{{currentAppName}}"),
-          currentAppPath: async () =>
-            await Placeholders.allPlaceholders["{{currentAppPath}}"].apply("{{currentAppPath}}"),
-          currentDirectory: async () =>
-            await Placeholders.allPlaceholders["{{currentDirectory}}"].apply("{{currentDirectory}}"),
-          currentURL: async () => await Placeholders.allPlaceholders["{{currentURL}}"].apply("{{currentURL}}"),
-          user: async () => await Placeholders.allPlaceholders["{{user}}"].apply("{{user}}"),
-          homedir: async () => await Placeholders.allPlaceholders["{{homedir}}"].apply("{{homedir}}"),
-          hostname: async () => await Placeholders.allPlaceholders["{{hostname}}"].apply("{{hostname}}"),
-          date: async (format?: string) =>
-            await Placeholders.allPlaceholders[`{{date( format=("|').*?("|'))?}}`].apply(
-              `{{date${format ? ` format="${format}"` : ""}}}`
-            ),
-          time: async () => await Placeholders.allPlaceholders[`{{time( format=("|').*?("|'))?}}`].apply("{{time}}"),
-          day: async () => await Placeholders.allPlaceholders[`{{day( locale=("|').*?("|'))?}}`].apply("{{day}}"),
-          currentTabText: async () =>
-            await Placeholders.allPlaceholders["{{currentTabText}}"].apply("{{currentTabText}}"),
-          systemLanguage: async () =>
-            await Placeholders.allPlaceholders["{{systemLanguage}}"].apply("{{systemLanguage}}"),
-          previousApp: async () => await Placeholders.allPlaceholders["{{previousApp}}"].apply("{{previousApp}}"),
-          uuid: async () => await Placeholders.allPlaceholders["{{uuid}}"].apply("{{uuid}}"),
-          usedUUIDs: async () => await Placeholders.allPlaceholders["{{usedUUIDs}}"].apply("{{usedUUIDs}}"),
-          url: async (url: string) => await Placeholders.allPlaceholders["{{(url|URL):.*?}}"].apply(`{{url:${url}}}`),
-          as: async (script: string) =>
-            await Placeholders.allPlaceholders["{{(as|AS):(.|[ \\n\\r\\s])*?}}"].apply(`{{as:${script}}}`),
-          jxa: async (script: string) =>
-            await Placeholders.allPlaceholders["{{(jxa|JXA):(.|[ \\n\\r\\s])*?}}"].apply(`{{jxa:${script}}}`),
-          shell: async (script: string) =>
-            await Placeholders.allPlaceholders["{{shell( .*)?:(.|[ \\n\\r\\s])*?}}"].apply(`{{shell:${script}}}`),
-          previousPinName: async () =>
-            await Placeholders.allPlaceholders["{{previousPinName}}"].apply("{{previousPinName}}"),
-          previousPinTarget: async () =>
-            await Placeholders.allPlaceholders["{{previousPinTarget}}"].apply("{{previousPinTarget}}"),
-          reset: async (variable: string) =>
-            await Placeholders.allPlaceholders["{{reset [a-zA-Z0-9_]+}}"].apply(`{{reset ${variable}}}`),
-          get: async (variable: string) =>
-            await Placeholders.allPlaceholders["{{get [a-zA-Z0-9_]+}}"].apply(`{{get ${variable}}}`),
-          delete: async (variable: string) =>
-            await Placeholders.allPlaceholders["{{delete [a-zA-Z0-9_]+}}"].apply(`{{delete ${variable}}}`),
-          set: async (variable: string, value: string) =>
-            await Placeholders.allPlaceholders["{{set [a-zA-Z0-9_]+:.*?}}"].apply(`{{set ${variable}:${value}}}`),
-          shortcut: async (name: string) =>
-            await Placeholders.allPlaceholders["{{shortcut:([\\s\\S]+?)( input=(\"|').*?(\"|'))?}}"].apply(
-              `{{shortcut:${name}}}`
-            ),
-          selectedFiles: async () => await Placeholders.allPlaceholders["{{selectedFiles}}"].apply("{{selectedFiles}}"),
-          selectedFileContents: async () =>
-            await Placeholders.allPlaceholders["{{selectedFileContents}}"].apply("{{selectedFileContents}}"),
-          shortcuts: async () => await Placeholders.allPlaceholders["{{shortcuts}}"].apply("{{shortcuts}}"),
-          copy: async (text: string) => await Placeholders.allPlaceholders["{{copy:[^}]*?}}"].apply(`{{copy:${text}}}`),
-          paste: async (text: string) =>
-            await Placeholders.allPlaceholders["{{paste:[^}]*?}}"].apply(`{{paste:${text}}}`),
-          ignore: async (text: string) =>
-            await Placeholders.allPlaceholders["{{(ignore|IGNORE):[^}]*?}}"].apply(`{{ignore:${text}}}`),
-        };
+        if (!script) return { result: "", js: "" };
+        const sandbox = Object.values(Placeholders.allPlaceholders).reduce((acc, placeholder) => {
+          acc[placeholder.name] = placeholder.fn;
+          return acc;
+        }, {} as { [key: string]: (...args: never[]) => Promise<{ [key: string]: string; result: string }> });
         const res = await vm.runInNewContext(script, sandbox, { timeout: 1000, displayErrors: true });
         return { result: res, js: script };
       } catch (e) {
         return { result: "", js: "" };
       }
     },
+    constant: false,
+    fn: async (script: string) =>
+      await Placeholders.allPlaceholders["{{(js|JS):(.|[ \\n\\r\\s])*?}}"].apply(`{{js:${script}}}`),
   },
 
   /**
    * Directive to ignore all content within the directive. Allows placeholders and directives to run without influencing the output.
    */
   "{{(ignore|IGNORE):[^}]*?}}": {
-    name: "Ignore Content",
+    name: "ignore",
     rules: [],
     apply: async (str: string, context?: { [key: string]: string }) => {
-      return { result: "" }
+      return { result: "" };
     },
+    constant: false,
+    fn: async (content: string) =>
+      await Placeholders.allPlaceholders["{{(ignore|IGNORE):[^}]*?}}"].apply(`{{ignore:${content}}}`),
   },
 };
 
@@ -1010,43 +1787,92 @@ const applyToObjectValuesWithKeys = async (
   return subbedObj;
 };
 
-const bulkApply = async (str: string): Promise<string> => {
+/**
+ * Applies placeholders to a string by memoizing the results of each placeholder.
+ * @param str The string to apply placeholders to.
+ * @returns The string with placeholders substituted.
+ */
+const bulkApply = async (str: string, context?: { [key: string]: string }): Promise<string> => {
   let subbedStr = str;
-  const result: { [key: string]: string } = {};
+  const result = { ...(context || {}) };
+
+  // Apply any substitutions that are already in the context
+  for (const contextKey in context) {
+    const keyHolder = Object.entries(placeholders).find(([key, placeholder]) => placeholder.name == contextKey);
+    if (keyHolder && !(contextKey == "input" && context[contextKey] == "")) {
+      subbedStr = subbedStr.replace(new RegExp(keyHolder[0], "g"), context[contextKey]);
+    }
+  }
+
   for (const [key, placeholder] of Object.entries(placeholders)) {
     // Skip if the placeholder isn't in the string
-    if (!subbedStr.match(new RegExp(key, "g"))) continue;
+    const matchingAliases = (placeholder.aliases || []).filter((alias) => subbedStr.match(new RegExp(alias, "g")));
+    if (!subbedStr.match(new RegExp(key, "g")) && !matchingAliases.length) continue;
 
-    // Skip if all result keys are already in the result (i.e. the placeholder has already been applied to the string as a dependency of another placeholder)
-    const result_keys = placeholder.result_keys?.splice(0)?.filter((key) => !(key in result));
-    if (result_keys?.length) {
-      for (const dependencyName of placeholder.dependencies || []) {
-        // Get the placeholder that matches the dependency name
-        const dependency = Object.values(placeholders).find((placeholder) => placeholder.name == dependencyName);
-        if (!dependency) continue;
+    if (subbedStr.match(new RegExp(key, "g"))) {
+      matchingAliases.push(key);
+    }
 
-        // Apply the dependency placeholder and store the result
-        const intermediateResult = await dependency.apply(subbedStr, result);
-        subbedStr = subbedStr.replace(new RegExp(key, "g"), intermediateResult.result);
-        for (const [key, value] of Object.entries(intermediateResult)) {
-          result[key] = value;
-          if (result_keys.includes(key)) {
-            delete result_keys[result_keys.indexOf(key)];
+    for (const alias of matchingAliases) {
+      // Skip if all result keys are already in the result (i.e. the placeholder has already been applied to the string as a dependency of another placeholder)
+      const result_keys = placeholder.result_keys?.filter(
+        (key) => !(key in result) || (result[key] == "" && key == "input")
+      );
+      if (result_keys == undefined || result_keys.length > 0) {
+        for (const dependencyName of placeholder.dependencies || []) {
+          // Get the placeholder that matches the dependency name
+          const dependency = Object.entries(placeholders).find((placeholder) => placeholder[1].name == dependencyName);
+          if (!dependency) continue;
+
+          // Apply the dependency placeholder and store the result
+          while (subbedStr.match(new RegExp(dependency[0], "g")) != undefined) {
+            const intermediateResult = await dependency[1].apply(subbedStr, result);
+
+            if (dependency[1].constant) {
+              subbedStr = subbedStr.replace(new RegExp(dependency[0], "g"), intermediateResult.result);
+            } else {
+              subbedStr = subbedStr.replace(new RegExp(dependency[0]), intermediateResult.result);
+            }
+
+            for (const [key, value] of Object.entries(intermediateResult)) {
+              result[key] = value;
+              if (result_keys?.includes(key)) {
+                result_keys.splice(result_keys.indexOf(key), 1);
+              }
+            }
+
+            // Don't waste time applying other occurrences if the result is constant
+            if (dependency[1].constant) {
+              break;
+            }
           }
         }
-      }
 
-      const intermediateResult = await placeholder.apply(subbedStr, result);
-      subbedStr = subbedStr.replace(new RegExp(key, "g"), intermediateResult.result);
-      for (const [key, value] of Object.entries(intermediateResult)) {
-        if (result_keys.includes(key)) {
-          result[key] = value;
+        // Apply the placeholder and store the result
+        while (subbedStr.match(new RegExp(alias, "g")) != undefined) {
+          const intermediateResult = await placeholder.apply(subbedStr, result);
+
+          if (placeholder.constant) {
+            subbedStr = subbedStr.replace(new RegExp(alias, "g"), intermediateResult.result);
+          } else {
+            subbedStr = subbedStr.replace(new RegExp(alias), intermediateResult.result);
+          }
+
+          for (const [key, value] of Object.entries(intermediateResult)) {
+            result[key] = value;
+            if (result_keys?.includes(key)) {
+              result_keys.splice(result_keys.indexOf(key), 1);
+            }
+          }
+
+          // Don't waste time applying other occurrences if the result is constant
+          if (placeholder.constant) {
+            break;
+          }
         }
       }
     }
   }
-
-  console.log(subbedStr);
   return subbedStr;
 };
 

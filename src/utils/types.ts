@@ -1,7 +1,7 @@
 /**
  * General preferences for the entire extension.
  */
-export interface ExtensionPreferences {
+export type ExtensionPreferences = {
   pdfOCR: boolean;
   modelEndpoint: string;
   authType: string;
@@ -21,7 +21,7 @@ export interface ExtensionPreferences {
 /**
  * Preferences for the `My PromptLab Commands` command.
  */
-export interface searchPreferences {
+export type searchPreferences = {
   groupByCategory: boolean;
 }
 
@@ -50,7 +50,7 @@ export const categories = [
   "Web",
 ];
 
-export interface ModelManager {
+export type ModelManager = {
   models: Model[];
   isLoading: boolean;
   error: string | undefined;
@@ -69,7 +69,7 @@ export interface ModelManager {
 /**
  * A PromptLab custom model.
  */
-export interface Model {
+export type Model = {
   name: string;
   description: string;
   endpoint: string;
@@ -91,7 +91,7 @@ export interface Model {
 /**
  * User-customizable options for PromptLab commands.
  */
-export interface CommandOptions {
+export type CommandOptions = {
   minNumFiles?: number;
   acceptedFileExtensions?: string[];
   useMetadata?: boolean;
@@ -113,7 +113,7 @@ export interface CommandOptions {
   speakResponse?: boolean;
 }
 
-export interface StringConfigField {
+export type StringConfigField = {
   name: string;
   description: string;
   guideText: string;
@@ -124,7 +124,7 @@ export interface StringConfigField {
   value?: string;
 }
 
-export interface BooleanConfigField {
+export type BooleanConfigField = {
   name: string;
   description: string;
   guideText: string;
@@ -132,7 +132,7 @@ export interface BooleanConfigField {
   value?: boolean;
 }
 
-export interface NumberConfigField {
+export type NumberConfigField = {
   name: string;
   description: string;
   guideText: string;
@@ -145,7 +145,7 @@ export interface NumberConfigField {
 /**
  * A PromptLab command setup configuration.
  */
-export interface CommandConfig {
+export type CommandConfig = {
   fields: (NumberConfigField | BooleanConfigField | StringConfigField)[];
   configVersion: string;
 }
@@ -153,7 +153,7 @@ export interface CommandConfig {
 /**
  * A PromptLab command.
  */
-export interface Command {
+export type Command = {
   name: string;
   prompt: string;
   icon: string;
@@ -190,9 +190,18 @@ export interface Command {
 }
 
 /**
+ * Checks if an object is an installed command object.
+ * @param obj The object to check.
+ * @returns True if the object is an installed command, false otherwise.
+ */
+export const isCommand = (obj: object): obj is Command => {
+  return !("exampleOutput" in obj);
+}
+
+/**
  * A command response from SlashAPI.
  */
-export interface StoreCommand {
+export type StoreCommand = {
   name: string;
   prompt: string;
   icon: string;
@@ -226,15 +235,19 @@ export interface StoreCommand {
   speakResponse?: string;
 }
 
+export const isStoreCommand = (obj: object): obj is StoreCommand => {
+  return "exampleOutput" in obj;
+}
+
 /** Output from a model endpoint */
-export interface modelOutput {
+export type modelOutput = {
   [key: string]: string | modelOutput;
 }
 
 /**
  * Statistics about a PromptLab chat.
  */
-export interface ChatStatistics {
+export type ChatStatistics = {
   totalQueries: string;
   totalResponses: string;
   totalPlaceholdersUsedByUser: string;
@@ -253,7 +266,7 @@ export interface ChatStatistics {
 /**
  * A PromptLab Chat instance.
  */
-export interface Chat {
+export type Chat = {
   name: string;
   icon: string;
   iconColor: string;
@@ -272,7 +285,7 @@ export interface Chat {
 /**
  * A Raycast extension.
  */
-export interface Extension {
+export type Extension = {
   title: string;
   name: string;
   path: string;
@@ -284,9 +297,27 @@ export interface Extension {
 /**
  * A Raycast extension command.
  */
-export interface ExtensionCommand {
+export type ExtensionCommand = {
   title: string;
   name: string;
   description: string;
   deeplink: string;
 }
+
+/**
+ * Checks if a value is true in either a boolean or string form.
+ * @param str The value to check.
+ * @returns True if the value is true or "true" (case-insensitive), false otherwise.
+ */
+export const isTrueStr = (str: string | boolean | undefined) => {
+  return str == true || str?.toString().toLowerCase() == "true";
+};
+
+/**
+ * Errors that can arise when getting the contents of selected files.
+ */
+export const ERRORTYPE = {
+  FINDER_INACTIVE: 1,
+  MIN_SELECTION_NOT_MET: 2,
+  INPUT_TOO_LONG: 3,
+};

@@ -15,7 +15,7 @@ export const useSpeech = (options: CommandOptions, isLoading: boolean, response:
   const startSpeaking = () => {
     setSpeaking(true);
     const scriptPath = path.resolve(environment.assetsPath, "scripts", "SpeechSynthesis.scpt");
-    const { data, sendMessage } = execScript(scriptPath, [isLoading], "JavaScript", (output) => console.log(output));
+    const { data, sendMessage } = execScript(scriptPath, [isLoading], "JavaScript");
     sendContent.current = sendMessage;
     stopSpeech.current = () => {
       sendMessage("$$stop$$");

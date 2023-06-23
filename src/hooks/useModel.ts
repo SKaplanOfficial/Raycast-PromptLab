@@ -4,6 +4,7 @@ import { ExtensionPreferences, Model, modelOutput } from "../utils/types";
 import { useEffect, useRef, useState } from "react";
 import fetch, { Response } from "node-fetch";
 import { useModels } from "./useModels";
+import { filterString } from "../utils/calendar-utils";
 
 /**
  * Gets the text response from the model endpoint.
@@ -24,7 +25,7 @@ export default function useModel(
   const [data, setData] = useState<string>("");
   const [error, setError] = useState<string>();
   const [dataTag, setDataTag] = useState<string>("");
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(execute);
   const models = useModels();
   const AIRef = useRef<{ fetch: Promise<Response>, tag: string, forceStop: () => void }>();
 
@@ -151,7 +152,7 @@ export default function useModel(
       return;
     }
 
-    if (AIRef.current == undefined && execute && prompt.length > 0 && !isLoading) {
+    if (AIRef.current == undefined && execute && prompt?.length && !isLoading) {
       const fetchAI = fetch(targetModel.endpoint, {
         method: "POST",
         headers: headers,
@@ -196,6 +197,10 @@ export default function useModel(
         response.body?.on("data", (chunk: string) => {
           const jsonString = chunk.toString();
           jsonString.split("\n").forEach((line) => {
+            if (me != AIRef.current && AIRef.current != undefined && AIRef.current.tag != basePrompt + prompt + input) {
+              me?.forceStop();
+              return;
+            }
             if (line.startsWith("data: [DONE]")) {
               // Done
             } else if (line.startsWith("data: ")) {
@@ -211,18 +216,19 @@ export default function useModel(
                   setData(text);
                 }
               } catch (e) {
-                console.log((e as Error).message)
+                console.log((e as Error).message, line.substring(line.length - 100))
               }
             }
           });
         });
       }
     }).finally(() => {
-      if (me?.tag != basePrompt + prompt + input) {
+      if (me != AIRef.current) {
         me?.forceStop();
         return;
       }
       setIsLoading(false);
+      AIRef.current = undefined;
     })
   }, [execute, basePrompt, input, prompt]);
 
@@ -235,7 +241,7 @@ export default function useModel(
 
   const res = environment.canAccess(AI)
     ? {
-        ...useAI(preferences.promptPrefix + prompt + preferences.promptSuffix, {
+        ...useAI(filterString(preferences.promptPrefix + prompt + preferences.promptSuffix, 5000), {
           execute: execute,
           creativity: temp,
           model: targetModel.endpoint == "Raycast AI 3.5" ? "gpt-3.5-turbo" : "text-davinci-003",
@@ -245,15 +251,15 @@ export default function useModel(
       }
     : {
         data: data,
-        isLoading: true,
+        isLoading: execute,
         revalidate: () => null,
         error: error,
         dataTag: dataTag,
         stopModel: stopModel,
       };
 
-  if (basePrompt.length == 0 && prompt.length == 0) {
-    console.error("Prompt cannot be empty")
+  if (!basePrompt?.length && !prompt?.length) {
+    console.error("Prompt cannot be empty");
     return { data: "", isLoading: false, revalidate: () => null, error: "Prompt cannot be empty", dataTag: "", stopModel: stopModel };
   }
 
@@ -262,7 +268,7 @@ export default function useModel(
     if (models.isLoading) {
       return {
         data: "",
-        isLoading: true,
+        isLoading: execute,
         revalidate: () => null,
         error: undefined,
         dataTag: basePrompt + prompt + input,
@@ -282,7 +288,14 @@ export default function useModel(
     };
   }
 
+  const revalidate = async () => {
+    if (AIRef.current != undefined) {
+      AIRef.current.forceStop();
+      AIRef.current = undefined;
+    }
+  }
+
   // If the endpoint is invalid, return an error
   console.error("Invalid Model Endpoint")
-  return { data: "", isLoading: false, revalidate: () => null, error: "Invalid Endpoint", dataTag: "", stopModel: stopModel };
+  return { data: "", isLoading: false, revalidate: revalidate, error: "Invalid Endpoint", dataTag: "", stopModel: stopModel };
 }

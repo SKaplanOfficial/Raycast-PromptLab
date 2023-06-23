@@ -1,5 +1,5 @@
 import { Grid } from "@raycast/api";
-import ResponseActions from "./ResponseActions";
+import ResponseActions from "./actions/ResponseActions";
 import { CommandOptions } from "../utils/types";
 import { useSpeech } from "../hooks/useSpeech";
 
