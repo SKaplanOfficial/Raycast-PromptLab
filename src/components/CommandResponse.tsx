@@ -33,11 +33,14 @@ export default function CommandResponse(props: {
   const { pop } = useNavigation();
 
   const models = useModels();
-
   const { selectedFiles, fileContents, isLoading: loading, error: errorType } = useFiles(options);
 
   useEffect(() => {
-    if (loading || (!loadingData && !(options.useSpeech == undefined || speechInput?.length)) || !fileContents || !(fileContents.contents.length)) {
+    if (
+      loading ||
+      (!loadingData && !(options.useSpeech == undefined || speechInput?.length)) ||
+      ((!fileContents || !fileContents.contents.length) && options.minNumFiles)
+    ) {
       return;
     }
 
@@ -81,9 +84,8 @@ export default function CommandResponse(props: {
     input || contentPromptString,
     options.temperature == undefined ? "1.0" : options.temperature,
     !loadingData &&
-      (options.minNumFiles == 0 ||
-        (fileContents?.contents?.length != undefined && fileContents.contents.length > 0) ||
-        shouldCancel) &&
+      (!options.minNumFiles || (fileContents?.contents?.length != undefined && fileContents.contents.length > 0)) &&
+      !shouldCancel &&
       (!options.useSpeech || (speechInput != "" && speechInput != undefined)),
     models.models.find((model) => model.id == options.model)
   );
@@ -107,7 +109,14 @@ export default function CommandResponse(props: {
         )
       );
     }
-  }, [data, isLoading]);
+
+    // Update previous command placeholders
+    if (!loadingData && !loading && !isLoading && data.length) {
+      setPreviousCommand(commandName);
+      setPreviousResponse(text);
+      setPreviousPrompt(fullPrompt);
+    }
+  }, [data, isLoading, loadingData]);
 
   // Report errors related to getting data from the model
   if (error) {
@@ -138,20 +147,7 @@ export default function CommandResponse(props: {
   }
 
   // Get the text output for the response
-  const text = `${
-    data
-      ? data
-      : options.minNumFiles != undefined && options.minNumFiles == 0
-      ? "Loading response..."
-      : "Analyzing files..."
-  }`;
-
-  // Update previous command placeholders
-  if (!loadingData && !loading && !isLoading && data.length) {
-    setPreviousCommand(commandName);
-    setPreviousResponse(text);
-    setPreviousPrompt(fullPrompt);
-  }
+  const text = `${data ? data : options.minNumFiles == 0 ? "Loading response..." : "Analyzing files..."}`;
 
   // Don't show the response if the user has disabled it
   if (options.showResponse == false) {

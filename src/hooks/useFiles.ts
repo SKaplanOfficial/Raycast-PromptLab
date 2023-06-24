@@ -2,7 +2,6 @@ import { runAppleScript } from "run-applescript";
 import { CommandOptions, ERRORTYPE, ExtensionPreferences } from "../utils/types";
 import { useEffect, useState } from "react";
 import { environment, getPreferenceValues } from "@raycast/api";
-import { getMetadataDetails } from "../utils/file-utils";
 import path from "path";
 import * as fs from "fs";
 import {
@@ -78,17 +77,54 @@ const isImageFile = (filepath: string) => {
 
 const isTextFile = (filepath: string) => {
   return (
-    textFileExtensions.includes(path.extname(filepath).slice(1).toLowerCase()) || path.extname(filepath).toLowerCase() === ""
+    textFileExtensions.includes(path.extname(filepath).slice(1).toLowerCase()) ||
+    path.extname(filepath).toLowerCase() === ""
   );
 };
 
+export async function getFileContent(filePath: string, options?: CommandOptions) {
+  const options_ =
+    options == undefined
+      ? {
+          useMetadata: true,
+          useAudioDetails: true,
+          useSoundClassification: true,
+          useSubjectClassification: true,
+          useFaceDetection: true,
+          useBarcodeDetection: true,
+          useRectangleDetection: true,
+          useSaliencyAnalysis: true,
+        }
+      : options;
+
+  const currentData = { contents: `{File ${path.basename(filePath)}}:\n` };
+
+  const filepath = filePath.toLowerCase();
+  if (isTrueDirectory(filepath)) addDirectoryDetails(filepath, currentData);
+  else if (isApp(filepath)) await addAppDetails(filepath, currentData, options_);
+  else if (isPDF(filepath)) await addPDFDetails(filepath, currentData, options_);
+  else if (isVideoFile(filepath)) await addVideoDetails(filepath, currentData, options_);
+  else if (isAudioFile(filepath)) await addAudioDetails(filepath, currentData, options_);
+  else if (isImageFile(filepath)) await addImageDetails(filepath, currentData, options_);
+  else if (isTextFile(filepath)) addTextFileDetails(filepath, currentData);
+  else attemptAddRawText(filepath, currentData);
+
+  if (options_.useMetadata) addMetadataDetails(filepath, currentData);
+  return currentData;
+}
+
 export const useFiles = (options: CommandOptions) => {
   const [selectedFiles, setSelectedFiles] = useState<{ paths: string[]; csv: string }>();
-  const [fileContents, setFileContents] = useState<{ [key: string]: string, contents: string }>();
+  const [fileContents, setFileContents] = useState<{ [key: string]: string; contents: string }>();
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<number>();
 
   const loadSelection = async () => {
+    if (!options.minNumFiles) return {
+      paths: [],
+      csv: ""
+    }
+
     const validExtensions = (options.acceptedFileExtensions || []).map((ext) => ext.toLowerCase());
 
     setIsLoading(true);
@@ -116,7 +152,7 @@ export const useFiles = (options: CommandOptions) => {
 
   const loadFileContents = async (selection: { paths: string[]; csv: string }) => {
     // Raise an error if too few files are selected
-    if (selection.paths.length < (options.minNumFiles || 1)) {
+    if (selection.paths.length < (options.minNumFiles || 0)) {
       setError(ERRORTYPE.MIN_SELECTION_NOT_MET);
       setIsLoading(false);
       return;
@@ -134,8 +170,9 @@ export const useFiles = (options: CommandOptions) => {
         fs.lstatSync(filepath).size > 10000000 &&
         !videoFileExtensions.includes(path.extname(filepath).slice(1).toLowerCase())
       ) {
-        currentData.contents += filterString(getMetadataDetails(filepath));
-        fileData.contents += currentData.contents;
+        addMetadataDetails(filepath, currentData);
+        currentData.contents = fileData.contents + "\n" + currentData.contents;
+        Object.assign(fileData, currentData);
         continue;
       }
 
@@ -150,7 +187,7 @@ export const useFiles = (options: CommandOptions) => {
 
       if (options.useMetadata) addMetadataDetails(filepath, currentData);
 
-      currentData.contents = fileData.contents + currentData.contents;
+      currentData.contents = fileData.contents + "\n" + currentData.contents;
       Object.assign(fileData, currentData);
     }
 
@@ -161,6 +198,7 @@ export const useFiles = (options: CommandOptions) => {
     Promise.resolve(loadSelection()).then((selection) => {
       Promise.resolve(
         loadFileContents(selection).then(() => {
+          console.log("here")
           setIsLoading(false);
         })
       );

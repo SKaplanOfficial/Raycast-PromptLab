@@ -8,14 +8,13 @@ import {
   Color,
   environment,
   Toast,
-  getPreferenceValues,
 } from "@raycast/api";
-import { Chat, ChatStatistics, ExtensionPreferences } from "../../utils/types";
+import { Chat, ChatStatistics } from "../../utils/types";
 import { useEffect, useState } from "react";
 import { getTextOfWebpage } from "../../utils/context-utils";
 import { filterString } from "../../utils/calendar-utils";
-import { getFileContent } from "../../utils/file-utils";
 import runModel from "../../utils/runModel";
+import { getFileContent } from "../../hooks/useFiles";
 
 interface ChatSettingsFormValues {
   chatNameField: string;
@@ -68,7 +67,6 @@ export default function ChatSettingsForm(props: {
   );
   const [stats, setStats] = useState<ChatStatistics>();
   const { pop } = useNavigation();
-  const preferences = getPreferenceValues<ExtensionPreferences>();
 
   useEffect(() => {
     setStats(chats.calculateStats(oldData.name));
@@ -128,7 +126,7 @@ export default function ChatSettingsForm(props: {
                         const files = contextDataField.split(", ");
                         let fileText = "";
                         for (const file of files) {
-                          fileText += "\n\n" + (await getFileContent(file));
+                          fileText += "\n\n" + ((await getFileContent(file)).contents || "");
                         }
 
                         while (fileText.length > parseInt(values.chatSummaryLengthField) * files.length) {
@@ -163,7 +161,7 @@ export default function ChatSettingsForm(props: {
                         const files = contextDataField.split(", ");
                         let fileText = "";
                         for (const file of files) {
-                          fileText += "\n\n" + (await getFileContent(file));
+                          fileText += "\n\n" + ((await getFileContent(file)).contents || "");
                         }
 
                         lines = fileText.split("\n");
@@ -201,7 +199,7 @@ export default function ChatSettingsForm(props: {
                         const files = contextDataField.split(", ");
                         let fileText = "";
                         for (const file of files) {
-                          fileText += "\n\n" + (await getFileContent(file));
+                          fileText += "\n\n" + ((await getFileContent(file)).contents || "");
                         }
                         if (values.chatCondensingStrategyField == "summarize") {
                           prompt = `What ${

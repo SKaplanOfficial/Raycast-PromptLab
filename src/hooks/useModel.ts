@@ -27,7 +27,7 @@ export default function useModel(
   const [dataTag, setDataTag] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(execute);
   const models = useModels();
-  const AIRef = useRef<{ fetch: Promise<Response>, tag: string, forceStop: () => void }>();
+  const AIRef = useRef<{ fetch: Promise<Response>; tag: string; forceStop: () => void }>();
 
   // We can be a little forgiving of how users specify Raycast AI
   const validRaycastAIReps = ["raycast ai", "raycastai", "raycast", "raycast-ai", "raycast ai 3.5"];
@@ -177,59 +177,67 @@ export default function useModel(
       const tag = basePrompt + prompt + input;
       const forceStop = () => {
         fetchAI.then((response) => {
-          response.body?.emit("close")
-        })
+          response.body?.emit("close");
+        });
       };
       AIRef.current = { fetch: fetchAI, tag: tag, forceStop: forceStop };
     }
 
     setIsLoading(true);
     const me = AIRef.current;
-    AIRef.current?.fetch?.then((response) => {
-      if (response.ok && targetModel.outputTiming == "sync") {
-        response.json().then((json) => {
-          const output = get(json as modelOutput, targetModel.outputKeyPath) as string;
-          setData(output);
-        });
-      } else if (response.ok && targetModel.outputTiming == "async") {
-        let text = "";
-        setDataTag(basePrompt + prompt + input);
-        response.body?.on("data", (chunk: string) => {
-          const jsonString = chunk.toString();
-          jsonString.split("\n").forEach((line) => {
-            if (me != AIRef.current && AIRef.current != undefined && AIRef.current.tag != basePrompt + prompt + input) {
-              me?.forceStop();
-              return;
-            }
-            if (line.startsWith("data: [DONE]")) {
-              // Done
-            } else if (line.startsWith("data: ")) {
-              try {
-                const jsonData = JSON.parse(line.substring(5));
-                const output = get(jsonData, targetModel.outputKeyPath) || "";
-                if (output.toString().includes(text)) {
-                  text = output.toString();
-                } else {
-                  text = text + output;
-                }
-                if (me?.tag == basePrompt + prompt + input) {
-                  setData(text);
-                }
-              } catch (e) {
-                console.log((e as Error).message, line.substring(line.length - 100))
-              }
-            }
+    AIRef.current?.fetch
+      ?.then((response) => {
+        if (response.ok && targetModel.outputTiming == "sync") {
+          response.json().then((json) => {
+            const output = get(json as modelOutput, targetModel.outputKeyPath) as string;
+            setData(output);
           });
-        });
-      }
-    }).finally(() => {
-      if (me != AIRef.current) {
-        me?.forceStop();
-        return;
-      }
-      setIsLoading(false);
-      AIRef.current = undefined;
-    })
+        } else if (response.ok && targetModel.outputTiming == "async") {
+          let text = "";
+          setDataTag(basePrompt + prompt + input);
+          response.body?.on("data", (chunk: string) => {
+            const jsonString = chunk.toString();
+            jsonString.split("\n").forEach((line) => {
+              if (
+                me != AIRef.current &&
+                AIRef.current != undefined &&
+                AIRef.current.tag != basePrompt + prompt + input
+              ) {
+                me?.forceStop();
+                return;
+              }
+              if (line.startsWith("data: [DONE]")) {
+                // Done
+              } else if (line.startsWith("data: ")) {
+                try {
+                  const jsonData = JSON.parse(line.substring(5));
+                  const output = get(jsonData, targetModel.outputKeyPath) || "";
+                  if (output.toString().includes(text)) {
+                    text = output.toString();
+                  } else {
+                    text = text + output;
+                  }
+                  if (me?.tag == basePrompt + prompt + input) {
+                    setData(text);
+                  }
+                } catch (e) {
+                  console.log((e as Error).message, line.substring(line.length - 100));
+                }
+              }
+            });
+          });
+          response.body?.on("close", () => {
+            setIsLoading(false);
+            AIRef.current = undefined;
+          });
+        }
+      })
+      .finally(() => {
+        if (me != AIRef.current) {
+          me?.forceStop();
+          return;
+        }
+      });
   }, [execute, basePrompt, input, prompt]);
 
   const stopModel = () => {
@@ -260,7 +268,14 @@ export default function useModel(
 
   if (!basePrompt?.length && !prompt?.length) {
     console.error("Prompt cannot be empty");
-    return { data: "", isLoading: false, revalidate: () => null, error: "Prompt cannot be empty", dataTag: "", stopModel: stopModel };
+    return {
+      data: "",
+      isLoading: false,
+      revalidate: () => null,
+      error: "Prompt cannot be empty",
+      dataTag: "",
+      stopModel: stopModel,
+    };
   }
 
   if (validRaycastAIReps.includes(targetModel.endpoint.toLowerCase()) || models.isLoading) {
@@ -293,9 +308,16 @@ export default function useModel(
       AIRef.current.forceStop();
       AIRef.current = undefined;
     }
-  }
+  };
 
   // If the endpoint is invalid, return an error
-  console.error("Invalid Model Endpoint")
-  return { data: "", isLoading: false, revalidate: revalidate, error: "Invalid Endpoint", dataTag: "", stopModel: stopModel };
+  console.error("Invalid Model Endpoint");
+  return {
+    data: "",
+    isLoading: false,
+    revalidate: revalidate,
+    error: "Invalid Endpoint",
+    dataTag: "",
+    stopModel: stopModel,
+  };
 }

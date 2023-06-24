@@ -14,13 +14,13 @@ import {
 import { useEffect, useState } from "react";
 import useModel from "../../hooks/useModel";
 import { Chat, CommandOptions, ExtensionPreferences } from "../../utils/types";
-import { useFileContents } from "../../utils/file-utils";
 import { runActionScript, runReplacements } from "../../utils/command-utils";
 import ChatSettingsForm from "./ChatSettingsForm";
 import { useChats } from "../../hooks/useChats";
 import runModel from "../../utils/runModel";
 import path from "path";
 import * as fs from "fs";
+import { useFiles as useFileContents } from "../../hooks/useFiles";
 
 interface CommandPreferences {
   useSelectedFiles: boolean;
@@ -61,8 +61,8 @@ export default function CommandChatView(props: {
   const chats = useChats();
   const {
     selectedFiles,
-    contentPrompts,
-    loading: loadingSelectedFiles,
+    fileContents,
+    isLoading: loadingSelectedFiles,
     revalidate: revalidateFiles,
   } = useFileContents(options);
   const {
@@ -113,7 +113,6 @@ export default function CommandChatView(props: {
         });
       });
     } else {
-      console.log("prev", currentResponse);
       setPreviousResponse(currentResponse);
       setCurrentResponse("Loading...");
       const subbedQuery = await applyReplacements(newQuery);
@@ -126,7 +125,7 @@ export default function CommandChatView(props: {
   const applyReplacements = async (query: string) => {
     const context = {
       input: input || "",
-      selectedFiles: selectedFiles?.join(", ") || "",
+      selectedFiles: selectedFiles?.csv || "",
     }
     
     let subbedQuery = await runReplacements(query, context, [commandName]);
@@ -161,10 +160,8 @@ export default function CommandChatView(props: {
             .join("\n\n")}###\n\n`
         : ``
     }${
-      useFiles && selectedFiles?.length
-        ? ` You will also consider the following details about selected files. Here are the file details, provided by your knowledge system: ###${contentPrompts.join(
-            "\n"
-          )}###\n\n`
+      useFiles && selectedFiles?.paths?.length
+        ? ` You will also consider the following details about selected files. Here are the file details, provided by your knowledge system: ###${fileContents?.contents || ""}###\n\n`
         : ``
     }${
       useConversation

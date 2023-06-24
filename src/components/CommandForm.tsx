@@ -789,8 +789,13 @@ export default function CommandForm(props: {
       ) : null}
 
       <Form.Dropdown title="Model" info="The model to use for this command." {...itemProps.model}>
-        {models.models.map((model) => (
-          <Form.Dropdown.Item title={model.name} value={model.id} key={model.id} />
+        {models.models.some((model) => model.favorited) ? <Form.Dropdown.Section title="Favorites">
+          {models.models.filter((model) => model.favorited).map((model) => (
+            <Form.Dropdown.Item title={model.name} value={model.id} key={model.id} icon={{ source: model.icon, tintColor: model.iconColor }} />
+          ))}
+        </Form.Dropdown.Section> : null}
+        {models.models.filter((model) => !model.favorited).map((model) => (
+          <Form.Dropdown.Item title={model.name} value={model.id} key={model.id} icon={{ source: model.icon, tintColor: model.iconColor }} />
         ))}
       </Form.Dropdown>
 

@@ -6,11 +6,10 @@ import {
   Icon,
   LocalStorage,
   environment,
-  getPreferenceValues,
   showToast,
   useNavigation,
 } from "@raycast/api";
-import { ExtensionPreferences, Model, ModelManager } from "../utils/types";
+import { Model, ModelManager } from "../utils/types";
 import { FormValidation, useForm } from "@raycast/utils";
 import { useEffect, useState } from "react";
 import { randomUUID } from "crypto";
@@ -46,8 +45,6 @@ export default function ModelForm(props: { models: ModelManager; currentModel?: 
       Promise.resolve(models.updateModel(currentModel, { ...currentModel, id: id })).then(() => models.revalidate());
     }
   }, []);
-
-  const preferences = getPreferenceValues<ExtensionPreferences>();
 
   const { handleSubmit, itemProps, values } = useForm<ModelFormValues>({
     async onSubmit(values) {

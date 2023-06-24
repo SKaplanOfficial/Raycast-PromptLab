@@ -1,7 +1,6 @@
 import { runAppleScript, runAppleScriptSync } from "run-applescript";
 import * as os from "os";
 import { filterString } from "./calendar-utils";
-import * as fs from "fs";
 
 /**
  * Gets the URL of the active tab in Safari.

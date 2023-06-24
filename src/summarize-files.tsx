@@ -1,10 +1,11 @@
 import { Detail, popToRoot, showToast, Toast } from "@raycast/api";
 import { useEffect } from "react";
-import { installDefaults, useFileContents } from "./utils/file-utils";
+import { installDefaults } from "./utils/file-utils";
 import ResponseActions from "./components/actions/ResponseActions";
 import { imageFileExtensions, videoFileExtensions } from "./utils/file-extensions";
 import useModel from "./hooks/useModel";
 import { ERRORTYPE } from "./utils/types";
+import { useFiles } from "./hooks/useFiles";
 
 export default function Command() {
   const options = {
@@ -20,7 +21,7 @@ export default function Command() {
     useSaliencyAnalysis: true,
   };
 
-  const { selectedFiles, contentPrompts, loading, errorType } = useFileContents(options);
+  const { selectedFiles, fileContents, isLoading: loading, error: errorType } = useFiles(options);
 
   useEffect(() => {
     installDefaults();
@@ -28,9 +29,9 @@ export default function Command() {
 
   const matchAnyImageExtensions = RegExp(`(.${imageFileExtensions.join("|.")})`);
   const matchAnyVideoExtensions = RegExp(`(.${videoFileExtensions.join("|.")})`);
-  const svgSelected = selectedFiles?.join("").toLowerCase().includes(".svg");
-  const imageSelected = selectedFiles?.join("").toLowerCase().search(matchAnyImageExtensions) != -1;
-  const videoSelected = selectedFiles?.join("").toLowerCase().search(matchAnyVideoExtensions) != -1;
+  const svgSelected = selectedFiles?.csv.toLowerCase().includes(".svg");
+  const imageSelected = selectedFiles?.csv.toLowerCase().search(matchAnyImageExtensions) != -1;
+  const videoSelected = selectedFiles?.csv.toLowerCase().search(matchAnyVideoExtensions) != -1;
 
   const basePrompt = `I want you to derive insights from the following information about the content of files. You will respond with a descriptive discussion of each file, its main topics, and its significance. You will use all information provided to infer more insights. Provide several insights derived from metadata or EXIF data. Give an overview of lists, content, objects, etc. without listing specific details. Discuss the general position of any objects, points, or rectangles within images and videos without using numbers. Don't repeat yourself. Don't list properties without describing their value. ${
     imageSelected
@@ -44,9 +45,9 @@ export default function Command() {
     svgSelected ? "For SVGs, predict what object(s) the overall code will render as." : ""
   } Draw connections between different pieces of information and discuss the significance of any relationships therein. Use the file names as headings. Limit your discussion to one short paragraph. At the end, include a list of relevant links formatted as a markdown list. \nHere are the files:\n###\n`;
 
-  const contentPromptString = contentPrompts.join("\n");
+  const contentPromptString = fileContents?.contents
   const fullPrompt = basePrompt + contentPromptString;
-  const { data, isLoading, revalidate } = useModel("", fullPrompt, "", "1.0", contentPrompts.length > 0);
+  const { data, isLoading, revalidate } = useModel("", fullPrompt, "", "1.0", contentPromptString != undefined);
 
   if (errorType) {
     let errorMessage = "";
@@ -70,7 +71,7 @@ export default function Command() {
   const text = `# File Summarization\n${data ? data : "Summarizing files..."}`;
   return (
     <Detail
-      isLoading={loading || isLoading || contentPrompts.length == 0}
+      isLoading={loading || isLoading || contentPromptString == undefined}
       markdown={text}
       actions={
         <ResponseActions
@@ -81,7 +82,7 @@ export default function Command() {
           promptText={fullPrompt}
           reattempt={revalidate}
           cancel={() => null}
-          files={selectedFiles}
+          files={selectedFiles?.paths}
         />
       }
     />
