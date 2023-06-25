@@ -23,6 +23,8 @@ import {
 import { Fragment, useEffect, useState } from "react";
 import * as crypto from "crypto";
 import { useRef } from "react";
+import { checkForPlaceholders } from "../utils/placeholders";
+import { OpenCustomPlaceholdersAction, OpenPlaceholdersGuideAction } from "./actions/OpenFileActions";
 
 interface CommandFormValues {
   name: string;
@@ -57,12 +59,16 @@ interface CommandFormValues {
   showInMenuBar?: boolean;
 }
 
+const defaultPromptInfo =
+  "This is the prompt that the AI will use to generate a response. You can use placeholders to add dynamic content to your prompt. Use the 'Open Placeholders Guide' action to learn more.";
+
 export default function CommandForm(props: {
   oldData?: Command;
   setCommands?: React.Dispatch<React.SetStateAction<Command[]>>;
   duplicate?: boolean;
 }) {
   const { oldData, setCommands, duplicate } = props;
+  const [promptInfo, setPromptInfo] = useState<string>(defaultPromptInfo);
   const [showResponse, setShowResponse] = useState<boolean>(
     oldData != undefined && oldData.showResponse != undefined ? oldData.showResponse : true
   );
@@ -218,12 +224,23 @@ export default function CommandForm(props: {
         values["outputKind"] = "none";
       }
 
+      let minNumFiles = values.minNumFiles;
+      if (minNumFiles == "0") {
+        if (
+          values.prompt.match(
+            /{{(imageText|imageFaces|imageAnimals|imageSubjects|imageSaliency|imageBarcodes|imageRectangles|pdfRawText|pdfOCRText|contents)}}/g
+          ) != null
+        ) {
+          minNumFiles = "1";
+        }
+      }
+
       const commandObj: Command = {
         name: values.name,
         prompt: values.prompt,
         icon: values.icon,
         iconColor: values.iconColor,
-        minNumFiles: values.minNumFiles,
+        minNumFiles: minNumFiles,
         acceptedFileExtensions: values.acceptedFileExtensions,
         useMetadata: values.useMetadata,
         useAudioDetails: values.useAudioDetails,
@@ -395,6 +412,16 @@ export default function CommandForm(props: {
         if (subbedValue.length > maxPromptLength) {
           return `Prompt must be ${maxPromptLength} characters or fewer`;
         }
+
+        checkForPlaceholders(value).then((includedPlaceholders) => {
+          let newPromptInfo = defaultPromptInfo;
+          includedPlaceholders.forEach((placeholder) => {
+            newPromptInfo =
+              newPromptInfo +
+              `\n\nDetected Placeholder: ${placeholder.name}\nDescription: ${placeholder.description}\nExample: ${placeholder.example}`;
+          });
+          setPromptInfo(newPromptInfo);
+        });
       },
       minNumFiles: (value) => {
         if (!value) {
@@ -417,6 +444,8 @@ export default function CommandForm(props: {
             title={oldData && !duplicate ? "Save Command" : "Create Command"}
             onSubmit={handleSubmit}
           />
+          <OpenPlaceholdersGuideAction />
+          <OpenCustomPlaceholdersAction />
           <Action
             title={enableSetupEditing ? "Lock Setup Fields" : "Unlock Setup Fields"}
             icon={enableSetupEditing ? Icon.Lock : Icon.LockUnlocked}
@@ -702,12 +731,12 @@ export default function CommandForm(props: {
 
       <Form.Separator />
 
-      <Form.Description
-        title="Instructions"
-        text="Learn about placeholders to use in your prompts at promptlab.skaplan.io."
+      <Form.TextArea
+        title="Prompt"
+        placeholder="Instructions for AI to follow"
+        info={promptInfo}
+        {...itemProps.prompt}
       />
-
-      <Form.TextArea title="Prompt" placeholder="Instructions for AI to follow" {...itemProps.prompt} />
 
       <Form.TextArea
         title="Script"
@@ -789,14 +818,30 @@ export default function CommandForm(props: {
       ) : null}
 
       <Form.Dropdown title="Model" info="The model to use for this command." {...itemProps.model}>
-        {models.models.some((model) => model.favorited) ? <Form.Dropdown.Section title="Favorites">
-          {models.models.filter((model) => model.favorited).map((model) => (
-            <Form.Dropdown.Item title={model.name} value={model.id} key={model.id} icon={{ source: model.icon, tintColor: model.iconColor }} />
+        {models.models.some((model) => model.favorited) ? (
+          <Form.Dropdown.Section title="Favorites">
+            {models.models
+              .filter((model) => model.favorited)
+              .map((model) => (
+                <Form.Dropdown.Item
+                  title={model.name}
+                  value={model.id}
+                  key={model.id}
+                  icon={{ source: model.icon, tintColor: model.iconColor }}
+                />
+              ))}
+          </Form.Dropdown.Section>
+        ) : null}
+        {models.models
+          .filter((model) => !model.favorited)
+          .map((model) => (
+            <Form.Dropdown.Item
+              title={model.name}
+              value={model.id}
+              key={model.id}
+              icon={{ source: model.icon, tintColor: model.iconColor }}
+            />
           ))}
-        </Form.Dropdown.Section> : null}
-        {models.models.filter((model) => !model.favorited).map((model) => (
-          <Form.Dropdown.Item title={model.name} value={model.id} key={model.id} icon={{ source: model.icon, tintColor: model.iconColor }} />
-        ))}
       </Form.Dropdown>
 
       <Form.Checkbox

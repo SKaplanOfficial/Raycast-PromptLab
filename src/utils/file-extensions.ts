@@ -268,6 +268,7 @@ export const textFileExtensions = [
   "scm",
   "scpt",
   "scss",
+  "sdef",
   "sh",
   "sparql",
   "sql",
@@ -310,38 +311,39 @@ export const textFileExtensions = [
 ];
 
 export const imageFileExtensions = [
-  "png",
-  "jpg",
-  "jpeg",
-  "tiff",
-  "tif",
-  "gif",
   "bmp",
   "crw",
-  "pict",
-  "xmp",
   "dng",
-  "raw",
+  "gif",
   "heic",
-  "psd",
   "indd",
+  "jpeg",
+  "jpg",
+  "pict",
+  "png",
+  "psd",
+  "raw",
+  "svg",
+  "tif",
+  "tiff",
+  "xmp",
 ];
 
-export const videoFileExtensions = ["mov", "mp4", "m4v", "avi", "wmv", "flv", "mkv", "webm", "mpg", "mpeg"];
+export const videoFileExtensions = ["avi", "flv", "m4v", "mkv", "mov", "mp4", "mpeg", "mpg", "webm", "wmv"];
 
 export const audioFileExtensions = [
   "aac",
   "ac4",
   "adts",
   "aif",
-  "aiff",
   "aifc",
+  "aiff",
+  "au",
   "caf",
+  "m4a",
   "mp3",
   "mp4",
-  "m4a",
-  "snd",
-  "au",
   "sd2",
+  "snd",
   "wav",
 ];

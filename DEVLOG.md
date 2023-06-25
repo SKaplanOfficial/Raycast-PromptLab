@@ -1,5 +1,20 @@
 # PromptLab DevLog - A More Detailed ChangeLog
 
+### 2023-06-24
+
+- Added conditional prompting using filetype placeholders
+    - {{images:...}} - Content (including other placeholders) will only be evaluated if there is at least on selected image files
+    - Other file categories: {{textfiles:...}}, {{videos:...}}, {{audio:...}}
+    - For image, text, audio, and video file extensions, use {{ext:...}} to single out a specific file extension, e.g. {{svg:...}} or {{mov:...}}
+        - Also supports {{pdf:...}}
+    - Conditional prompting have other placeholders nested inside them, e.g. {{images:{{url:https://www.example.com}}}}
+        - Inner placeholders will only be evaluated if the condition is met (e.g. if there is at least one image file)
+- Added Custom Placeholders stored in supportPath/custom_placeholders.json
+- Added action to edit the custom placeholders file
+- Added Placeholders Guide and an action to open it
+- Added automatic detection of placeholders in prompts
+    - If a placeholder is detected, the info box for the prompt will show the detected placeholder, its description, and an example
+
 ### 2023-06-22
 
 - Redesigned the placeholders system to be more efficient and more versatile
@@ -20,7 +35,6 @@
         - {{delete x}} - Delete the persistent variable x
         - {{vars}} - List of stored persistent variable names
     - Now using bulkApply strategy that uses memoization to improve performance, especially when using multiple placeholders in a single command
-        
 - Added settings for displaying icons & icon colors in menu bar menu
 - Added settings for displaying core PromptLab commands in menu bar menu
 - Added settings for displaying favorites & categories in menu bar menu

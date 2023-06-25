@@ -260,12 +260,13 @@ export const getJSONResponse = (URL: string): JSONObject => {
 export const getTextOfWebpage = async (URL: string): Promise<string> => {
   const html = getURLHTML(URL);
   const filteredString = html
-    .replaceAll(
-      /(<script[\s\S\n\r]+?<\/script>|<style[\s\S\n\r]+?<\/style>|<nav[\s\S\n\r]+?<\/nav>|<link[\s\S\n\r]+?<\/link>|<form[\s\S\n\r]+?<\/form>|<button[\s\S\n\r]+?<\/button>|<!--[\s\S\n\r]+?-->|<select[\s\S\n\r]+?<\/select>|<[\s\n\r\S]+?>)/g,
-      " "
-    )
-    .replaceAll(/[\s\n\r]+/g, " ")
-    .replaceAll(/(\([^A-Za-z0-9]*\)|(?<=[,.!?%*])[,.!?%*]*?\s*[,.!?%*])/g, " ");
+  .replaceAll(/(<br ?\/?>|[\n\r]+)/g, "\n")
+  .replaceAll(
+    /(<script[\s\S\n\r]+?<\/script>|<style[\s\S\n\r]+?<\/style>|<nav[\s\S\n\r]+?<\/nav>|<link[\s\S\n\r]+?<\/link>|<form[\s\S\n\r]+?<\/form>|<button[\s\S\n\r]+?<\/button>|<!--[\s\S\n\r]+?-->|<select[\s\S\n\r]+?<\/select>|<[\s\n\r\S]+?>)/g,
+    "\n"
+  )
+  .replaceAll(/[\n\r]{2,}/g, "\r")
+  .replaceAll(/(\([^A-Za-z0-9\n]*\)|(?<=[,.!?%*])[,.!?%*]*?\s*[,.!?%*])/g, " ");
   return filteredString;
 };
 
