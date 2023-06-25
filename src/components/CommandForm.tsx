@@ -103,7 +103,6 @@ export default function CommandForm(props: {
     return acc;
   }, [] as string[][]);
 
-  let maxPromptLength = oldData?.minNumFiles == "0" ? 3000 : 500;
   const preferences = getPreferenceValues<ExtensionPreferences>();
 
   useEffect(() => {
@@ -111,6 +110,19 @@ export default function CommandForm(props: {
   }, [currentFieldFocus]);
 
   useEffect(() => {
+
+    if (oldData) {
+      checkForPlaceholders(oldData.prompt).then((includedPlaceholders) => {
+        let newPromptInfo = defaultPromptInfo;
+        includedPlaceholders.forEach((placeholder) => {
+          newPromptInfo =
+            newPromptInfo +
+            `\n\n${placeholder.name}: ${placeholder.description}\nExample: ${placeholder.example}`;
+        });
+        setPromptInfo(newPromptInfo);
+      });
+    }
+    
     if (oldData && oldData.setupConfig) {
       const fields = [] as {
         associatedConfigField: string;
@@ -408,17 +420,12 @@ export default function CommandForm(props: {
           return "Must provide a prompt";
         }
 
-        const subbedValue = value.replaceAll(/{{.*?}}/g, "");
-        if (subbedValue.length > maxPromptLength) {
-          return `Prompt must be ${maxPromptLength} characters or fewer`;
-        }
-
         checkForPlaceholders(value).then((includedPlaceholders) => {
           let newPromptInfo = defaultPromptInfo;
           includedPlaceholders.forEach((placeholder) => {
             newPromptInfo =
               newPromptInfo +
-              `\n\nDetected Placeholder: ${placeholder.name}\nDescription: ${placeholder.description}\nExample: ${placeholder.example}`;
+              `\n\n${placeholder.name}: ${placeholder.description}\nExample: ${placeholder.example}`;
           });
           setPromptInfo(newPromptInfo);
         });
@@ -792,12 +799,6 @@ export default function CommandForm(props: {
         title="Minimum File Count"
         placeholder="Minimum number of files required"
         info="The minimum number of files that must be selected for the command to be run."
-        onChange={(value) => {
-          const intVal = parseInt(value);
-          if (intVal == 0) {
-            maxPromptLength = 3000;
-          }
-        }}
         {...itemProps.minNumFiles}
       />
 

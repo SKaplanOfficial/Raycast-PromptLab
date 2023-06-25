@@ -32,6 +32,14 @@
       "required": false
     },
     {
+      "title": "Custom Placeholder Files",
+      "name": "customPlaceholderFiles",
+      "type": "textfield",
+      "default": "",
+      "description": "A comma-separated list of JSON files containing custom placeholders. These files must follow the format of the original custom_placeholders.json file. See the documentation for more information.",
+      "required": false
+    },
+    {
       "name": "primaryAction",
       "title": "Primary Command Action",
       "type": "dropdown",
@@ -194,12 +202,6 @@
     }
   ],
   "commands": [
-    {
-      "name": "summarize-files",
-      "title": "Summarize Selected Files",
-      "description": "Summarize the contents of the selected files",
-      "mode": "view"
-    },
     {
       "name": "create-command",
       "title": "New PromptLab Command",

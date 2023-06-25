@@ -10,34 +10,9 @@ import {
   textFileExtensions,
   videoFileExtensions,
 } from "../utils/file-extensions";
-import { filterString } from "../utils/calendar-utils";
-import { execScript } from "../utils/scripts";
-import { getAudioDetails, getAudioTranscription } from "../utils/audio-utils";
-import { getFileExifData, getImageDetails, getPDFText } from "../utils/image-utils";
-
-export const getSelectedFiles = async (): Promise<{ paths: string[]; csv: string }> => {
-  const res = await runAppleScript(`tell application "Finder"
-        set oldDelimiters to AppleScript's text item delimiters
-        set AppleScript's text item delimiters to "::"
-        set theSelection to selection
-        if theSelection is {} then
-            return
-        else if (theSelection count) is equal to 1 then
-            return the POSIX path of (theSelection as alias)
-        else
-            set thePaths to {}
-            repeat with i from 1 to (theSelection count)
-                copy (POSIX path of (item i of theSelection as alias)) to end of thePaths
-            end repeat
-            set thePathsString to thePaths as text
-            set AppleScript's text item delimiters to oldDelimiters
-            return thePathsString
-        end if
-    end tell`);
-  const paths = res.split("::");
-  const csv = paths.join(",");
-  return { paths, csv };
-};
+import { ScriptRunner, execScript } from "../utils/scripts";
+import { getAudioDetails, getImageDetails } from "../utils/file-utils";
+import { filterString } from "../utils/context-utils";
 
 /**
  * The maximum length of a file's read content string. This value is divided across all selected files.
@@ -128,7 +103,7 @@ export const useFiles = (options: CommandOptions) => {
     const validExtensions = (options.acceptedFileExtensions || []).map((ext) => ext.toLowerCase());
 
     setIsLoading(true);
-    const rawSelection = await getSelectedFiles();
+    const rawSelection = await ScriptRunner.SelectedFiles();
 
     // Remove invalid files and directories from the selection
     const selection = rawSelection.paths.reduce(
@@ -198,7 +173,6 @@ export const useFiles = (options: CommandOptions) => {
     Promise.resolve(loadSelection()).then((selection) => {
       Promise.resolve(
         loadFileContents(selection).then(() => {
-          console.log("here")
           setIsLoading(false);
         })
       );
@@ -259,7 +233,7 @@ const addPDFDetails = async (
   options: CommandOptions
 ) => {
   const preferences = getPreferenceValues<ExtensionPreferences>();
-  const pdfText = await getPDFText(filepath, preferences.pdfOCR, 3, options);
+  const pdfText = await ScriptRunner.PDFTextExtractor(filepath, preferences.pdfOCR, 3, options.useMetadata || false);
   currentData.contents += filterString(pdfText.imageText);
   currentData["pdfRawText"] = filterString(pdfText.pdfRawText);
   currentData["pdfOCRText"] = filterString(pdfText.pdfOCRText);
@@ -293,7 +267,7 @@ const addAudioDetails = async (
   options: CommandOptions
 ) => {
   if (options.useAudioDetails) {
-    const transcription = await getAudioTranscription(filepath, maxCharacters);
+    const transcription = await ScriptRunner.AudioTranscriber(filepath, maxCharacters);
     const audioDetails = filterString(transcription);
     currentData.contents += `<Spoken audio: """${audioDetails}"""`;
     currentData["audioTranscription"] = audioDetails;
@@ -311,9 +285,7 @@ const addImageDetails = async (
 ) => {
   const imageDetails = await getImageDetails(filepath, options);
   const imageVisionInstructions = filterString(imageDetails.output);
-  const exifData = options.useMetadata ? filterString(await getFileExifData(filepath)) : ``;
-  const exifInstruction = options.useMetadata ? `<EXIF data: ###${exifData}###>` : ``;
-  currentData.contents += imageVisionInstructions + exifInstruction;
+  currentData.contents += imageVisionInstructions;
   Object.assign(currentData, imageDetails);
 };
 

@@ -9,6 +9,7 @@ import RunCommandAction from "./components/actions/RunCommandAction";
 import ShareCommandAction from "./components/actions/ShareCommandAction";
 import { CopyCommandActionsSection } from "./components/actions/CopyCommandActions";
 import { CommandControlsActionsSection } from "./components/actions/CommandControlActions";
+import { OpenCustomPlaceholdersAction } from "./components/actions/OpenFileActions";
 
 export default function SearchCommand(props: { arguments: { commandName: string; queryInput: string } }) {
   const { commandName, queryInput } = props.arguments;
@@ -89,6 +90,7 @@ export default function SearchCommand(props: { arguments: { commandName: string;
               <ShareCommandAction command={command} />
               <CopyCommandActionsSection command={command} />
               <CommandControlsActionsSection command={command} commands={commands} setCommands={setCommands} />
+              <OpenCustomPlaceholdersAction />
             </ActionPanel>
           }
         />

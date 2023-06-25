@@ -54,7 +54,7 @@ export const defaultModels: { [key: string]: Model } = {
     name: "claude-instant-v1-100k",
     lengthLimit: "95000",
     inputSchema:
-      '{"prompt": "\n\n{prompt}\n\nAssistant: ", "model": "claude-v1-instant-100k", "max_tokens_to_sample": 3000, "stop_sequences": ["\n\nHuman:"], "stream": true }',
+      '{"prompt": "\\n\\n{prompt}\\n\\nAssistant: ", "model": "claude-v1-instant-100k", "max_tokens_to_sample": 3000, "stop_sequences": ["\\n\\nHuman:"], "stream": true }',
     description:
       "An enhanced version of claude-instant-v1 with a 100,000 token context window that retains its performance. Well-suited for high throughput use cases needing both speed and additional context, allowing deeper understanding from extended conversations and documents.",
     temperature: "1.0",
@@ -75,6 +75,24 @@ export const defaultModels: { [key: string]: Model } = {
     description: "Optimized for chat but works well for traditional completions tasks as well.",
     name: "GPT-3.5-Turbo Via OpenAI",
     outputKeyPath: "choices[0].delta.content",
+    outputTiming: "async",
+  },
+  "--model-GPT-4 Via Raycast AI": {
+    endpoint: "Raycast GPT 4",
+    apiKey: "",
+    inputSchema: "",
+    iconColor: "raycast-magenta",
+    notes: "",
+    temperature: "1.0",
+    lengthLimit: "2500",
+    icon: "number-04-16",
+    isDefault: false,
+    id: "",
+    authType: "apiKey",
+    favorited: false,
+    description: "",
+    name: "GPT-4 Via Raycast AI",
+    outputKeyPath: "",
     outputTiming: "async",
   },
 };

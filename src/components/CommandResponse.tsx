@@ -58,17 +58,16 @@ export default function CommandResponse(props: {
     };
 
     Promise.resolve(runReplacements(prompt, context, [commandName], options)).then((subbedPrompt) => {
-      setLoadingData(false);
-
-      if (options.outputKind == "list") {
+      if (options.outputKind == "list" && subbedPrompt.trim().length > 0) {
         subbedPrompt +=
           "<Format the output as a single list with each item separated by '~~~'. Do not provide any other commentary, headings, or data.>";
-      } else if (options.outputKind == "grid") {
+      } else if (options.outputKind == "grid" && subbedPrompt.trim().length > 0) {
         subbedPrompt +=
           "<Format the output as a single list with each item separated by '~~~'. At the start of each item, put an object emoji or person emoji that represents that item followed by '$$$'. Do not provide any other commentary, headings, or data.>";
       }
 
       setSubstitutedPrompt(subbedPrompt);
+      setLoadingData(false);
     });
   }, [loading, speechInput, fileContents]);
 
@@ -79,10 +78,11 @@ export default function CommandResponse(props: {
   );
 
   const { data, isLoading, revalidate, error } = useModel(
-    substitutedPrompt,
+    substitutedPrompt || "No prompt",
     fullPrompt,
     input || contentPromptString,
     options.temperature == undefined ? "1.0" : options.temperature,
+    substitutedPrompt.trim().length > 0 &&
     !loadingData &&
       (!options.minNumFiles || (fileContents?.contents?.length != undefined && fileContents.contents.length > 0)) &&
       !shouldCancel &&
@@ -150,7 +150,7 @@ export default function CommandResponse(props: {
   const text = `${data ? data : options.minNumFiles == 0 ? "Loading response..." : "Analyzing files..."}`;
 
   // Don't show the response if the user has disabled it
-  if (options.showResponse == false) {
+  if (options.showResponse == false || (!loadingData && substitutedPrompt == "")) {
     if (options.showResponse == false) {
       Promise.resolve(showHUD(`Running '${commandName}'...`));
     }

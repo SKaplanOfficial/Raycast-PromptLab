@@ -2,6 +2,10 @@ import { spawn } from "child_process";
 import { runAppleScript } from "run-applescript";
 import * as util from "util";
 import { DebugStyle, logDebug } from "./dev-utils";
+import { CalendarDuration, EventType, ReturnType } from "./types";
+import { environment } from "@raycast/api";
+import path from "path";
+import { filterString } from "./context-utils";
 
 /**
  * Executes an OSA script using the `osascript` command.
@@ -197,4 +201,134 @@ export const getSystemLanguage = async (): Promise<string> => {
         set locale to current application's NSLocale's autoupdatingCurrentLocale()
         set langCode to locale's languageCode()
         return locale's localizedStringForLanguageCode:langCode`);
+};
+
+/**
+ * Executes an AppleScript/JXA script in the assets directory by name.
+ * @param scriptName The name of the script to execute.
+ * @param returnType The type of data to return from the script, one of {@link ReturnType}
+ * @param language The language of the script, either "AppleScript" or "JavaScript"
+ * @param args Any arguments to pass to the script.
+ * @returns A promise that resolves to the script's return value in the specified format.
+ */
+export const runScript = async (
+  scriptName: string,
+  returnType = ReturnType.STRING,
+  language = "AppleScript",
+  ...args: (string | number | boolean)[]
+): Promise<string | object> => {
+  const scriptPath = path.resolve(environment.assetsPath, "scripts", `${scriptName}.scpt`);
+  const script = await execScript(scriptPath, args, language).data;
+  if (returnType === ReturnType.JSON) return JSON.parse(script);
+  return script;
+};
+
+/**
+ * A wrapper around `runScript` that provides access to various scripts as parameterized functions.
+ */
+export const ScriptRunner = {
+  /**
+   * The main entry point for running AppleScripts. This function is used by all other functions in this module.
+   */
+  runScript: runScript,
+
+  /**
+   * Transcribes audio from a file.
+   * @param filePath The path of the file to analyze.
+   * @param maxCharacters The maximum number of characters to transcribe.
+   * @returns The transcribed text as a string.
+   */
+  AudioTranscriber: (filePath: string, maxCharacters: number) =>
+    runScript("AudioTranscriber", ReturnType.STRING, "AppleScript", filePath, maxCharacters) as Promise<string>,
+
+  /**
+   * Fetches event data from EventKit.
+   * @param eventType The type of event to fetch, one of {@link EventType}.
+   * @param duration The duration of events to fetch, one of {@link CalendarDuration}
+   * @returns A promise that resolves to a string containing the event data, i.e. the title, start date, and end date / due date of each event.
+   */
+  Events: async (eventType: EventType, duration: CalendarDuration) => {
+    const data = await (runScript("Events", ReturnType.STRING, "AppleScript", eventType, duration) as Promise<string>);
+    const shortenedEventsString = filterString(data);
+    if (shortenedEventsString.length < data.length - 100) {
+      return shortenedEventsString + " There are more events, but there are too many to list here.";
+    }
+    return shortenedEventsString;
+  },
+
+  /**
+   * Extracts various features from an image file.
+   * @param filePath The path of the file to analyze.
+   * @param useSubjectClassification The comma-separated list of subjects/objects identified in the image.
+   * @param useBarcodeDetection The decoded text of any barcodes or QR codes in the image.
+   * @param useFaceDetection The number of faces detected in the image.
+   * @param useRectangleDetection The center points and dimensions of all rectangles detected in the image.
+   * @param useSaliencyAnalysis The coordinates of the points of interest in the image.
+   * @param confidenceThreshold The minimum confidence threshold for detected objects.
+   * @returns An object containing the extracted features.
+   */
+  ImageFeatureExtractor: (
+    filePath: string,
+    useSubjectClassification: boolean,
+    useBarcodeDetection: boolean,
+    useFaceDetection: boolean,
+    useRectangleDetection: boolean,
+    useSaliencyAnalysis: boolean,
+    confidenceThreshold = 0.7
+  ) =>
+    runScript(
+      "ImageFeatureExtractor",
+      ReturnType.JSON,
+      "AppleScript",
+      filePath,
+      useSubjectClassification,
+      useBarcodeDetection,
+      useFaceDetection,
+      useRectangleDetection,
+      useSaliencyAnalysis,
+      confidenceThreshold
+    ) as Promise<{
+      output: string;
+      imageText: string;
+      imagePOI: string;
+      imageBarcodes: string;
+      imageAnimals: string;
+      imageRectangles: string;
+      imageSubjects: string;
+      imageFaces: string;
+    }>,
+
+  /**
+   * Extracts text from a PDF file.
+   * @param filePath The path of the PDF file to analyze.
+   * @param useOCR Whether to use OCR to extract text from the PDF.
+   * @param pageLimit The maximum number of pages to extract text from.
+   * @param useMetadata Whether to extract metadata from the PDF.
+   * @returns An object containing the extracted text.
+   */
+  PDFTextExtractor: (filePath: string, useOCR: boolean, pageLimit: number, useMetadata: boolean) =>
+    runScript("PDFTextExtractor", ReturnType.JSON, "AppleScript", filePath, useOCR, pageLimit, useMetadata) as Promise<{
+      pdfOCRText: string;
+      pdfRawText: string;
+      imageText: string;
+    }>,
+
+  /**
+   * Gets the selected files from Finder, even if Finder is not the active application.
+   * @returns An object containing the array of paths of the selected files and a comma-separated string of the paths.
+   */
+  SelectedFiles: async () => {
+    const data = await (runScript("SelectedFiles", ReturnType.STRING, "AppleScript") as Promise<string>);
+    const paths = data.split("::").map((path) => path.trim());
+    const csv = paths.join(",");
+    return { paths, csv };
+  },
+
+  /**
+   * Classifies sounds in an audio file.
+   * @param filePath The path of the audio file to analyze.
+   * @returns The comma-separated list of sounds identified in the audio file.
+   */
+  SoundClassifier: (filePath: string) =>
+    runScript("SoundClassifier", ReturnType.STRING, "AppleScript", filePath) as Promise<string>,
 };

@@ -2,6 +2,7 @@ import {
   Action,
   ActionPanel,
   Alert,
+  Color,
   Form,
   Icon,
   LocalStorage,
@@ -599,9 +600,10 @@ export default function CommandChatView(props: {
           <Form.Dropdown.Section title="Favorites">
             {chats.favorites().map((chat) => (
               <Form.Dropdown.Item
-                title={chat.favorited ? `⭐️ ${chat.name}` : chat.name}
+                title={chat.name}
                 value={chat.name}
                 key={chat.name}
+                icon={chat.favorited ? { source: Icon.StarCircle,  tintColor: Color.Yellow } : undefined}
               />
             ))}
           </Form.Dropdown.Section>

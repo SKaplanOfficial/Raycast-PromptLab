@@ -12,6 +12,8 @@ type ExtensionPreferences = {
   "pdfOCR"?: boolean,
   /** Export Location - The folder where exported commands and chats will be saved. */
   "exportLocation"?: string,
+  /** Custom Placeholder Files - A comma-separated list of JSON files containing custom placeholders. These files must follow the format of the original custom_placeholders.json file. See the documentation for more information. */
+  "customPlaceholderFiles"?: string,
   /** Primary Command Action - The top action of the actions menu in command response views. */
   "primaryAction"?: "copy-response-to-clipboard" | "paste-to-active-app" | "copy-prompt-to-clipboard" | "open-chat" | "regenerate",
   /** Level of Automatic Input Condensing - The amount of automatic input condensing to apply to the input text. Higher levels will remove more characters and cut out excess verbiage, resulting in far fewer tokens. However, this may result in less accurate results. Adjust this value according to the model's token limit. For Raycast AI, use 'Medium' or 'High'. */
@@ -42,8 +44,6 @@ type ExtensionPreferences = {
 declare type Preferences = ExtensionPreferences
 
 declare namespace Preferences {
-  /** Preferences accessible in the `summarize-files` command */
-  export type SummarizeFiles = ExtensionPreferences & {}
   /** Preferences accessible in the `create-command` command */
   export type CreateCommand = ExtensionPreferences & {}
   /** Preferences accessible in the `search-commands` command */
@@ -90,8 +90,6 @@ declare namespace Preferences {
 }
 
 declare namespace Arguments {
-  /** Arguments passed to the `summarize-files` command */
-  export type SummarizeFiles = {}
   /** Arguments passed to the `create-command` command */
   export type CreateCommand = {}
   /** Arguments passed to the `search-commands` command */

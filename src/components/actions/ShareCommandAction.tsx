@@ -1,6 +1,7 @@
 import { Action, Icon, Toast, showToast } from "@raycast/api";
 import { Command, StoreCommand } from "../../utils/types";
 import { STORE_ENDPOINT, STORE_KEY } from "../../utils/constants";
+import fetch from "node-fetch";
 
 /**
  * Action to share a command to the PromptLab store.

@@ -11,8 +11,7 @@ import {
 } from "@raycast/api";
 import { Chat, ChatStatistics } from "../../utils/types";
 import { useEffect, useState } from "react";
-import { getTextOfWebpage } from "../../utils/context-utils";
-import { filterString } from "../../utils/calendar-utils";
+import { filterString, getTextOfWebpage } from "../../utils/context-utils";
 import runModel from "../../utils/runModel";
 import { getFileContent } from "../../hooks/useFiles";
 

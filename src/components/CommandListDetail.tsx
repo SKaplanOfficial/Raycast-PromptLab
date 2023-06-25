@@ -18,7 +18,7 @@ export default function CommandListDetail(props: { command: Command | StoreComma
       markdown={`# ${command.name}
 
 ${isCommand(command) ? (command.installedFromStore ? `_Installed From **PromptLab Store**_<br/>` : ``) : ``}
-          
+
 Version: ${command.version || "1.0.0"}
 
 ${command.author?.length && command.author !== "None" ? `Author: ${command.author}` : ``}
@@ -109,7 +109,7 @@ ${
 ${isCommand(command) ? `| Model | ${command.model || "Not Specified"} |` : ``}
 
 ${
-  command.setupConfig
+  command.setupConfig && command.setupConfig !== "None"
     ? `## Setup Config
 
 | Field | Description | Value |

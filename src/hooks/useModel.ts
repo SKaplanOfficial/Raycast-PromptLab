@@ -4,7 +4,7 @@ import { ExtensionPreferences, Model, modelOutput } from "../utils/types";
 import { useEffect, useRef, useState } from "react";
 import fetch, { Response } from "node-fetch";
 import { useModels } from "./useModels";
-import { filterString } from "../utils/calendar-utils";
+import { filterString } from "../utils/context-utils";
 
 /**
  * Gets the text response from the model endpoint.
@@ -30,7 +30,7 @@ export default function useModel(
   const AIRef = useRef<{ fetch: Promise<Response>; tag: string; forceStop: () => void }>();
 
   // We can be a little forgiving of how users specify Raycast AI
-  const validRaycastAIReps = ["raycast ai", "raycastai", "raycast", "raycast-ai", "raycast ai 3.5"];
+  const validRaycastAIReps = ["raycast ai", "raycastai", "raycast", "raycast-ai", "raycast ai 3.5", "raycast gpt 4", "raycast 4", "raycast ai 4"];
   const fallbackModel: Model = {
     endpoint: "Raycast AI",
     authType: "",

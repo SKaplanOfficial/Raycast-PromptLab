@@ -1,7 +1,9 @@
 import { Action, ActionPanel, Icon, Keyboard, getPreferenceValues } from "@raycast/api";
 import CommandChatView from "../ChatViews/CommandChatView";
 import { CommandOptions, ExtensionPreferences } from "../../utils/types";
-import { getMenubarOwningApplicationSync } from "../../utils/context-utils";
+import { getMenubarOwningApplication } from "../../utils/context-utils";
+import { useEffect, useState } from "react";
+import { logDebug } from "../../utils/dev-utils";
 
 /**
  * A command action that pastes the provided text into the current application.
@@ -11,13 +13,32 @@ import { getMenubarOwningApplicationSync } from "../../utils/context-utils";
  */
 function PasteAction(props: { content: string; commandSummary: string }) {
   const { content, commandSummary } = props;
-  const currentApp = getMenubarOwningApplicationSync(true) as { name: string; path: string };
+  const [currentApp, setCurrentApp] = useState<{ name: string; path: string }>();
+
+  /**
+   * Gets the active application and sets the current app state. The timeout will repeat until the component is unmounted by Raycast.
+   */
+  const getActiveApp = async () => {
+    Promise.resolve(getMenubarOwningApplication(true) as Promise<{ name: string; path: string }>).then((app) => {
+      setCurrentApp(app);
+    }).then(() => {
+      setTimeout(() => {
+        logDebug("Getting active app...")
+        getActiveApp();
+      }, 1000);
+    });
+  };
+
+  useEffect(() => {
+    Promise.resolve(getActiveApp());
+  }, []);
+
   return (
     <Action.Paste
-      title={`Paste ${commandSummary} To ${currentApp.name}`}
+      title={`Paste ${commandSummary}${currentApp ? ` To ${currentApp.name}` : ``}`}
       content={content}
       shortcut={{ modifiers: ["cmd"], key: "p" }}
-      icon={{ fileIcon: currentApp.path }}
+      icon={currentApp ? { fileIcon: currentApp.path } : Icon.Clipboard}
     />
   );
 }

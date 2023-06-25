@@ -1,10 +1,15 @@
 import { LocalStorage, environment } from "@raycast/api";
 import * as fs from "fs";
-import { runAppleScript } from "run-applescript";
 import { defaultCommands } from "../data/default-commands";
-import { Extension, ExtensionCommand } from "./types";
+import { CommandOptions, Extension, ExtensionCommand } from "./types";
 import { defaultModels } from "../data/default-models";
 import { randomUUID } from "crypto";
+import path from "path";
+import { CUSTOM_PLACEHOLDERS_FILENAME } from "./constants";
+import { defaultCustomPlaceholders } from "../data/default-custom-placeholders";
+import { ScriptRunner } from "./scripts";
+import exifr from "exifr";
+import { filterString } from "./context-utils";
 
 /**
  * Installs the default prompts if they haven't been installed yet and the user hasn't input their own command set.
@@ -19,12 +24,20 @@ export async function installDefaults() {
       return;
     }
 
+    // Load default commands
     for (const [key, value] of Object.entries(defaultCommands)) {
       await LocalStorage.setItem(key, value);
     }
 
+    // Load default models
     for (const [key, value] of Object.entries(defaultModels)) {
       await LocalStorage.setItem(key, JSON.stringify({ ...value, id: randomUUID() }));
+    }
+
+    // Set up data files
+    const customPlaceholdersPath = path.join(environment.supportPath, CUSTOM_PLACEHOLDERS_FILENAME);
+    if (!fs.existsSync(customPlaceholdersPath)) {
+      await fs.promises.writeFile(customPlaceholdersPath, JSON.stringify(defaultCustomPlaceholders, null, 2));
     }
 
     await LocalStorage.setItem("--defaults-installed", "true");
@@ -32,30 +45,71 @@ export async function installDefaults() {
 }
 
 /**
- * Gets the selected files from Finder, even if Finder is not the active application.
+ * Obtains EXIF data for an image file.
  *
- * @returns A promise which resolves to the list of selected files as a comma-separated string.
+ * @param filePath The path to the image file.
+ * @returns The EXIF data as a string.
  */
-export async function getSelectedFiles(): Promise<string> {
-  return runAppleScript(`tell application "Finder"
-  set oldDelimiters to AppleScript's text item delimiters
-  set AppleScript's text item delimiters to "::"
-  set theSelection to selection
-  if theSelection is {} then
-    return
-  else if (theSelection count) is equal to 1 then
-      return the POSIX path of (theSelection as alias)
-  else
-    set thePaths to {}
-    repeat with i from 1 to (theSelection count)
-        copy (POSIX path of (item i of theSelection as alias)) to end of thePaths
-    end repeat
-    set thePathsString to thePaths as text
-    set AppleScript's text item delimiters to oldDelimiters
-    return thePathsString
-  end if
-end tell`);
-}
+export const getFileExifData = async (filePath: string) => {
+  /* Gets the EXIF data and metadata of an image file. */
+  const exifData = await exifr.parse(filePath);
+  const metadata = fs.statSync(filePath);
+  return JSON.stringify({ ...exifData, ...metadata });
+};
+
+/**
+ * Obtains a description of an image by using computer vision and EXIF data.
+ *
+ * @param filePath The path of the image file.
+ * @param options A {@link CommandOptions} object describing the types of information to include in the output.
+ * @returns The image description as a string.
+ */
+export const getImageDetails = async (
+  filePath: string,
+  options: CommandOptions
+): Promise<{
+  output: string;
+  imageText: string;
+  imagePOI: string;
+  imageBarcodes: string;
+  imageAnimals: string;
+  imageRectangles: string;
+  imageSubjects: string;
+  imageFaces: string;
+  imageEXIFData: string;
+}> => {
+  const imageDetails = await ScriptRunner.ImageFeatureExtractor(filePath, options.useSubjectClassification || false, options.useBarcodeDetection || false, options.useFaceDetection || false, options.useRectangleDetection || false, options.useSaliencyAnalysis || false);
+  const imageVisionInstructions = filterString(imageDetails.output);
+  const exifData = options.useMetadata && !filePath.endsWith(".svg") ? filterString(await getFileExifData(filePath)) : ``;
+  const exifInstruction = options.useMetadata ? `<EXIF data: ###${exifData}###>` : ``;
+  return {
+    ...imageDetails,
+    imageEXIFData: exifInstruction,
+    output: `${imageVisionInstructions}${exifInstruction}`,
+  };
+};
+
+/**
+ * Gets the metadata and sound classifications of an audio file.
+ *
+ * @param filePath The path of the audio file.
+ * @param useMetadata Whether to include metadata in the output.
+ *
+ * @returns The metadata and sound classifications as a single string.
+ */
+export const getAudioDetails = async (
+  filePath: string
+): Promise<{
+  contents: string;
+  soundClassifications: string;
+}> => {
+  const soundClassifications = filterString((await ScriptRunner.SoundClassifier(filePath)).replace("_", " ")).trim();
+  const classificationInstructions = `<Sound classifications: "${soundClassifications}".>`;
+  return {
+    contents: `${soundClassifications ? `\n${classificationInstructions}` : ""}`,
+    soundClassifications: soundClassifications,
+  };
+};
 
 /**
  * Gets the list of extensions installed in Raycast.

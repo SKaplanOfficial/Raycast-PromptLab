@@ -1,4 +1,4 @@
-import { ActionPanel, Color, Icon, List, LocalStorage } from "@raycast/api";
+import { ActionPanel, Color, Icon, List } from "@raycast/api";
 import { useEffect, useState } from "react";
 import { StoreCommand } from "./utils/types";
 import { useCachedState, useFetch } from "@raycast/utils";
@@ -15,17 +15,6 @@ export default function Discover() {
   const { commands: myCommands, setCommands: setMyCommands, isLoading: loadingMyCommands } = useCommands();
   const [availableCommands, setAvailableCommands] = useCachedState<StoreCommand[]>("availableCommands", []);
   const [targetCategory, setTargetCategory] = useState<string>("All");
-
-  useEffect(() => {
-    // Get installed commands from local storage
-    Promise.resolve(LocalStorage.allItems()).then((commandData) => {
-      const commandDataFiltered = Object.values(commandData).filter(
-        (cmd, index) =>
-          !Object.keys(commandData)[index].startsWith("--") && !Object.keys(commandData)[index].startsWith("id-")
-      );
-      setMyCommands(commandDataFiltered.map((data) => JSON.parse(data)));
-    });
-  }, []);
 
   // Get available commands from store
   const { data, isLoading } = useFetch(STORE_ENDPOINT, { headers: { "X-API-KEY": STORE_KEY } });
