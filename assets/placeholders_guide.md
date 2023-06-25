@@ -62,13 +62,13 @@ Learn more about persistent variables in [Persistent Variables](#persistent-vari
 
 | Placeholder | Action |
 | ----- | ----- |
-| `{{audio:...}}` | Evaluates its content only if the user has selected one or more audio files in Finder. If so, the entire placeholder is replaced with the evaluation result. |
-| `{{images:...}}` | Evaluates its content only if the user has selected one or more image files in Finder. If so, the entire placeholder is replaced with the evaluation result. |
-| `{{pdf:...}}` | Evaluates its content only if the user has selected one or more PDF files in Finder. If so, the entire placeholder is replaced with the evaluation result. |
-| `{{textfiles:...}}` | Evaluates its content only if the user has selected one or more text files in Finder. If so, the entire placeholder is replaced with the evaluation result. |
-| `{{videos:...}}` | Evaluates its content only if the user has selected one or more video files in Finder. If so, the entire placeholder is replaced with the evaluation result. |
+| `{{audio:...:...}}` | Evaluates its content only if the user has selected one or more audio files in Finder. If so, the entire placeholder is replaced with the evaluation result. |
+| `{{images:...:...}}` | Evaluates its content only if the user has selected one or more image files in Finder. If so, the entire placeholder is replaced with the evaluation result. |
+| `{{pdf:...:...}}` | Evaluates its content only if the user has selected one or more PDF files in Finder. If so, the entire placeholder is replaced with the evaluation result. |
+| `{{textfiles:...:...}}` | Evaluates its content only if the user has selected one or more text files in Finder. If so, the entire placeholder is replaced with the evaluation result. |
+| `{{videos:...:...}}` | Evaluates its content only if the user has selected one or more video files in Finder. If so, the entire placeholder is replaced with the evaluation result. |
 
-In addition to the above, you can use any supported file extension as a directive to evaluate its content only if the user has selected one or more files with that extension in Finder. For example, `{{csv:...}}` will evaluate its content only if the user has selected one or more CSV files in Finder. The vast majority of file extensions are supported, but you may find some that are not. If you do, please [create an issue on GitHub](https://github.com/SKaplanOfficial/Raycast-PromptLab/issues).
+In addition to the above, you can use any supported file extension as a directive to evaluate its content only if the user has selected one or more files with that extension in Finder. For example, `{{csv:...:...}}` will evaluate its content only if the user has selected one or more CSV files in Finder. The vast majority of file extensions are supported, but you may find some that are not. If you do, please [create an issue on GitHub](https://github.com/SKaplanOfficial/Raycast-PromptLab/issues).
 
 > **Note**
 > For file extensions with the same name as an existing placeholder, e.g. `{{js:...}}`, you must append 'files' to the end of the extension, e.g. `{{jsfiles:...}}`, to use it as a directive.
@@ -198,7 +198,7 @@ Placeholders are evaluated in order of precedence, rather than in the order they
 - Placeholders more likely to be used are given higher precedence than those less likely to be used.
 - Placeholders that are likely to be used in combination with other placeholders as their contents are given lower precedence than those that are not.
 - The `{{js:...}}` placeholder is given the lowest precedence of all script placeholders.
-- The order of precedence for extension placeholders such as `{{csv:...}}` is determined first by their category (e.g. text files, images, videos, audio, pdfs, in that order), then alphabetically.
+- The order of precedence for extension placeholders such as `{{csv:...:...}}` is determined first by their category (e.g. text files, images, videos, audio, pdfs, in that order), then alphabetically.
 - Custom placeholders are given the highest precedence of all placeholders.
 
 > **Note**
@@ -210,9 +210,9 @@ The precedence order of individual placeholders can be difficult to conceptualiz
 - `{{todayReminders}}` has higher precedence than `{{yearReminders}}` because it executes faster and is more likely to be used.
 - `{{get [name]}}` has higher precedence than most other placeholders because it is unlikely that you will want to use it in combination with other placeholders, and it executes quickly.
 - `{{set [name]:...}}` has lower precedence than most other placeholders because it is likely that you will want to use the output of another placeholder as input to it.
-- `{{csv:...}}` has higher precedence than `{{jsx:...}}` because it occurs earlier in the alphabet.
-- `{{csv:...}}` has higher precedence than `{{avi:...}}` because text files have higher precedence than videos, as they are more likely to be used.
-- `{{csv:...}}` has higher precedence than `{{as:...}}` because it is more likely that you'd want to conditionally execute AppleScript code rather than conditionally include a script's output.
+- `{{csv:...:...}}` has higher precedence than `{{jsx:...:...}}` because it occurs earlier in the alphabet.
+- `{{csv:...:...}}` has higher precedence than `{{avi:...:...}}` because text files have higher precedence than videos, as they are more likely to be used.
+- `{{csv:...:...}}` has higher precedence than `{{as:...}}` because it is more likely that you'd want to conditionally execute AppleScript code rather than conditionally include a script's output.
 - `{{as:...}}` and `{{jxa:...}}` have higher precedence than `{{shell:...}}` because it is easier to use AppleScript and JXA to execute shell commands than the other way around.
 - `{{url:...}}` has higher precedence than `{{prompt:...}}` or `{{shortcut:...}}` because it is more likely that you will want to use the contents of a URL in a prompt/as shortcut input than the other way around.
 - `{{ignore:...}}` has lower precedence than `{{js:...}}` because it is more likely that you will want to use the output of a JavaScript placeholder as input to `{{ignore:...}}` than the other way around, and you can call the `ignore(content)` function in JavaScript to achieve the same result.
@@ -252,9 +252,9 @@ The precedence of custom placeholders is determined by the order in which they a
 
 ### Flow Control Directives
 
-PromptLab provides limited support for flow control within prompts using select directives. These directives are useful for creating prompts that behave differently depending on the type(s) of files selected when a command is executed. For example, you can use `{{csv:...}}` to specify content that will only be evaluated if one or more CSV files are selected. You can include multiple flow control directives within a prompt to create complex workflows. Flow control directives are evaluated before script placeholders, allowing you to conditionally execute a script.
+PromptLab provides limited support for flow control within prompts using select directives. These directives are useful for creating prompts that behave differently depending on the type(s) of files selected when a command is executed. For example, you can use `{{csv:...:...}}` to specify content that will only be evaluated if one or more CSV files are selected. All flow control directives accept two inputs: the content to include if the condition passes, and the content to include if it doesn't. For example, in `{{csv:One:Two}}`, `One` is the content to include if at least one CSV file is selected, and `Two` is the content to include if no CSV files are selected. You can also use `{{csv:...}}` to specify content that will only be evaluated if one or more CSV files are selected, with no content to include if no CSV files are selected.
 
-PromptLab does not currently support general-purpose flow control directives such as `if`, `else`, `for`, etc. If you need to create a prompt that requires more complex logic, you can use script placeholders to achieve the same result.
+You can include multiple flow control directives within a prompt to create complex workflows. Flow control directives are evaluated before script placeholders, allowing you to conditionally execute a script.
 
 See the table in [Flow Control](#flow-control) for a list of supported directives.
 
