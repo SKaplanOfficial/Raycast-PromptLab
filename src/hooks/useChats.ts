@@ -3,6 +3,8 @@ import { Chat, ChatStatistics, ExtensionPreferences } from "../utils/types";
 import * as fs from "fs";
 import { Color, Icon, LocalStorage, environment, getPreferenceValues } from "@raycast/api";
 import { installDefaults } from "../utils/file-utils";
+import path from "path";
+import { ADVANCED_SETTINGS_FILENAME } from "../utils/constants";
 
 export function useChats() {
   const [chats, setChats] = useState<Chat[]>([]);
@@ -53,16 +55,27 @@ export function useChats() {
     const chatFile = `${chatsDir}/${name}.txt`;
     fs.writeFileSync(chatFile, "");
 
-    const newChat: Chat = {
+    let newChat: Chat = {
       name: name,
       icon: Icon.Message,
-      iconColor: Color.PrimaryText,
+      iconColor: Color.Red,
       basePrompt: basePrompt,
       favorited: false,
       contextData: [],
       condensingStrategy: "summarize",
       summaryLength: "100",
     };
+
+    try {
+      const advancedSettingsValues = JSON.parse(
+        fs.readFileSync(path.join(environment.supportPath, ADVANCED_SETTINGS_FILENAME), "utf-8")
+      );
+      if ("chatDefaults" in advancedSettingsValues) {
+        newChat = { ...advancedSettingsValues.chatDefaults, name: name, basePrompt: basePrompt, contextData: [] };
+      }
+    } catch (error) {
+      console.error(error);
+    }
 
     await LocalStorage.setItem(`--chat-${name}`, JSON.stringify(newChat));
     return newChat;

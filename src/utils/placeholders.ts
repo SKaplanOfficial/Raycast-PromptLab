@@ -26,6 +26,7 @@ import {
   getSafariTopSites,
   getTextOfWebpage,
   getTrackNames,
+  getURLHTML,
   getWeatherData,
   getYouTubeVideoTranscriptById,
   getYouTubeVideoTranscriptByURL,
@@ -36,13 +37,14 @@ import * as crypto from "crypto";
 import * as vm from "vm";
 import { execSync } from "child_process";
 import { CUSTOM_PLACEHOLDERS_FILENAME, StorageKeys } from "./constants";
-import { getStorage, setStorage } from "./storage-utils";
+import { getStorage, loadAdvancedSettingsSync, setStorage } from "./storage-utils";
 import { ScriptRunner, addFileToSelection, getRunningApplications, searchNearbyLocations } from "./scripts";
 import { getExtensions } from "./file-utils";
 import runModel from "./runModel";
-import { audioFileExtensions, imageFileExtensions, textFileExtensions, videoFileExtensions } from "./file-extensions";
+import { audioFileExtensions, imageFileExtensions, textFileExtensions, videoFileExtensions } from "../data/file-extensions";
 import path from "path";
 import { CalendarDuration, CustomPlaceholder, EventType, ExtensionPreferences } from "./types";
+import { defaultAdvancedSettings } from "../data/default-advanced-settings";
 
 /**
  * A placeholder type that associates Regex patterns with functions that applies the placeholder to a string, rules that determine whether or not the placeholder should be replaced, and aliases that can be used to achieve the same result.
@@ -94,17 +96,22 @@ export type Placeholder = {
    * @param args
    * @returns
    */
-  fn: (...args: never[]) => Promise<string>;
+  fn: (...args: (never | string)[]) => Promise<string>;
 
   /**
    * The example usage of the placeholder, shown when the placeholder is detected in a prompt.
    */
-  example?: string;
+  example: string;
 
   /**
    * The description of the placeholder, shown when the placeholder is detected in a prompt.
    */
-  description?: string;
+  description: string;
+
+  /**
+   * The demonstration representation of the placeholder, shown as the "name" of the placeholder when the placeholder is detected in a prompt.
+   */
+  hintRepresentation: string;
 };
 
 /**
@@ -132,6 +139,7 @@ const placeholders: PlaceholderList = {
     example: "{{reset storedText}}",
     description:
       "Resets the value of a persistent variable to its initial value. If the variable does not exist, nothing will happen. Replaced with an empty string.",
+    hintRepresentation: "{{reset x}}",
   },
 
   /**
@@ -154,6 +162,7 @@ const placeholders: PlaceholderList = {
     example: "Summarize this: {{get storedText}}",
     description:
       "Replaced with the value of a persistent variable. If the variable has not been set, the placeholder will be replaced with an empty string.",
+    hintRepresentation: "{{get x}}",
   },
 
   /**
@@ -176,6 +185,7 @@ const placeholders: PlaceholderList = {
     example: "{{delete storedText}}",
     description:
       "Deletes a persistent variable. If the variable does not exist, nothing will happen. Replaced with an empty string.",
+    hintRepresentation: "{{delete x}",
   },
 
   "{{vars}}": {
@@ -195,6 +205,7 @@ const placeholders: PlaceholderList = {
     example: "List these alphabetically: {{vars}}",
     description:
       "Replaced with a comma-separated list of all persistent variables. If no persistent variables have been set, the placeholder will be replaced with an empty string.",
+    hintRepresentation: "{{vars}}",
   },
 
   /**
@@ -218,6 +229,7 @@ const placeholders: PlaceholderList = {
     example: "Summarize this: {{input}}",
     description:
       "Replaced with the current input to the command. Depending on the circumstances of the command's invocation, this could be the selected text, the parameter of a QuickLink, or direct input via method call.",
+    hintRepresentation: "{{input}}",
   },
 
   /**
@@ -249,6 +261,7 @@ const placeholders: PlaceholderList = {
     example: "Summarize this: {{clipboardText}}",
     description:
       "Replaced with the text currently stored in the clipboard. If the clipboard is empty, this will be replaced with an empty string. Most clipboard content supplies a string format, such as file names when copying files in Finder.",
+    hintRepresentation: "{{clipboardText}}",
   },
 
   /**
@@ -280,6 +293,7 @@ const placeholders: PlaceholderList = {
     example: "Rewrite this as a list: {{selectedText}}",
     description:
       "Replaced with the currently selected text. If no text is selected, this will be replaced with an empty string.",
+    hintRepresentation: "{{selectedText}}",
   },
 
   /**
@@ -314,6 +328,7 @@ const placeholders: PlaceholderList = {
     example: "Count the number of text files in this list: {{selectedFiles}}",
     description:
       "Replaced with the paths of the currently selected files in Finder as a comma-separated list. If no files are selected, this will be replaced with an empty string.",
+    hintRepresentation: "{{selectedFiles}}",
   },
 
   /**
@@ -347,6 +362,7 @@ const placeholders: PlaceholderList = {
     example: "Sort this list of files by name: {{fileNames}}",
     description:
       "Replaced with the names of the currently selected files in Finder as a comma-separated list. If no files are selected, this will be replaced with an empty string.",
+    hintRepresentation: "{{fileNames}}",
   },
 
   /**
@@ -387,6 +403,7 @@ const placeholders: PlaceholderList = {
     example: "Which of these has the largest filesize? {{metadata}}",
     description:
       "Replaced with metadata of the currently selected files in Finder as a comma-separated list. If no files are selected, this will be replaced with an empty string.",
+    hintRepresentation: "{{metadata}}",
   },
 
   /**
@@ -406,6 +423,7 @@ const placeholders: PlaceholderList = {
       "Based on the following text extracted from an image, tell me what the image is about. Here's the text: ###{{imageText}}###",
     description:
       "Replaced with all text extracted from selected images in Finder. If no images are selected, or if no text can be extracted from the selected images, this will be replaced with an empty string.",
+    hintRepresentation: "{{imageText}}",
   },
 
   /**
@@ -423,6 +441,7 @@ const placeholders: PlaceholderList = {
     fn: async () => (await Placeholders.allPlaceholders["{{imageFaces}}"].apply("{{imageFaces}}")).result,
     example: "Is {{imageFaces}} a lot of faces?",
     description: "Replaced with the number of faces detected in selected images in Finder.",
+    hintRepresentation: "{{imageFaces}}",
   },
 
   /**
@@ -440,6 +459,7 @@ const placeholders: PlaceholderList = {
     fn: async () => (await Placeholders.allPlaceholders["{{imageAnimals}}"].apply("{{imageAnimals}}")).result,
     example: "Explain how these animals are similar: {{imageAnimals}}",
     description: "Replaced with a comma-separated list of animals detected in selected images in Finder.",
+    hintRepresentation: "{{imageAnimals}}",
   },
 
   /**
@@ -457,6 +477,7 @@ const placeholders: PlaceholderList = {
     fn: async () => (await Placeholders.allPlaceholders["{{imageSubjects}}"].apply("{{imageSubjects}}")).result,
     example: "What is the common theme among these objects? {{imageSubjects}}",
     description: "Replaced with a comma-separated list of objects detected in selected images in Finder.",
+    hintRepresentation: "{{imageSubjects}}",
   },
 
   /**
@@ -475,6 +496,7 @@ const placeholders: PlaceholderList = {
     example: "Where are the points of interest in this image? {{imagePOI}}",
     description:
       "Replaced with a comma-separated list of normalized points of interest detected in selected images in Finder.",
+    hintRepresentation: "{{imagePOI}}",
   },
 
   /**
@@ -492,6 +514,7 @@ const placeholders: PlaceholderList = {
     fn: async () => (await Placeholders.allPlaceholders["{{imageBarcodes}}"].apply("{{imageBarcodes}}")).result,
     example: "Identify the common theme among these barcode values: {{imageBarcodes}}",
     description: "Replaced with a comma-separated list of decoded barcodes detected in selected images in Finder.",
+    hintRepresentation: "{{imageBarcodes}}",
   },
 
   /**
@@ -510,6 +533,7 @@ const placeholders: PlaceholderList = {
     example: "Where is the largest rectangle in this image? {{imageRectangles}}",
     description:
       "Replaced with a comma-separated list of rectangles detected in selected images in Finder. The rectangles are defined in the format <Rectangle #1: midPoint=(centerX, centerY) dimensions=WidthxHeight>.",
+    hintRepresentation: "{{imageRectangles}}",
   },
 
   /**
@@ -527,6 +551,7 @@ const placeholders: PlaceholderList = {
     fn: async () => (await Placeholders.allPlaceholders["{{pdfRawText}}"].apply("{{pdfRawText}}")).result,
     example: "Summarize this: {{pdfRawText}}",
     description: "Replaced with the raw text extracted from selected PDFs in Finder. Does not use OCR.",
+    hintRepresentation: "{{pdfRawText}}",
   },
 
   /**
@@ -544,6 +569,7 @@ const placeholders: PlaceholderList = {
     fn: async () => (await Placeholders.allPlaceholders["{{pdfOCRText}}"].apply("{{pdfOCRText}}")).result,
     example: "Summarize this: {{pdfOCRText}}",
     description: "Replaced with the text extracted from selected PDFs in Finder using OCR.",
+    hintRepresentation: "{{pdfOCRText}}",
   },
 
   /**
@@ -581,6 +607,7 @@ const placeholders: PlaceholderList = {
     example: "Identify the common theme among these files: {{contents}}",
     description:
       "Replaced with the extracted contents of the currently selected files in Finder. Clarifying text is added to identify each type of information.",
+    hintRepresentation: "{{contents}}",
   },
 
   /**
@@ -603,6 +630,7 @@ const placeholders: PlaceholderList = {
     fn: async () => (await Placeholders.allPlaceholders["{{currentAppName}}"].apply("{{currentAppName}}")).result,
     example: "Tell me about {{currentAppName}}",
     description: "Replaced with the name of the current application.",
+    hintRepresentation: "{{currentAppName}}",
   },
 
   /**
@@ -625,6 +653,7 @@ const placeholders: PlaceholderList = {
     fn: async () => (await Placeholders.allPlaceholders["{{currentAppPath}}"].apply("{{currentAppPath}}")).result,
     example: "Tell me about {{currentAppPath}}",
     description: "Replaced with the path of the current application.",
+    hintRepresentation: "{{currentAppPath}}",
   },
 
   /**
@@ -652,6 +681,7 @@ const placeholders: PlaceholderList = {
     fn: async () => (await Placeholders.allPlaceholders["{{currentDirectory}}"].apply("{{currentDirectory}}")).result,
     example: "Tell me about {{currentDirectory}}",
     description: "Replaced with the path of the current working directory in Finder.",
+    hintRepresentation: "{{currentDirectory}}",
   },
 
   /**
@@ -686,6 +716,7 @@ const placeholders: PlaceholderList = {
     fn: async () => (await Placeholders.allPlaceholders["{{currentURL}}"].apply("{{currentURL}}")).result,
     example: "Tell me about {{currentURL}}",
     description: "Replaced with the URL of the current tab in any supported browser.",
+    hintRepresentation: "{{currentURL}}",
   },
 
   /**
@@ -721,6 +752,7 @@ const placeholders: PlaceholderList = {
     fn: async () => (await Placeholders.allPlaceholders["{{currentTabText}}"].apply("{{currentTabText}}")).result,
     example: "Summarize this: {{currentTabText}}",
     description: "Replaced with the visible text of the current tab in any supported browser.",
+    hintRepresentation: "{{currentTabText}}",
   },
 
   /**
@@ -739,6 +771,7 @@ const placeholders: PlaceholderList = {
     fn: async () => (await Placeholders.allPlaceholders["{{user}}"].apply("{{user}}")).result,
     example: "Come up with nicknames for {{user}}",
     description: "Replaced with the username of the currently logged-in user.",
+    hintRepresentation: "{{user}}",
   },
 
   /**
@@ -757,6 +790,7 @@ const placeholders: PlaceholderList = {
     fn: async () => (await Placeholders.allPlaceholders["{{homedir}}"].apply("{{homedir}}")).result,
     example: '{{as:tell application "Finder" to reveal POSIX file "{{homedir}}"}}',
     description: "Replaced with the path of the home directory for the currently logged-in user.",
+    hintRepresentation: "{{homedir}}",
   },
 
   /**
@@ -774,6 +808,7 @@ const placeholders: PlaceholderList = {
     fn: async () => (await Placeholders.allPlaceholders["{{hostname}}"].apply("{{hostname}}")).result,
     example: "Come up with aliases for {{hostname}}",
     description: "Replaced with the hostname of the current machine.",
+    hintRepresentation: "{{hostname}}",
   },
 
   /**
@@ -795,6 +830,7 @@ const placeholders: PlaceholderList = {
     fn: async () => (await Placeholders.allPlaceholders["{{computerName}}"].apply("{{computerName}}")).result,
     example: "Come up with aliases for {{computerName}}",
     description: "Replaced with the 'pretty' hostname of the current machine.",
+    hintRepresentation: "{{computerName}}",
   },
 
   /**
@@ -815,6 +851,7 @@ const placeholders: PlaceholderList = {
     fn: async () => (await Placeholders.allPlaceholders["{{shortcuts}}"].apply("{{shortcuts}}")).result,
     example: "Based on the following list, recommend some Siri Shortcuts for me to create: {{shortcuts}}",
     description: "Replaced with a comma-separated list of names of each Shortcut on the current machine.",
+    hintRepresentation: "{{shortcuts}}",
   },
 
   /**
@@ -851,6 +888,7 @@ const placeholders: PlaceholderList = {
       ).result,
     example: "What happened on {{date format='MMMM d'}} in history?",
     description: "Replaced with the current date in the specified format.",
+    hintRepresentation: "{{date}}",
   },
 
   /**
@@ -879,6 +917,7 @@ const placeholders: PlaceholderList = {
       ).result,
     example: "Write a generic agenda for {{day locale='en-GB'}}",
     description: "Replaced with the name of the current day of the week in the specified locale.",
+    hintRepresentation: "{{day}}"
   },
 
   /**
@@ -915,6 +954,7 @@ const placeholders: PlaceholderList = {
       ).result,
     example: "It's currently {{time format='HH:mm'}}. How long until dinner?",
     description: "Replaced with the current time in the specified format.",
+    hintRepresentation: "{{time}}",
   },
 
   /**
@@ -939,6 +979,7 @@ const placeholders: PlaceholderList = {
     fn: async () => (await Placeholders.allPlaceholders["{{systemLanguage}}"].apply("{{systemLanguage}}")).result,
     example: 'Translate "Ciao" to {{systemLanguage}}',
     description: "Replaced with the name of the default language for the current user.",
+    hintRepresentation: "{{systemLanguage}}",
   },
 
   /**
@@ -960,6 +1001,7 @@ const placeholders: PlaceholderList = {
     fn: async () => (await Placeholders.allPlaceholders["{{musicTracks}}"].apply("{{musicTracks}}")).result,
     example: "Recommend some new songs based on the themes of these songs: {{musicTracks}}",
     description: "Replaced with a comma-separated list of track names in Music.app.",
+    hintRepresentation: "{{musicTracks}}",
   },
 
   /**
@@ -982,6 +1024,7 @@ const placeholders: PlaceholderList = {
     fn: async () => (await Placeholders.allPlaceholders["{{currentTrack}}"].apply("{{currentTrack}}")).result,
     example: "What's the history behind {{currentTrack}}?",
     description: "Replaced with the name of the currently playing track in Music.app.",
+    hintRepresentation: "{{currentTrack}}",
   },
 
   /**
@@ -1003,6 +1046,7 @@ const placeholders: PlaceholderList = {
     fn: async () => (await Placeholders.allPlaceholders["{{lastNote}}"].apply("{{lastNote}}")).result,
     example: "Summarize this: {{lastNote}}",
     description: "Replaced with the HTML text of the most recently edited note in Notes.app.",
+    hintRepresentation: "{{lastNote}}",
   },
 
   /**
@@ -1024,6 +1068,7 @@ const placeholders: PlaceholderList = {
     fn: async () => (await Placeholders.allPlaceholders["{{lastEmail}}"].apply("{{lastEmail}}")).result,
     example: "Summarize this: {{lastEmail}}",
     description: "Replaced with the text of the most recently received email in Mail.app.",
+    hintRepresentation: "{{lastEmail}}",
   },
 
   /**
@@ -1046,6 +1091,7 @@ const placeholders: PlaceholderList = {
     fn: async () => (await Placeholders.allPlaceholders["{{installedApps}}"].apply("{{installedApps}}")).result,
     example: "Based on this list of apps, recommend some new ones I might like: {{installedApps}}",
     description: "Replaced with the comma-separated list of names of applications installed on the system.",
+    hintRepresentation: "{{installedApps}}",
   },
 
   /**
@@ -1068,6 +1114,7 @@ const placeholders: PlaceholderList = {
     fn: async () => (await Placeholders.allPlaceholders["{{commands}}"].apply("{{commands}}")).result,
     example: "Based on this list of AI commands, suggest some new ones I could create: {{commands}}",
     description: "Replaced with the comma-separated list of names of all installed PromptLab commands.",
+    hintRepresentation: "{{commands}}",
   },
 
   /**
@@ -1090,6 +1137,7 @@ const placeholders: PlaceholderList = {
     example: "Based on this list of websites, suggest some new ones I might like: {{safariTopSites}}",
     description:
       "Replaced with the comma-separated list of titles and URLs of the most frequently visited websites in Safari.",
+    hintRepresentation: "{{safariTopSites}}",
   },
 
   /**
@@ -1111,6 +1159,7 @@ const placeholders: PlaceholderList = {
     fn: async () => (await Placeholders.allPlaceholders["{{safariBookmarks}}"].apply("{{safariBookmarks}}")).result,
     example: "Based on this list of websites, suggest some new ones I might like: {{safariBookmarks}}",
     description: "Replaced with the comma-separated list of titles and URLs of bookmarks in Safari.",
+    hintRepresentation: "{{safariBookmarks}}",
   },
 
   /**
@@ -1134,6 +1183,7 @@ const placeholders: PlaceholderList = {
     example: "Come up for a name for a workspace running the following apps: {{runningApplications}}",
     description:
       "Replaced with the comma-separated list of names of all running applications that are visible to the user.",
+    hintRepresentation: "{{runningApplications}}",
   },
 
   /**
@@ -1162,6 +1212,7 @@ const placeholders: PlaceholderList = {
     fn: async () => (await Placeholders.allPlaceholders["{{uuid}}"].apply("{{uuid}}")).result,
     example: "{{copy:{{uuid}}}}",
     description: "Replaced with a unique UUID. UUIDs are tracked in the {{usedUUIDs}} placeholder.",
+    hintRepresentation: "{{uuid}}",
   },
 
   /**
@@ -1183,6 +1234,7 @@ const placeholders: PlaceholderList = {
     example: "{{copy:{{usedUUIDs}}}}",
     description:
       "Replaced with a comma-separated list of all previously used UUIDs since PromptLab's LocalStorage was last reset.",
+    hintRepresentation: "{{usedUUIDs}}",
   },
 
   /**
@@ -1197,7 +1249,7 @@ const placeholders: PlaceholderList = {
         return { result: context["location"], location: context["location"] };
       }
 
-      const jsonObj = getJSONResponse("https://get.geojs.io/v1/ip/geo.json");
+      const jsonObj = await getJSONResponse("https://get.geojs.io/v1/ip/geo.json");
       const city = jsonObj["city"];
       const region = jsonObj["region"];
       const country = jsonObj["country"];
@@ -1209,6 +1261,7 @@ const placeholders: PlaceholderList = {
     fn: async () => (await Placeholders.allPlaceholders["{{location}}"].apply("{{location}}")).result,
     example: "Tell me the history of {{location}}.",
     description: 'Replaced with the user\'s current location in the format "city, region, country".',
+    hintRepresentation: "{{location}}",
   },
 
   /**
@@ -1222,7 +1275,7 @@ const placeholders: PlaceholderList = {
         return { result: context["todayWeather"], todayWeather: context["todayWeather"] };
       }
 
-      const weather = JSON.stringify(getWeatherData(1));
+      const weather = JSON.stringify(await getWeatherData(1));
       return { result: weather, todayWeather: weather };
     },
     result_keys: ["todayWeather"],
@@ -1230,6 +1283,7 @@ const placeholders: PlaceholderList = {
     fn: async () => (await Placeholders.allPlaceholders["{{todayWeather}}"].apply("{{todayWeather}}")).result,
     example: "Summarize the following forecast for {{location}} today: {{todayWeather}}",
     description: "Replaced with 24-hour weather forecast data at the user's current location, in JSON format.",
+    hintRepresentation: "{{todayWeather}}",
   },
 
   /**
@@ -1243,7 +1297,7 @@ const placeholders: PlaceholderList = {
         return { result: context["weekWeather"], weekWeather: context["weekWeather"] };
       }
 
-      const weather = JSON.stringify(getWeatherData(7));
+      const weather = JSON.stringify(await getWeatherData(7));
       return { result: weather, weekWeather: weather };
     },
     result_keys: ["weekWeather"],
@@ -1251,6 +1305,7 @@ const placeholders: PlaceholderList = {
     fn: async () => (await Placeholders.allPlaceholders["{{weekWeather}}"].apply("{{weekWeather}}")).result,
     example: "Summarize the following forecast for {{location}} this week: {{weekWeather}}",
     description: "Replaced with 7-day weather forecast data at the user's current location, in JSON format.",
+    hintRepresentation: "{{weekWeather}}",
   },
 
   /**
@@ -1273,6 +1328,7 @@ const placeholders: PlaceholderList = {
     example: "Tell me about my events today based on the following list: {{todayEvents}}.",
     description:
       "Replaced with a list of the name, start time, and end time of all calendar events that are scheduled over the next 24 hours.",
+    hintRepresentation: "{{todayEvents}}",
   },
 
   /**
@@ -1295,6 +1351,7 @@ const placeholders: PlaceholderList = {
     example: "Tell me about my events this week based on the following list: {{weekEvents}}.",
     description:
       "Replaced with a list of the name, start time, and end time of all calendar events scheduled over the next 7 days.",
+    hintRepresentation: "{{weekEvents}}",
   },
 
   /**
@@ -1317,6 +1374,7 @@ const placeholders: PlaceholderList = {
     example: "Tell me about my events this month based on the following list: {{monthEvents}}.",
     description:
       "Replaced with a list of the name, start time, and end time of all calendar events scheduled over the next 30 days.",
+    hintRepresentation: "{{monthEvents}}",
   },
 
   /**
@@ -1339,6 +1397,7 @@ const placeholders: PlaceholderList = {
     example: "Tell me about my events this year based on the following list: {{yearEvents}}.",
     description:
       "Replaced with a list of the name, start time, and end time of all calendar events scheduled over the next 365 days.",
+    hintRepresentation: "{{yearEvents}}",
   },
 
   /**
@@ -1362,6 +1421,7 @@ const placeholders: PlaceholderList = {
     example: "Tell me about my reminders today based on the following list: {{todayReminders}}.",
     description:
       "Replaced with a list of the name and due date/time of all reminders that are scheduled over the next 24 hours.",
+    hintRepresentation: "{{todayReminders}}",
   },
 
   /**
@@ -1385,6 +1445,7 @@ const placeholders: PlaceholderList = {
     example: "Tell me about my reminders this week based on the following list: {{weekReminders}}.",
     description:
       "Replaced with a list of the name and due date/time of all reminders that are scheduled over the next 7 days.",
+    hintRepresentation: "{{weekReminders}}",
   },
 
   /**
@@ -1408,6 +1469,7 @@ const placeholders: PlaceholderList = {
     example: "Tell me about my reminders this month based on the following list: {{monthReminders}}.",
     description:
       "Replaced with a list of the name and due date/time of all reminders that are scheduled over the next 30 days.",
+    hintRepresentation: "{{monthReminders}}",
   },
 
   /**
@@ -1431,6 +1493,7 @@ const placeholders: PlaceholderList = {
     example: "Tell me about my reminders this year based on the following list: {{yearReminders}}.",
     description:
       "Replaced with a list of the name and due date/time of all reminders that are scheduled over the next 365 days.",
+    hintRepresentation: "{{yearReminders}}",
   },
 
   /**
@@ -1451,6 +1514,7 @@ const placeholders: PlaceholderList = {
     fn: async () => (await Placeholders.allPlaceholders["{{previousCommand}}"].apply("{{previousCommand}}")).result,
     example: "Run command in background: {{{{previousCommand}}}}",
     description: "Replaced with the name of the last command executed.",
+    hintRepresentation: "{{previousCommand}}",
   },
 
   /**
@@ -1471,6 +1535,7 @@ const placeholders: PlaceholderList = {
     fn: async () => (await Placeholders.allPlaceholders["{{previousPrompt}}"].apply("{{previousPrompt}}")).result,
     example: "Compare these prompts: First prompt: ###some text###\n\nSecond prompt: ###{{previousPrompt}}###",
     description: "Replaced with the fully substituted text of the previous prompt.",
+    hintRepresentation: "{{previousPrompt}}",
   },
 
   /**
@@ -1492,6 +1557,7 @@ const placeholders: PlaceholderList = {
     example:
       "Compare these responses: First response: ###{{prompt:some text}}###\n\nSecond Response: ###{{previousResponse}}###",
     description: "Replaced with the text of the AI's previous response.",
+    hintRepresentation: "{{previousResponse}}",
   },
 
   ...textFileExtensions
@@ -1548,6 +1614,7 @@ const placeholders: PlaceholderList = {
           ).result,
         example: `{{${ext}:This one if any ${ext} file is selected:This one if no ${ext} file is selected}}`,
         description: `Flow control directive to include some content if any ${ext} file is selected and some other content if no ${ext} file is selected.`,
+        hintRepresentation: `{{${ext}:...:...}}`
       };
       return acc;
     }, {} as { [key: string]: Placeholder }),
@@ -1585,6 +1652,7 @@ const placeholders: PlaceholderList = {
     example: "{{textfiles:This one if any text file is selected:This one if no text file is selected}}",
     description:
       "Flow control directive to include some content if any text file is selected and some other content if no text file is selected.",
+    hintRepresentation: "{{textfiles:...:...}}",
   },
 
   ...imageFileExtensions.reduce((acc, ext) => {
@@ -1619,6 +1687,7 @@ const placeholders: PlaceholderList = {
         ).result,
       example: `{{${ext}:This one if any ${ext} file is selected:This one if no ${ext} file is selected}}`,
       description: `Flow control directive to include some content if any ${ext} file is selected and some other content if no ${ext} file is selected.`,
+      hintRepresentation: `{{${ext}:...:...}}`,
     };
     return acc;
   }, {} as { [key: string]: Placeholder }),
@@ -1656,6 +1725,7 @@ const placeholders: PlaceholderList = {
     example: "{{images:This one if any image file is selected:This one if no image file is selected}}",
     description:
       "Flow control directive to include some content if any image file is selected and some other content if no image file is selected.",
+    hintRepresentation: "{{images:...:...}}",
   },
 
   ...videoFileExtensions.reduce((acc, ext) => {
@@ -1690,6 +1760,7 @@ const placeholders: PlaceholderList = {
         ).result,
       example: `{{${ext}:This one if any ${ext} file is selected:This one if no ${ext} file is selected}}`,
       description: `Flow control directive to include some content if any ${ext} file is selected and some other content if no ${ext} file is selected.`,
+      hintRepresentation: `{{${ext}:...:...}}`,
     };
     return acc;
   }, {} as { [key: string]: Placeholder }),
@@ -1727,6 +1798,7 @@ const placeholders: PlaceholderList = {
     example: "{{videos:This one if any video file is selected:This one if no video file is selected}}",
     description:
       "Flow control directive to include some content if any video file is selected and some other content if no video file is selected.",
+    hintRepresentation: "{{videos:...:...}}",
   },
 
   ...audioFileExtensions.reduce((acc, ext) => {
@@ -1761,6 +1833,7 @@ const placeholders: PlaceholderList = {
         ).result,
       example: `{{${ext}:This one if any ${ext} file is selected:This one if no ${ext} file is selected}}`,
       description: `Flow control directive to include some content if any ${ext} file is selected and some other content if no ${ext} file is selected.`,
+      hintRepresentation: `{{${ext}:...:...}}`,
     };
     return acc;
   }, {} as { [key: string]: Placeholder }),
@@ -1798,6 +1871,7 @@ const placeholders: PlaceholderList = {
     example: "{{audio:This one if any audio file is selected:This one if no audio file is selected}}",
     description:
       "Flow control directive to include some content if any audio file is selected and some other content if no audio file is selected.",
+    hintRepresentation: "{{audio:...:...}}",
   },
 
   /**
@@ -1833,21 +1907,24 @@ const placeholders: PlaceholderList = {
     example: "{{pdf:This one if any PDF file is selected:This one if no PDF file is selected}}",
     description:
       "Flow control directive to include some content if any PDF file is selected and some other content if no PDF file is selected.",
+    hintRepresentation: "{{pdf:...:...}}",
   },
 
   /**
    * Placeholder for the visible text content at a given URL.
    */
-  "{{(url|URL):.*?}}": {
+  "{{(url|URL)( raw=(true|false))?:.*?}}": {
     name: "url",
     aliases: ["{{https?:\\/?\\/?[\\s\\S]*?}}"],
     rules: [],
     apply: async (str: string, context?: { [key: string]: string }) => {
       try {
+        console.log(str.match(/(url|URL)( raw=(true|false))?:(([^{]|{(?!{)|{{[\s\S]*?}})*?)}}/))
         const URL =
-          str.match(/(url|URL):(([^{]|{(?!{)|{{[\s\S]*?}})*?)}}/)?.[2] || str.match(/https?:[\s\S]*?(?=}})/)?.[0] || "";
+          str.match(/(url|URL)( raw=(true|false))?:(([^{]|{(?!{)|{{[\s\S]*?}})*?)}}/)?.[4] || str.match(/https?:[\s\S]*?(?=}})/)?.[0] || "";
+        const raw = str.match(/(url|URL)( raw=(true|false))?:(([^{]|{(?!{)|{{[\s\S]*?}})*?)}}/)?.[3] === "true";
         if (!URL) return { result: "", url: "" };
-        const urlText = await getTextOfWebpage(URL);
+        const urlText = raw ? await getURLHTML(URL) : await getTextOfWebpage(URL);
         return { result: filterString(urlText), url: filterString(urlText) };
       } catch (e) {
         return { result: "", url: "" };
@@ -1858,7 +1935,8 @@ const placeholders: PlaceholderList = {
       return (await Placeholders.allPlaceholders["{{(url|URL):.*?}}"].apply(`{{url:${url}}}`)).result;
     },
     example: "{{url:https://www.google.com}}",
-    description: "Placeholder for the visible text content at a given URL.",
+    description: "Placeholder for the visible text content at a given URL. Accepts an optional `raw` parameter, e.g. `{{url:https://www.google.com raw=true}}`, to return the raw HTML of the page instead of the visible text.",
+    hintRepresentation: "{{url:...}}",
   },
 
   /**
@@ -1888,6 +1966,7 @@ const placeholders: PlaceholderList = {
       (await Placeholders.allPlaceholders["{{file:(.|^[\\s\\n\\r])*?}}"].apply(`{{file:${path}}}`)).result,
     example: "{{file:/Users/username/Desktop/file.txt}}",
     description: "Placeholder for the raw text of a file at the given path.",
+    hintRepresentation: "{{file:...}}",
   },
 
   /**
@@ -1908,6 +1987,7 @@ const placeholders: PlaceholderList = {
       (await Placeholders.allPlaceholders["{{increment:[\\s\\S]*?}}"].apply(`{{increment:${id}}}`)).result,
     example: "{{increment:counter}}",
     description: "Directive to increment a persistent counter variable by 1. Returns the new value of the counter.",
+    hintRepresentation: "{{increment:x}}",
   },
 
   /**
@@ -1928,6 +2008,7 @@ const placeholders: PlaceholderList = {
       (await Placeholders.allPlaceholders["{{decrement:[\\s\\S]*?}}"].apply(`{{decrement:${id}}}`)).result,
     example: "{{decrement:counter}}",
     description: "Directive to decrement a persistent counter variable by 1.",
+    hintRepresentation: "{{decrement:x}}",
   },
 
   /**
@@ -1950,6 +2031,7 @@ const placeholders: PlaceholderList = {
       ).result,
     example: "{{nearbyLocations:food}}",
     description: "Placeholder for a comma-separated list of nearby locations based on the given search query.",
+    hintRepresentation: "{{nearbyLocations:...}}",
   },
 
   /**
@@ -1969,6 +2051,7 @@ const placeholders: PlaceholderList = {
       (await Placeholders.allPlaceholders["{{selectFile:[\\s\\S]*?}}"].apply(`{{selectFile:${path}}}`)).result,
     example: "{{selectFile:/Users/username/Desktop/file.txt}}",
     description: "Directive to a select file. The placeholder will always be replaced with an empty string.",
+    hintRepresentation: "{{selectFile:...}}",
   },
 
   /**
@@ -2003,25 +2086,27 @@ const placeholders: PlaceholderList = {
       ).result,
     example: "{{shortcut:My Shortcut:7}}",
     description: "Directive to execute a Siri Shortcut by name, optionally supplying input, and insert the result.",
+    hintRepresentation: "{{shortcut:...}}",
   },
 
   /**
    * Replaces prompt placeholders with the response to the prompt.
    */
-  "{{prompt:([\\s\\S])*?}}": {
+  "{{prompt:(([^{]|{(?!{)|{{[\\s\\S]*?}})*?)}}": {
     name: "prompt",
     rules: [],
     apply: async (str: string, context?: { [key: string]: string }) => {
-      const prompt = str.match(/(?<=(prompt:))[\s\S]*?(?=}})/)?.[0] || "";
+      const prompt = str.match(/(?<=(prompt:))(([^{]|{(?!{)|{{[\\s\\S]*?}})*?)}}/)?.[2] || "";
       if (prompt.trim().length == 0) return { result: "" };
       const response = await runModel(prompt, prompt, "");
       return { result: response || "" };
     },
     constant: false,
     fn: async (text: string) =>
-      (await Placeholders.allPlaceholders["{{prompt:([\\s\\S])*?}}"].apply(`{{prompt:${text}}}`)).result,
+      (await Placeholders.allPlaceholders["{{prompt:(([^{]|{(?!{)|{{[\\s\\S]*?}})*?)}}"].apply(`{{prompt:${text}}}`)).result,
     example: "{{prompt:Summarize {{url:https://example.com}}}}",
     description: "Replaced with the response to the prompt after running it in the background.",
+    hintRepresentation: "{{prompt:...}}",
   },
 
   /**
@@ -2075,6 +2160,7 @@ const placeholders: PlaceholderList = {
     example: "{{command:PromptLab Chat:PromptLab:Hello!}}",
     description:
       "Directive to run a Raycast command by name, optionally narrowing down the search to a specific extension. Input can be supplied as well.",
+    hintRepresentation: "{{command:cmdName:extName:input}}",
   },
 
   /**
@@ -2091,7 +2177,7 @@ const placeholders: PlaceholderList = {
 
       const transcriptText = specifier.startsWith("http")
         ? await getYouTubeVideoTranscriptByURL(specifier)
-        : await getYouTubeVideoTranscriptById(getMatchingYouTubeVideoID(specifier));
+        : await getYouTubeVideoTranscriptById(await getMatchingYouTubeVideoID(specifier));
       return { result: filterString(transcriptText) };
     },
     constant: false,
@@ -2099,6 +2185,7 @@ const placeholders: PlaceholderList = {
       (await Placeholders.allPlaceholders["{{(youtube|yt):([\\s\\S]*?)}}"].apply(`{{youtube:${idOrURL}}}`)).result,
     example: "{{youtube:https://www.youtube.com/watch?v=dQw4w9WgXcQ}}",
     description: "Replaced with the transcript of the corresponding YouTube video.",
+    hintRepresentation: "{{youtube:...}}",
   },
 
   /**
@@ -2125,6 +2212,7 @@ const placeholders: PlaceholderList = {
     example: '{{as:display dialog "Hello World"}}',
     description:
       "Placeholder for output of an AppleScript script. If the script fails, this placeholder will be replaced with an empty string.",
+    hintRepresentation: "{{as:...}}",
   },
 
   /**
@@ -2156,6 +2244,7 @@ const placeholders: PlaceholderList = {
     example: "{{jxa:Application('Music').currentTrack.name()}}",
     description:
       "Placeholder for output of a JavaScript for Automation script. If the script fails, this placeholder will be replaced with an empty string.",
+    hintRepresentation: "{{jxa:...}}",
   },
 
   /**
@@ -2166,21 +2255,24 @@ const placeholders: PlaceholderList = {
     rules: [],
     apply: async (str: string, context?: { [key: string]: string }) => {
       try {
-        const script = str.match(/(?<=shell( .*)?:)(.|[ \n\r\s])*?(?=}})/)?.[0];
-        if (!script) return { result: "", shell: "" };
+        const settings = loadAdvancedSettingsSync().placeholderSettings;
         const bin = str.match(/(?<=shell)( .*)?(?=:(.|[ \n\r\s])*?}})/)?.[0]?.trim() || "/bin/zsh";
-        const res = execSync(script, { shell: bin }).toString();
+        const pathScript = settings.useUserShellEnvironment ? `export PATH=$(${bin} -ilc "echo -n \\$PATH") &&` : "";
+        const script = pathScript + str.match(/(?<=shell( .*)?:)(.|[ \n\r\s])*?(?=}})/)?.[0];
+        if (!script) return { result: "", shell: "" };
+        const res = filterString(execSync(script, { encoding: "ascii", shell: bin }).toString());
         return { result: res, shell: res };
       } catch (e) {
         return { result: "", shell: "" };
       }
     },
     constant: false,
-    fn: async (script: string) =>
-      (await Placeholders.allPlaceholders["{{shell( .*)?:(.|[ \\n\\r\\s])*?}}"].apply(`{{shell:${script}}}`)).result,
+    fn: async (script: string, bin = "/bin/zsh") =>
+      (await Placeholders.allPlaceholders["{{shell( .*)?:(.|[ \\n\\r\\s])*?}}"].apply(`{{shell ${bin}:${script}}}`)).result,
     example: '{{shell:echo "Hello World"}}',
     description:
       "Placeholder for output of a shell script. If the script fails, this placeholder will be replaced with an empty string.",
+    hintRepresentation: "{{shell:...}}",
   },
 
   /**
@@ -2204,6 +2296,7 @@ const placeholders: PlaceholderList = {
     example: "{{set myVariable:Hello World}}",
     description:
       "Directive to set the value of a persistent variable. If the variable does not exist, it will be created. The placeholder will always be replaced with an empty string.",
+    hintRepresentation: "{{set x:...}}",
   },
 
   /**
@@ -2229,6 +2322,7 @@ const placeholders: PlaceholderList = {
     example: "{{copy:Hello World}}",
     description:
       "Directive to copy the provided text to the clipboard. The placeholder will always be replaced with an empty string.",
+    hintRepresentation: "{{copy:...}}",
   },
 
   /**
@@ -2250,6 +2344,7 @@ const placeholders: PlaceholderList = {
     example: "{{paste:Hello World}}",
     description:
       "Directive to paste the provided text in the frontmost application. The placeholder will always be replaced with an empty string.",
+    hintRepresentation: "{{paste:...}}",
   },
 
   /**
@@ -2283,6 +2378,30 @@ const placeholders: PlaceholderList = {
     example: '{{js:log("Hello World")}}',
     description:
       "Placeholder for output of a JavaScript script. If the script fails, this placeholder will be replaced with an empty string. The script is run in a sandboxed environment.",
+    hintRepresentation: "{{js:...}}",
+  },
+
+  /**
+   * Directive to cut off the provided content after the specified number of characters.
+   */
+  "{{cutoff [0-9]+:(([^{]|{(?!{)|{{[\\s\\S]*?}})*?)}}": {
+    name: "cutoff",
+    rules: [],
+    apply: async (str: string, context?: { [key: string]: string }) => {
+      const matches = str.match(/(?<=(cutoff ))[0-9]+:(([^{]|{(?!{)|{{[\s\S]*?}})*?)}}/);
+      if (!matches) return { result: "" };
+      const cutoff = parseInt(matches[0]);
+      const content = matches[2];
+      return { result: content.slice(0, cutoff) };
+    },
+    constant: false,
+    fn: async (cutoff: string, content: string) =>
+      (await Placeholders.allPlaceholders["{{cutoff [0-9]+:(([^{]|{(?!{)|{{[\\s\\S]*?}})*?)}}"].apply(
+        `{{cutoff ${cutoff}:${content}}}`,
+      )).result,
+    example: "{{cutoff 5:Hello World}}",
+    description: "Cuts off the content after the specified number of characters.",
+    hintRepresentation: "{{cutoff n:...}}",
   },
 
   /**
@@ -2300,6 +2419,7 @@ const placeholders: PlaceholderList = {
     example: '{{ignore:{{jxa:Application("Safari").activate()}}}}',
     description:
       "Directive to ignore all content within the directive. Allows placeholders and directives to run without influencing the output.",
+    hintRepresentation: "{{ignore:...}}",
   },
 };
 
@@ -2393,11 +2513,11 @@ const applyToObjectValuesWithKeys = async (
  * Loads custom placeholders from the custom-placeholders.json file in the support directory.
  * @returns The custom placeholders as a {@link PlaceholderList} object.
  */
-const loadCustomPlaceholders = async () => {
+const loadCustomPlaceholders = async (settings: { allowCustomPlaceholderPaths: boolean }) => {
   try {
     const preferences = getPreferenceValues<ExtensionPreferences>();
     const customPlaceholdersPath = path.join(environment.supportPath, CUSTOM_PLACEHOLDERS_FILENAME);
-    const customPlaceholderFiles = [customPlaceholdersPath, ...preferences.customPlaceholderFiles.split(/, ?/g)];
+    const customPlaceholderFiles = [customPlaceholdersPath, ...(settings.allowCustomPlaceholderPaths ? preferences.customPlaceholderFiles.split(/, ?/g) : [])];
     const customPlaceholderFileContents = await Promise.all(
       customPlaceholderFiles.map(async (customPlaceholdersPath) => {
         try {
@@ -2421,7 +2541,7 @@ const loadCustomPlaceholders = async () => {
                   const match = str.match(new RegExp(`${key}`));
                   let value = placeholder.value;
                   (match || []).forEach((m, index) => {
-                    value = value.replaceAll(`$${index}`, m.replaceAll("\\", "\\\\") || "");
+                    value = value.replaceAll(`$${index}`, m?.replaceAll("\\", "\\\\") || "");
                   });
                   const res: { [key: string]: string; result: string } = { result: value };
                   res[placeholder.name] = value;
@@ -2433,6 +2553,7 @@ const loadCustomPlaceholders = async () => {
                   (await Placeholders.allPlaceholders[`{{${key}}}`].apply(`{{${key}}}`)).result,
                 description: placeholder.description,
                 example: placeholder.example,
+                hintRepresentation: placeholder.hintRepresentation,
               };
             } catch (e) {
               showToast({ title: `Failed to load placeholder "${key}"`, message: `Invalid regex.` });
@@ -2458,7 +2579,11 @@ const loadCustomPlaceholders = async () => {
  * @returns The list of {@link Placeholder} objects.
  */
 export const checkForPlaceholders = async (str: string): Promise<Placeholder[]> => {
-  const customPlaceholders = await loadCustomPlaceholders();
+  const settings = loadAdvancedSettingsSync().placeholderSettings;
+
+  if (!settings.processPlaceholders) return [];
+
+  const customPlaceholders = settings.allowCustomPlaceholders ? await loadCustomPlaceholders(settings) : {};
   const sortedPlaceholders: PlaceholderList = { ...customPlaceholders, ...placeholders };
 
   const includedPlaceholders = Object.entries(sortedPlaceholders)
@@ -2474,8 +2599,8 @@ export const checkForPlaceholders = async (str: string): Promise<Placeholder[]> 
       } else {
         return (
           str.match(new RegExp(key, "g")) != undefined ||
-          str.match(new RegExp(key.replace("{{", "").replace("}}", ""), "g")) != undefined ||
-          str.match(new RegExp(`(?<!{{)${placeholder.name.replace(/[!#+-]/g, "\\$1")}(?!}})`, "g")) != undefined
+          (str.match(new RegExp("(^| )" + key.replace("{{", "").replace("}}", ""), "g")) != undefined) ||
+          str.match(new RegExp(`(^| )(?<!{{)${placeholder.name.replace(/[!#+-]/g, "\\$1")}(?!}})`, "g")) != undefined
         );
       }
     })
@@ -2498,7 +2623,11 @@ export const checkForPlaceholders = async (str: string): Promise<Placeholder[]> 
  * @returns The string with placeholders substituted.
  */
 const bulkApply = async (str: string, context?: { [key: string]: string }): Promise<string> => {
-  const customPlaceholders = await loadCustomPlaceholders();
+  const settings = loadAdvancedSettingsSync().placeholderSettings;
+
+  if (!settings.processPlaceholders) return str;
+
+  const customPlaceholders = settings.allowCustomPlaceholders ? await loadCustomPlaceholders(settings) : {};
   const sortedPlaceholders: PlaceholderList = { ...customPlaceholders, ...placeholders };
   const allPlaceholders = Object.entries(sortedPlaceholders);
 

@@ -1,4 +1,8 @@
-import { LocalStorage } from "@raycast/api";
+import { LocalStorage, environment } from "@raycast/api";
+import path from "path";
+import { ADVANCED_SETTINGS_FILENAME } from "./constants";
+import { defaultAdvancedSettings } from "../data/default-advanced-settings";
+import * as fs from "fs";
 
 /**
  * Sets the value of a local storage key.
@@ -19,3 +23,19 @@ export const getStorage = async (key: string) => {
   const storageString = typeof localStorage === "undefined" ? "" : localStorage;
   return storageString == "" ? [] : JSON.parse(storageString);
 };
+
+/**
+ * Immediately loads the advanced settings from the advanced settings file.
+ * @returns The advanced settings object.
+ */
+export const loadAdvancedSettingsSync = () => {
+  try {
+    const advancedSettingsValues = JSON.parse(
+      fs.readFileSync(path.join(environment.supportPath, ADVANCED_SETTINGS_FILENAME), "utf-8")
+    ) as typeof defaultAdvancedSettings;
+    return advancedSettingsValues;
+  } catch (error) {
+    console.error(error);
+  }
+  return defaultAdvancedSettings;
+}

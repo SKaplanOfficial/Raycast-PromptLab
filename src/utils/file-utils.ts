@@ -5,11 +5,12 @@ import { CommandOptions, Extension, ExtensionCommand } from "./types";
 import { defaultModels } from "../data/default-models";
 import { randomUUID } from "crypto";
 import path from "path";
-import { CUSTOM_PLACEHOLDERS_FILENAME } from "./constants";
+import { ADVANCED_SETTINGS_FILENAME, CUSTOM_PLACEHOLDERS_FILENAME } from "./constants";
 import { defaultCustomPlaceholders } from "../data/default-custom-placeholders";
 import { ScriptRunner } from "./scripts";
 import exifr from "exifr";
 import { filterString } from "./context-utils";
+import { defaultAdvancedSettings } from "../data/default-advanced-settings";
 
 /**
  * Installs the default prompts if they haven't been installed yet and the user hasn't input their own command set.
@@ -38,6 +39,11 @@ export async function installDefaults() {
     const customPlaceholdersPath = path.join(environment.supportPath, CUSTOM_PLACEHOLDERS_FILENAME);
     if (!fs.existsSync(customPlaceholdersPath)) {
       await fs.promises.writeFile(customPlaceholdersPath, JSON.stringify(defaultCustomPlaceholders, null, 2));
+    }
+
+    const advancedSettingsPath = path.join(environment.supportPath, ADVANCED_SETTINGS_FILENAME);
+    if (!fs.existsSync(advancedSettingsPath)) {
+      await fs.promises.writeFile(advancedSettingsPath, JSON.stringify(defaultAdvancedSettings, null, 2));
     }
 
     await LocalStorage.setItem("--defaults-installed", "true");

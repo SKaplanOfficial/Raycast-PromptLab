@@ -13,6 +13,9 @@ import { Model, ModelManager } from "../utils/types";
 import { FormValidation, useForm } from "@raycast/utils";
 import { useEffect, useState } from "react";
 import { randomUUID } from "crypto";
+import { ADVANCED_SETTINGS_FILENAME } from "../utils/constants";
+import path from "path";
+import fs from "fs";
 
 interface ModelFormValues {
   name: string;
@@ -37,6 +40,19 @@ export default function ModelForm(props: { models: ModelManager; currentModel?: 
   const { models, currentModel, duplicate } = props;
   const { pop } = useNavigation();
   const [uuid, setUUID] = useState<string>("");
+
+  const getDefaultValues = () => {
+    try {
+      const advancedSettingsValues = JSON.parse(fs.readFileSync(path.join(environment.supportPath, ADVANCED_SETTINGS_FILENAME), "utf-8"))
+      if ("modelDefaults" in advancedSettingsValues) {
+        return advancedSettingsValues.modelDefaults;
+      }
+    } catch (error) {
+      console.error(error);
+    }
+
+    return models.dummyModel();
+  }
 
   useEffect(() => {
     const id = randomUUID();
@@ -63,7 +79,7 @@ export default function ModelForm(props: { models: ModelManager; currentModel?: 
 
       pop();
     },
-    initialValues: currentModel || models.dummyModel(),
+    initialValues: currentModel || getDefaultValues(),
     validation: {
       name: FormValidation.Required,
     },

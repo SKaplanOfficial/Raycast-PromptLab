@@ -1,7 +1,8 @@
-import { runAppleScript, runAppleScriptSync } from "run-applescript";
+import { runAppleScript } from "run-applescript";
 import * as os from "os";
 import { getPreferenceValues } from "@raycast/api";
 import { ExtensionPreferences } from "./types";
+import fetch from "node-fetch";
 
 /**
  * Removes extraneous symbols from a string and limits it to (by default) 3000 characters.
@@ -183,6 +184,18 @@ const getChromiumURL = async (browserName: string): Promise<string> => {
 };
 
 /**
+ * Gets the URL of the active tab in Orion.
+ * @returns A promise which resolves to the URL of the active tab as a string.
+ */
+const getOrionURL = async (): Promise<string> => {
+  return runAppleScript(`try
+    tell application "Orion"
+      return URL of current tab of window 1
+    end tell
+  end try`);
+};
+
+/**
  * The browsers from which the current URL can be obtained.
  */
 export const SupportedBrowsers = [
@@ -200,6 +213,7 @@ export const SupportedBrowsers = [
   "Epic",
   "Arc",
   "iCab",
+  "Orion",
 ];
 
 /**
@@ -226,6 +240,8 @@ export const getCurrentURL = async (browserName: string): Promise<string> => {
       break;
     case "iCab":
       return getiCabURL();
+    case "Orion":
+      return getOrionURL();
       break;
   }
   return "";
@@ -237,35 +253,9 @@ export const getCurrentURL = async (browserName: string): Promise<string> => {
  * @param URL The URL to get the HTML of.
  * @returns The HTML as a string.
  */
-export const getURLHTML = (URL: string): string => {
-  return runAppleScriptSync(`use framework "Foundation"
-    set theResult to ""
-    on getURLHTML(theURL)
-        global theResult
-        set theURL to current application's NSURL's URLWithString:theURL
-        set theSessionConfiguration to current application's NSURLSessionConfiguration's defaultSessionConfiguration()
-        set theSession to current application's NSURLSession's sessionWithConfiguration:(theSessionConfiguration) delegate:(me) delegateQueue:(missing value)
-        set theRequest to current application's NSURLRequest's requestWithURL:theURL
-        set theTask to theSession's dataTaskWithRequest:theRequest
-        theTask's resume()
-        
-        set completedState to current application's NSURLSessionTaskStateCompleted
-        set canceledState to current application's NSURLSessionTaskStateCanceling
-        
-        repeat while theTask's state() is not completedState and theTask's state() is not canceledState
-            delay 0.1
-        end repeat
-        
-        return theResult
-    end getURLHTML
-    
-    on URLSession:tmpSession dataTask:tmpTask didReceiveData:tmpData
-        global theResult
-        set theText to (current application's NSString's alloc()'s initWithData:tmpData encoding:(current application's NSASCIIStringEncoding)) as string
-
-        set theResult to theResult & theText
-    end URLSession:dataTask:didReceiveData:
-    return getURLHTML("${URL}")`);
+export const getURLHTML = async (URL: string): Promise<string> => {
+  const request = await fetch(URL);
+  return await request.text();
 };
 
 /**
@@ -281,8 +271,8 @@ interface JSONObject {
  * @param URL The url to a .json document.
  * @returns The JSON as a {@link JSONObject}.
  */
-export const getJSONResponse = (URL: string): JSONObject => {
-  const raw = getURLHTML(URL);
+export const getJSONResponse = async (URL: string): Promise<JSONObject> => {
+  const raw = await getURLHTML(URL);
   return JSON.parse(raw);
 };
 
@@ -293,15 +283,15 @@ export const getJSONResponse = (URL: string): JSONObject => {
  * @returns A promise resolving to the visible text as a string.
  */
 export const getTextOfWebpage = async (URL: string): Promise<string> => {
-  const html = getURLHTML(URL);
+  const html = await getURLHTML(URL);
   const filteredString = html
-  .replaceAll(/(<br ?\/?>|[\n\r]+)/g, "\n")
-  .replaceAll(
-    /(<script[\s\S\n\r]+?<\/script>|<style[\s\S\n\r]+?<\/style>|<nav[\s\S\n\r]+?<\/nav>|<link[\s\S\n\r]+?<\/link>|<form[\s\S\n\r]+?<\/form>|<button[\s\S\n\r]+?<\/button>|<!--[\s\S\n\r]+?-->|<select[\s\S\n\r]+?<\/select>|<[\s\n\r\S]+?>)/g,
-    "\n"
-  )
-  .replaceAll(/[\n\r]{2,}/g, "\r")
-  .replaceAll(/(\([^A-Za-z0-9\n]*\)|(?<=[,.!?%*])[,.!?%*]*?\s*[,.!?%*])/g, " ");
+    .replaceAll(/(<br ?\/?>|[\n\r]+)/g, "\n")
+    .replaceAll(
+      /(<script[\s\S\n\r]+?<\/script>|<style[\s\S\n\r]+?<\/style>|<nav[\s\S\n\r]+?<\/nav>|<link[\s\S\n\r]+?<\/link>|<form[\s\S\n\r]+?<\/form>|<button[\s\S\n\r]+?<\/button>|<!--[\s\S\n\r]+?-->|<select[\s\S\n\r]+?<\/select>|<[\s\n\r\S]+?>)/g,
+      "\n"
+    )
+    .replaceAll(/[\n\r]{2,}/g, "\r")
+    .replaceAll(/(\([^A-Za-z0-9\n]*\)|(?<=[,.!?%*])[,.!?%*]*?\s*[,.!?%*])/g, " ");
   return filteredString;
 };
 
@@ -311,7 +301,7 @@ export const getTextOfWebpage = async (URL: string): Promise<string> => {
  * @returns A promise resolving to the transcript as a string, or "No transcript available." if there is no transcript.
  */
 export const getYouTubeVideoTranscriptById = async (videoId: string): Promise<string> => {
-  const html = getURLHTML(`https://www.youtube.com/watch?v=${videoId}`);
+  const html = await getURLHTML(`https://www.youtube.com/watch?v=${videoId}`);
   const captionsJSON = JSON.parse(html.split(`"captions":`)[1].split(`,"videoDetails"`)[0].replace("\n", ""))[
     "playerCaptionsTracklistRenderer"
   ];
@@ -347,8 +337,8 @@ export const getYouTubeVideoTranscriptByURL = async (videoURL: string): Promise<
  * @param searchText The text to search for.
  * @returns The ID of the first matching video.
  */
-export const getMatchingYouTubeVideoID = (searchText: string): string => {
-  const html = getURLHTML(`https://www.youtube.com/results?search_query=${encodeURIComponent(searchText)}`);
+export const getMatchingYouTubeVideoID = async (searchText: string): Promise<string> => {
+  const html = await getURLHTML(`https://www.youtube.com/results?search_query=${encodeURIComponent(searchText)}`);
   const videoID = html.matchAll(/videoId\\x22:\\x22(.*?)\\x22,/g).next().value[1];
   return videoID;
 };
@@ -479,8 +469,8 @@ export const getLastEmail = async (): Promise<string> => {
  * @param days The number of days to get the forecast for (either 1 or 7)
  * @returns The forecast as a JSON object.
  */
-export const getWeatherData = (days: number): JSONObject => {
-  const jsonObj = getJSONResponse("https://get.geojs.io/v1/ip/geo.json");
+export const getWeatherData = async (days: number): Promise<JSONObject> => {
+  const jsonObj = await getJSONResponse("https://get.geojs.io/v1/ip/geo.json");
   const latitude = jsonObj["latitude"];
   const longitude = jsonObj["longitude"];
   const timezone = (jsonObj["timezone"] as string).replace("/", "%2F");

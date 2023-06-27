@@ -45,7 +45,7 @@ export function useModels() {
       name: "",
       description: "",
       icon: Icon.Gear,
-      iconColor: Color.PrimaryText,
+      iconColor: Color.Red,
       favorited: false,
       endpoint: "",
       authType: "",

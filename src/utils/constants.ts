@@ -25,6 +25,11 @@ export const PLACEHOLDERS_GUIDE_FILENAME = "placeholders_guide.md";
  */
 export const CUSTOM_PLACEHOLDERS_FILENAME = "custom_placeholders.json";
 
+/**
+ * The filename for the advanced settings file in the support directory.
+ */
+export const ADVANCED_SETTINGS_FILENAME = "advanced_settings.json";
+
 export const StorageKeys = {
   /**
    * Key for the list of persistent variables as JSON objects containing the variable's name,  value, and initial (default) value.

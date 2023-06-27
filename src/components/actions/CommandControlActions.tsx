@@ -2,6 +2,9 @@ import { Action, ActionPanel, Alert, Icon, LocalStorage, Toast, confirmAlert, sh
 import { Command, StoreCommand, isCommand, isStoreCommand, isTrueStr } from "../../utils/types";
 import CommandForm from "../CommandForm";
 import { QUICKLINK_URL_BASE } from "../../utils/constants";
+import { updateCommand } from "../../utils/command-utils";
+import { defaultAdvancedSettings } from "../../data/default-advanced-settings";
+import { anyActionsEnabled } from "./action-utils";
 
 /**
  * Section for actions related to modifying commands (editing, deleting, etc.).
@@ -16,8 +19,14 @@ export const CommandControlsActionsSection = (props: {
   availableCommands?: StoreCommand[];
   commands: Command[];
   setCommands: React.Dispatch<React.SetStateAction<Command[]>>;
+  settings: typeof defaultAdvancedSettings;
 }) => {
-  const { command, availableCommands, commands, setCommands } = props;
+  const { command, availableCommands, commands, setCommands, settings } = props;
+
+  if (!anyActionsEnabled(["ToggleFavoriteAction", "CreateQuickLinkAction", "EditCommandAction", "CreateDerivativeAction", "DeleteCommandAction", "DeleteAllCommandsAction", "InstallAllCommandsAction"], settings)) {
+    return null;
+  }
+
   return (
     <ActionPanel.Section title="Command Controls">
       {isCommand(command) ? (
@@ -62,16 +71,7 @@ export const ToggleFavoriteAction = (props: {
       shortcut={{ modifiers: ["cmd", "shift"], key: "f" }}
       onAction={async () => {
         const newCmdData = { ...command, favorited: command.favorited == true ? false : true };
-        const commandData = await LocalStorage.allItems();
-        const commandDataFiltered = Object.values(commandData).filter((cmd, index) => {
-          return (
-            !Object.keys(commandData)[index].startsWith("--") &&
-            !Object.keys(commandData)[index].startsWith("id-") &&
-            JSON.parse(cmd).name != command.name
-          );
-        });
-        setCommands([...commandDataFiltered.map((data) => JSON.parse(data)), newCmdData]);
-        await LocalStorage.setItem(command.name, JSON.stringify(newCmdData));
+        await updateCommand(command, newCmdData, setCommands)
         await showToast({
           title: command.favorited ? `Removed From Favorites` : `Added To Favorites`,
           style: Toast.Style.Success,
@@ -91,7 +91,7 @@ export const CreateQuickLinkAction = (props: { command: Command }) => {
   return (
     <Action.CreateQuicklink
       quicklink={{
-        link: `${QUICKLINK_URL_BASE}${encodeURIComponent(command.name)}%22${
+        link: `${QUICKLINK_URL_BASE}${encodeURIComponent(command.id)}%22${
           command.prompt?.includes("{{input}}") ? "%2C%22queryInput%22%3A%22{Input}%22" : ""
         }%7D`,
         name: command.name,
@@ -118,6 +118,7 @@ export const EditCommandAction = (props: {
       target={
         <CommandForm
           oldData={{
+            id: command.id,
             name: command.name,
             prompt: command.prompt,
             icon: command.icon,
@@ -247,6 +248,7 @@ export const CreateDerivativeAction = (props: {
       target={
         <CommandForm
           oldData={{
+            id: isCommand(command) ? command.id : "",
             name: command.name + (isCommand(command) ? " (Copy)" : ""),
             prompt: command.prompt,
             icon: command.icon,

@@ -155,6 +155,7 @@ export type CommandConfig = {
  * A PromptLab command.
  */
 export type Command = {
+  id: string;
   name: string;
   prompt: string;
   icon: string;
@@ -331,6 +332,7 @@ export type CustomPlaceholder = {
   description: string;
   value: string;
   example: string;
+  hintRepresentation: string;
 }
 
 /**

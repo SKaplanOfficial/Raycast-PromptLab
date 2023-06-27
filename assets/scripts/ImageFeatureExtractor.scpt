@@ -15,7 +15,7 @@ on run (argv)
 	set useFaceDetection to item 6 of argv is "true"
 	set useRectangleDetection to item 7 of argv is "true"
 	set useSaliencyAnalysis to item 8 of argv is "true"
-	set confidenceThreshold to item 9 of argv
+	set confidenceThreshold to item 9 of argv as number
 	set promptText to ""
 	set imageData to current application's NSMutableDictionary's alloc()'s init()
 

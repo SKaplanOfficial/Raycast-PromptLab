@@ -108,6 +108,7 @@ export default function CommandChatView(props: {
       chats.createChat(newChatName, basePrompt).then((chat) => {
         chats.revalidate().then(() => {
           setCurrentChat(chat);
+          console.log("chat", chat);
           if (chat) {
             chats.appendToChat(chat, `\n[${sender}]:${newQuery || query}\n`);
           }
@@ -402,7 +403,7 @@ export default function CommandChatView(props: {
                   const toast = await showToast({ title: "Exporting Chat", style: Toast.Style.Animated });
 
                   const includeContext =
-                    currentChat.contextData.length &&
+                    currentChat.contextData?.length &&
                     (await confirmAlert({
                       title: "Include Context Data & Stats?",
                       message: "Do you want context data and statistics included in the export?",
@@ -413,7 +414,7 @@ export default function CommandChatView(props: {
                   const chatContents = chats.getChatContents(currentChat);
 
                   const failedExports: string[] = [];
-                  if (includeContext && currentChat.contextData.length > 0) {
+                  if (includeContext && currentChat.contextData?.length > 0) {
                     let dirPath = path.resolve(preferences.exportLocation, currentChat.name);
                     let i = 2;
                     while (fs.existsSync(dirPath)) {
@@ -449,7 +450,7 @@ export default function CommandChatView(props: {
                       }
                     });
 
-                    if (failedExports.length == currentChat.contextData.length + 2) {
+                    if (failedExports.length == currentChat.contextData?.length + 2) {
                       toast.style = Toast.Style.Failure;
                       toast.title = "Failed Export";
                       toast.message = "Couldn't export chat or context data";
@@ -603,7 +604,7 @@ export default function CommandChatView(props: {
                 title={chat.name}
                 value={chat.name}
                 key={chat.name}
-                icon={chat.favorited ? { source: Icon.StarCircle,  tintColor: Color.Yellow } : undefined}
+                icon={chat.favorited ? { source: Icon.StarCircle,  tintColor: Color.Yellow } : { source: chat.icon,  tintColor: chat.iconColor }}
               />
             ))}
           </Form.Dropdown.Section>
@@ -612,7 +613,7 @@ export default function CommandChatView(props: {
         {chats.chats
           .filter((chat) => !chat.favorited)
           .map((chat) => (
-            <Form.Dropdown.Item title={chat.name} value={chat.name} key={chat.name} />
+            <Form.Dropdown.Item title={chat.name} value={chat.name} key={chat.name} icon={{ source: chat.icon,  tintColor: chat.iconColor }} />
           ))}
       </Form.Dropdown>
 
@@ -655,11 +656,11 @@ export default function CommandChatView(props: {
 
       <Form.Description title="Base Prompt" text={basePrompt} />
 
-      {currentChat && currentChat.contextData.length ? <Form.Separator /> : null}
-      {currentChat && currentChat.contextData.length ? (
+      {currentChat && currentChat.contextData?.length ? <Form.Separator /> : null}
+      {currentChat && currentChat.contextData?.length ? (
         <Form.Description title="Context Data" text="Information provided as context for your conversation." />
       ) : null}
-      {currentChat?.contextData.map((data) => {
+      {currentChat?.contextData?.map((data) => {
         return <Form.Description title={data.source} key={data.source + data.data.substring(0, 20)} text={data.data} />;
       })}
     </Form>

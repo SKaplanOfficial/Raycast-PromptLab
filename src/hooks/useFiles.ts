@@ -9,7 +9,7 @@ import {
   imageFileExtensions,
   textFileExtensions,
   videoFileExtensions,
-} from "../utils/file-extensions";
+} from "../data/file-extensions";
 import { ScriptRunner, execScript } from "../utils/scripts";
 import { getAudioDetails, getImageDetails } from "../utils/file-utils";
 import { filterString } from "../utils/context-utils";
@@ -249,7 +249,7 @@ const addVideoDetails = async (
     await execScript(
       videoFeatureExtractor,
       [
-        `"${filepath}"`,
+        filepath,
         options.useAudioDetails || false,
         options.useSubjectClassification || false,
         options.useFaceDetection || false,

@@ -2,14 +2,21 @@ import { Action, Icon, Toast, showToast } from "@raycast/api";
 import { Command, StoreCommand } from "../../utils/types";
 import { STORE_ENDPOINT, STORE_KEY } from "../../utils/constants";
 import fetch from "node-fetch";
+import { defaultAdvancedSettings } from "../../data/default-advanced-settings";
+import { isActionEnabled } from "./action-utils";
 
 /**
  * Action to share a command to the PromptLab store.
  * @param props.command The command to share.
  * @returns {JSX.Element} The action component.
  */
-export default function ShareCommandAction(props: { command: Command }): JSX.Element {
-  const { command } = props;
+export default function ShareCommandAction(props: { command: Command, settings: typeof defaultAdvancedSettings }): JSX.Element | null {
+  const { command, settings } = props;
+
+  if (!isActionEnabled("ShareCommandAction", settings)) {
+    return null;
+  }
+
   return (
     <Action
       title="Share To PromptLab Store"

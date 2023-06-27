@@ -4,7 +4,6 @@ import {
   Form,
   showToast,
   Icon,
-  LocalStorage,
   useNavigation,
   Color,
   environment,
@@ -24,7 +23,13 @@ import { Fragment, useEffect, useState } from "react";
 import * as crypto from "crypto";
 import { useRef } from "react";
 import { checkForPlaceholders } from "../utils/placeholders";
-import { OpenCustomPlaceholdersAction, OpenPlaceholdersGuideAction } from "./actions/OpenFileActions";
+import { EditCustomPlaceholdersAction, OpenAdvancedSettingsAction, OpenPlaceholdersGuideAction } from "./actions/OpenFileActions";
+import { updateCommand } from "../utils/command-utils";
+import * as fs from "fs";
+import path from "path";
+import { ADVANCED_SETTINGS_FILENAME } from "../utils/constants";
+import { useAdvancedSettings } from "../hooks/useAdvancedSettings";
+import { isActionEnabled } from "./actions/action-utils";
 
 interface CommandFormValues {
   name: string;
@@ -68,6 +73,7 @@ export default function CommandForm(props: {
   duplicate?: boolean;
 }) {
   const { oldData, setCommands, duplicate } = props;
+  const { advancedSettings } = useAdvancedSettings();
   const [promptInfo, setPromptInfo] = useState<string>(defaultPromptInfo);
   const [showResponse, setShowResponse] = useState<boolean>(
     oldData != undefined && oldData.showResponse != undefined ? oldData.showResponse : true
@@ -105,6 +111,47 @@ export default function CommandForm(props: {
 
   const preferences = getPreferenceValues<ExtensionPreferences>();
 
+  const getDefaultValues = () => {
+    try {
+      const advancedSettingsValues = JSON.parse(fs.readFileSync(path.join(environment.supportPath, ADVANCED_SETTINGS_FILENAME), "utf-8"))
+      if ("commandDefaults" in advancedSettingsValues) {
+        return advancedSettingsValues.commandDefaults;
+      }
+    } catch (error) {
+      console.error(error);
+    }
+
+    return {
+      iconColor: Color.Red,
+      minNumFiles: "0",
+      useMetadata: false,
+      acceptedFileExtensions: "",
+      useAudioDetails: false,
+      useSoundClassification: true,
+      useSubjectClassification: true,
+      useRectangleDetection: false,
+      useBarcodeDetection: true,
+      useFaceDetection: false,
+      outputKind: "detail",
+      actionScript: "",
+      showResponse: true,
+      description: "",
+      useSaliencyAnalysis: true,
+      author: "",
+      website: "",
+      version: "1.0.0",
+      requirements: "",
+      scriptKind: "applescript",
+      categories: ["Other"],
+      temperature: "1.0",
+      favorited: false,
+      model: "",
+      useSpeech: false,
+      speakResponse: false,
+      showInMenuBar: true,
+    }
+  }
+
   useEffect(() => {
     lastAddedFieldRef.current?.focus();
   }, [currentFieldFocus]);
@@ -117,7 +164,7 @@ export default function CommandForm(props: {
         includedPlaceholders.forEach((placeholder) => {
           newPromptInfo =
             newPromptInfo +
-            `\n\n${placeholder.name}: ${placeholder.description}\nExample: ${placeholder.example}`;
+            `\n\n${placeholder.hintRepresentation || ""}: ${placeholder.description}\nExample: ${placeholder.example}`;
         });
         setPromptInfo(newPromptInfo);
       });
@@ -248,6 +295,7 @@ export default function CommandForm(props: {
       }
 
       const commandObj: Command = {
+        id: oldData?.id || crypto.randomUUID(),
         name: values.name,
         prompt: values.prompt,
         icon: values.icon,
@@ -362,21 +410,7 @@ export default function CommandForm(props: {
         commandObj.setupConfig = commandConfig;
       }
 
-      await LocalStorage.setItem(values.name, JSON.stringify(commandObj));
-
-      if (oldData && oldData.name != values.name) {
-        await LocalStorage.removeItem(oldData.name);
-      }
-
-      if (setCommands) {
-        const commandData = await LocalStorage.allItems();
-        const commandDataFiltered = Object.values(commandData).filter(
-          (cmd, index) =>
-            !Object.keys(commandData)[index].startsWith("--") && !Object.keys(commandData)[index].startsWith("id-")
-        );
-        setCommands(commandDataFiltered.map((data) => JSON.parse(data)));
-      }
-
+      await updateCommand(oldData, commandObj, setCommands);
       if (oldData && !duplicate) {
         await showToast({ title: "Command Saved" });
       } else {
@@ -384,35 +418,7 @@ export default function CommandForm(props: {
       }
       pop();
     },
-    initialValues: oldData || {
-      iconColor: Color.PrimaryText,
-      minNumFiles: "0",
-      useMetadata: false,
-      acceptedFileExtensions: "",
-      useAudioDetails: false,
-      useSoundClassification: true,
-      useSubjectClassification: true,
-      useRectangleDetection: false,
-      useBarcodeDetection: true,
-      useFaceDetection: false,
-      outputKind: "detail",
-      actionScript: "",
-      showResponse: true,
-      description: "",
-      useSaliencyAnalysis: true,
-      author: "",
-      website: "",
-      version: "1.0.0",
-      requirements: "",
-      scriptKind: "applescript",
-      categories: ["Other"],
-      temperature: "1.0",
-      favorited: false,
-      model: "",
-      useSpeech: false,
-      speakResponse: false,
-      showInMenuBar: false,
-    },
+    initialValues: oldData || getDefaultValues(),
     validation: {
       name: FormValidation.Required,
       prompt: (value) => {
@@ -451,9 +457,9 @@ export default function CommandForm(props: {
             title={oldData && !duplicate ? "Save Command" : "Create Command"}
             onSubmit={handleSubmit}
           />
-          <OpenPlaceholdersGuideAction />
-          <OpenCustomPlaceholdersAction />
-          <Action
+          <OpenPlaceholdersGuideAction settings={advancedSettings} />
+          <EditCustomPlaceholdersAction settings={advancedSettings} />
+          {isActionEnabled("ToggleSetupFieldsAction", advancedSettings) ? <Action
             title={enableSetupEditing ? "Lock Setup Fields" : "Unlock Setup Fields"}
             icon={enableSetupEditing ? Icon.Lock : Icon.LockUnlocked}
             shortcut={{ modifiers: ["cmd", "shift"], key: "s" }}
@@ -469,7 +475,9 @@ export default function CommandForm(props: {
                 }`,
               });
             }}
-          />
+          /> : null}
+          <OpenAdvancedSettingsAction settings={advancedSettings} />
+          
 
           {enableSetupEditing ? (
             <>

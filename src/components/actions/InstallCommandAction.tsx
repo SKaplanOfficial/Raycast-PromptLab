@@ -1,5 +1,7 @@
 import { Action, Icon, LocalStorage, Toast, showToast } from "@raycast/api";
 import { Command, StoreCommand } from "../../utils/types";
+import { defaultAdvancedSettings } from "../../data/default-advanced-settings";
+import { isActionEnabled } from "./action-utils";
 
 /**
  * Action to install a command from the PromptLab store.
@@ -12,11 +14,16 @@ export default function InstallCommandAction(props: {
   command: StoreCommand;
   commands: Command[];
   setCommands: React.Dispatch<React.SetStateAction<Command[]>>;
-}): JSX.Element {
-  const { command, commands, setCommands } = props;
+  settings: typeof defaultAdvancedSettings;
+}): JSX.Element | null {
+  const { command, commands, setCommands, settings } = props;
 
   const knownCommandNames = commands?.map((command) => command.name);
   const knownPrompts = commands?.map((command) => command.prompt);
+
+  if (!isActionEnabled("InstallCommandAction", settings)) {
+    return null;
+  }
 
   return (
     <Action

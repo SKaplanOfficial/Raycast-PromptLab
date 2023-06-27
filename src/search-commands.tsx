@@ -9,7 +9,8 @@ import RunCommandAction from "./components/actions/RunCommandAction";
 import ShareCommandAction from "./components/actions/ShareCommandAction";
 import { CopyCommandActionsSection } from "./components/actions/CopyCommandActions";
 import { CommandControlsActionsSection } from "./components/actions/CommandControlActions";
-import { OpenCustomPlaceholdersAction } from "./components/actions/OpenFileActions";
+import { EditCustomPlaceholdersAction, OpenAdvancedSettingsAction, OpenPlaceholdersGuideAction } from "./components/actions/OpenFileActions";
+import { useAdvancedSettings } from "./hooks/useAdvancedSettings";
 
 export default function SearchCommand(props: { arguments: { commandName: string; queryInput: string } }) {
   const { commandName, queryInput } = props.arguments;
@@ -18,6 +19,7 @@ export default function SearchCommand(props: { arguments: { commandName: string;
   const [searchText, setSearchText] = useState<string | undefined>(
     commandName == undefined || queryInput ? undefined : commandName.trim()
   );
+  const { advancedSettings } = useAdvancedSettings();
 
   const preferences = getPreferenceValues<searchPreferences & ExtensionPreferences>();
 
@@ -30,8 +32,11 @@ export default function SearchCommand(props: { arguments: { commandName: string;
     }
   }, [loadingCommands]);
 
-  if (commands && commandNames.includes(commandName)) {
-    const command = commands[commandNames.indexOf(commandName)];
+  if (commands && commandNames.includes(commandName) || commands.map((cmd) => cmd.id).includes(commandName)) {
+    const command = commands.find((cmd) => cmd.id == commandName || cmd.name == commandName);
+    if (!command) {
+      return null;
+    }
     return (
       <CommandResponse
         commandName={command.name}
@@ -86,11 +91,20 @@ export default function SearchCommand(props: { arguments: { commandName: string;
           detail={<CommandListDetail command={command} />}
           actions={
             <ActionPanel>
-              <RunCommandAction command={command} />
-              <ShareCommandAction command={command} />
-              <CopyCommandActionsSection command={command} />
-              <CommandControlsActionsSection command={command} commands={commands} setCommands={setCommands} />
-              <OpenCustomPlaceholdersAction />
+              <RunCommandAction command={command} settings={advancedSettings} />
+              <ShareCommandAction command={command} settings={advancedSettings} />
+
+              <ActionPanel.Submenu title="Copy Command Data..." icon={Icon.Clipboard} shortcut={{ modifiers: ["cmd", "shift"], key: "c" }}>
+                <CopyCommandActionsSection command={command} showTitle={false} settings={advancedSettings} />
+              </ActionPanel.Submenu>
+
+              <CommandControlsActionsSection command={command} commands={commands} setCommands={setCommands} settings={advancedSettings} />
+
+              <ActionPanel.Submenu title="Advanced..." icon={Icon.CommandSymbol} shortcut={{ modifiers: ["cmd", "shift"], key: "a" }}>
+                <EditCustomPlaceholdersAction settings={advancedSettings} />
+                <OpenPlaceholdersGuideAction settings={advancedSettings} />
+                <OpenAdvancedSettingsAction settings={advancedSettings} />
+              </ActionPanel.Submenu>
             </ActionPanel>
           }
         />

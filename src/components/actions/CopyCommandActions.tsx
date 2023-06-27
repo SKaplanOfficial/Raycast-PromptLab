@@ -3,27 +3,39 @@ import { getCommandJSON } from "../../utils/command-utils";
 import { Command, ExtensionPreferences, StoreCommand, isCommand } from "../../utils/types";
 import path from "path";
 import * as fs from "fs";
+import { defaultAdvancedSettings } from "../../data/default-advanced-settings";
+import { isActionEnabled } from "./action-utils";
 
 /**
  * Action panel section for actions related to copying command data to the clipboard.
  * @param props.command The command to copy data from.
  * @returns {JSX.Element} The action panel section component.
  */
-export const CopyCommandActionsSection = (props: { command: Command | StoreCommand }): JSX.Element => {
-  const { command } = props;
+export const CopyCommandActionsSection = (props: { command: Command | StoreCommand, settings: typeof defaultAdvancedSettings, showTitle?: boolean }): JSX.Element | null => {
+  const { command, showTitle, settings } = props;
+
+  if (!isActionEnabled("CopyCommandPromptAction", settings) && !isActionEnabled("CopyCommandJSONAction", settings)  && !isActionEnabled("CopyCommandIDAction", settings) && !isActionEnabled("ExportAllCommandsAction", settings)) {
+    return null;
+  }
+
   return (
-    <ActionPanel.Section title="Copy Actions">
-      <Action.CopyToClipboard
+    <ActionPanel.Section title={showTitle == false ? undefined : "Copy Actions"}>
+      {isActionEnabled("CopyCommandPromptAction", settings) ? <Action.CopyToClipboard
         title="Copy Prompt"
         content={command.prompt}
         shortcut={{ modifiers: ["cmd", "shift"], key: "p" }}
-      />
-      <Action.CopyToClipboard
+      /> : null}
+      {isActionEnabled("CopyCommandJSONAction", settings) ? <Action.CopyToClipboard
         title="Copy Command JSON"
         content={getCommandJSON(command)}
         shortcut={{ modifiers: ["cmd", "shift"], key: "j" }}
-      />
-      {isCommand(command) ? <ExportAllCommandsAction /> : null}
+      /> : null}
+      {isCommand(command) && isActionEnabled("CopyCommandIDAction", settings) ? <Action.CopyToClipboard
+        title="Copy Command ID"
+        content={command.id}
+        shortcut={{ modifiers: ["cmd", "shift"], key: "i" }}
+      /> : null}
+      {isCommand(command) && isActionEnabled("ExportAllCommandsAction", settings) ? <ExportAllCommandsAction /> : null}
     </ActionPanel.Section>
   );
 };

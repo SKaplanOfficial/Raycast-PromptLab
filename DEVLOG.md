@@ -1,5 +1,23 @@
 # PromptLab DevLog - A More Detailed ChangeLog
 
+### 2023-06-27
+
+- Added advanced settings JSON file & integration throughout the extension
+    - Control which actions are available in the action menu
+    - Control default command/model/chat settings
+    - Control placeholder processing
+
+### 2023-06-25
+
+- Added setting for specifying additional custom placeholder file paths
+- Added placeholder detection when writing prompts + information about detected placeholders in the prompt info box.
+- Added support for Orion browser.
+- Added action to copy command ID.
+- PromptLab command placeholders can now use the command ID instead of the command name.
+- URL placeholders now support `raw` parameter to return the raw HTML instead of the visible text.
+- Moved many scripts into the `scripts` folder as `.scpt` files -- more efficient + easier to edit
+- Switched command QuickLinks to use command IDs. Name-based QuickLinks are still supported.
+
 ### 2023-06-24
 
 - Added conditional prompting using filetype placeholders

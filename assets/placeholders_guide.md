@@ -35,17 +35,21 @@ All placeholders are evaluated at runtime — when you execute a command — and
 
 ### Directives
 
-#### Simple Actions
+#### Actions
 
 | Placeholder | Action |
 | ----- | ----- |
 | `{{command:...}}` | Runs a Raycast command. Replaced with empty string. Accepts up to three values in the format `{{command:commandName,extensionName,fallbackText}}`. |
 | `{{copy:...}}` | Copies the specified text to the clipboard. |
+| `{{cutoff [number]:...}}` | Cuts content to the specified number of characters. |
+| `{{decrement:identifier}}` | Decrements the specified persistent variable by 1. |
 | `{{END}}` | Ends the current prompt, ignore all subsequent content. |
 | `{{ignore:...}}` or <br /> `{{IGNORE:...}}` | Ignores all content contained within. Useful for running placeholders without inserting their return value. |
+| `{{increment:identifier}}` | Increments the specified persistent variable by 1. |
 | `{{paste:...}}` | Pastes the specified text into the frontmost application. |
 | `{{prompt:...}}` | Runs the provided content in a sub-prompt and returns the AI's response. |
 | `{{selectFile:...}}` | Adds the specified file to the current selection. |
+| `{{PromptLab Command Name/ID}}` | Runs another PromptLab command in the background and returns the result. |
 
 #### Persistent Variables
 
@@ -173,7 +177,7 @@ In addition to the above, you can use any supported file extension as a directiv
 | `{{todayWeather}}` | 24-hour weather forecast data at the user's current location, in JSON format. Obtained using [open-meteo.com](https://open-meteo.com).
 | `{{weekWeather}}` | 7-day weather forecast data at the user's current location, in JSON format. Obtained using [open-meteo.com](https://open-meteo.com).
 | `{{youtube:...}}` | The transcript of the first YouTube video matching the provided query or URL, e.g. `{{youtube:how to make a sandwich}}` or `{{youtube:https://www.youtube.com/watch?v=...}}`. |
-| `{{url:...}}` or <br /> `{{URL:...}}` or <br /> `{{...}}` | The visible text content at the specified URL, e.g. `{{url:https://google.com}}` or `{{https://google.com}}`. Note: Only the HTTP(S) protocol is supported at this time. |
+| `{{url:...}}` or <br /> `{{URL:...}}` or <br /> `{{...}}` | The visible text content at the specified URL, e.g. `{{url:https://google.com}}` or `{{https://google.com}}`. Note: Only the HTTP(S) protocol is supported at this time. Use `{{url raw=true:https://google.com}}` to get the raw HTML of the page instead of the visible text. |
 
 ### Script Placeholders
 
@@ -222,6 +226,20 @@ The precedence order of individual placeholders can be difficult to conceptualiz
 
 ## Technical Details
 
+This section contains technical details about how the PromptLab placeholders system works. Content is organized alphabetically for you to easily reference as needed.
+
+### Command Placeholders
+
+#### PromptLab Command Placeholders
+
+You can use the name of any PromptLab command you have installed as a placeholder by surrounding it with double curly braces, `{{like this}}`. For example, if you have a command named "Summarize Selected Files", you can use the placeholder `{{Summarize Selected Files}}` to include the output of that command in your prompt for another command. This is useful for chaining commands together, but it also slows down the execution of your command, so use it wisely. You can also use the unique ID of the command in place of its name, e.g. `{{a1b0bb1d-8f75-4afc-9168-9907c5e3bd87}}`. You can obtain a command's ID via the action menu within Raycast.
+
+#### Raycast Command Placeholders
+
+You can run commands of other Raycast extensions by specifying their name and optionally providing the extension name to disambiguate between commands with the same name, along with fallback text, using this format: `{{command:commandName:extensionName:fallbackText}}`. For example, `{{command:PromptLab Chat:PromptLab:Hello!}}` would run the "PromptLab Chat" command from the PromptLab extension and input "Hello!" into the query field.
+
+PromptLab parses the file tree in Raycast's extension directory to map user-facing command and extension names to the names defined in each extension's *package.json*.
+
 ### Custom Placeholders
 
 Custom placeholders are placeholders defined by the user in the `custom_placeholders.json` file in the extension's support directory. To open the file for editing, use the `Edit Custom Placeholders` action from within `My PromptLab Commands`. 
@@ -230,10 +248,11 @@ The key for each custom command defines the regex used to detect the placeholder
 
 | Property | Description |
 | ----- | ----- |
-| `name` | The (arbitrary) name of the placeholder. |
+| `name` | The internal name of the placeholder. |
 | `description` | A description of the placeholder. This will appear in form info panels when the placeholder is detected. |
 | `value` | The value of the placeholder. This is a string that can contain other placeholders. Use combinations of other placeholders to build complex values and/or define complex workflows. |
 | `example` | An example of the placeholder in use. This will appear in form info panels when the placeholder is detected. |
+| `hintRepresentation` | A representation of the placeholder that hints at how to use it. Displayed as the "name" of the placeholder in info boxes. |
 
 You can use regex capture groups in the key to capture content that you can then use in the value. For example, consider the custom placeholder shown below:
 
@@ -242,11 +261,12 @@ You can use regex capture groups in the key to capture content that you can then
   	"name": "showDialog",
   	"description": "Displays a dialog window with the given text as its message.",
     "value": "{{as:display dialog \"$1\"}}",
-    "example": "{{showDialog:Hello world!}}"
+    "example": "{{showDialog:Hello world!}}",
+    "demoRepresentation": "{{showDialog:..}}"
 }
 ```
 
-The above placeholder, invoked using `{{showDialog:Hello world!}}`, will display a dialog window with the message "Hello world!". Capture group 1, `$1`, is used in the value to insert the text passed to the placeholder into the AppleScript `display dialog` command. You can use multiple capture groups in the key, and refer to them using `$1`, `$2`, etc. in the value.
+The above placeholder, when invoked using `{{showDialog:Hello world!}}`, will display a dialog window with the message "Hello world!". Capture group 1, `$1`, is used in the value to insert the text passed to the placeholder into the AppleScript `display dialog` command. You can use multiple capture groups in the key, and refer to them using `$1`, `$2`, etc. in the value.
 
 The precedence of custom placeholders is determined by the order in which they appear in the `custom_placeholders.json` file. The first placeholder in the file has the highest precedence, the second has the second highest precedence, and so on. Accordingly, you can use placeholders defined earlier in the file within the values of placeholders defined later in the file.
 
@@ -275,7 +295,43 @@ Persistent variables are stored in the extension's local storage, which means th
 
 There is no currently any way to export persistent variables.
 
-### JavaScript Placeholder Reference
+### Prompt Placeholders
+
+To include sub-prompts within a command, use this placeholder format: `{{prompt:promptText}}`. Each prompt included in this way will be run sequentially, in order of occurrence, with the output of each prompt included in the final prompt. You can also nest prompts within prompts, as in `{{prompt:{{prompt:Hello}}}}`, which will use the AI's response to the first prompt as the prompt text for the second prompt. There is no limit to how deep you can nest prompts, but keep in mind that the AI will need to generate a response for each prompt, so nesting too deeply may result in long wait times.
+
+### Script Placeholders
+
+You can include various scripts in your commands that will be evaluated prior to sending the prompt, allowing you to include more dynamic content in your prompts.
+
+#### AppleScript/JXA Placeholder Reference
+
+To use an AppleScript script, surround the script with double curly braces and prefix it with `as:` or `AS:`, `{{as:like this}}`. For example: 'Summarize this text: {{as:tell application "TextEdit" to get text of document 1}}'. You can also use the `as` function in JavaScript placeholders to execute AppleScript scripts (see [JavaScript Placeholder Reference](#javascript-placeholder-reference) for more information).
+
+To use a JavaScript for Automation (JXA) script, surround the script with double curly braces and prefix it with `jxa:` or `JXA:`, `{{jxa:like this}}`. For example: 'Summarize this text: {{jxa:Application("TextEdit").documents[0].text()}}'. You can also use the `jxa` function in JavaScript placeholders to execute JXA scripts (see [JavaScript Placeholder Reference](#javascript-placeholder-reference) for more information).
+
+Since AppleScript and JXA code runs asynchronously, these placeholders cannot be nested.
+
+Examples:
+
+```js
+Write a brief overview of this concept: ###{{as:tell application "Safari" to return name of current tab of window 1}}###. You might not know all the details, but please try to provide an insightful summary.
+```
+
+```js
+Write a brief overview of this concept: ###{{jxa:Application("Safari").windows[0].currentTab.name()}}###. You might not know all the details, but please try to provide an insightful summary.
+```
+
+#### Shell Script Placeholder Reference
+
+To use a shell script, surround the script with double curly braces and prefix it with `shell:`, `{{shell:like this}}`. For example, 'Summarize my current CPU usage: {{shell:top -ocpu -l 1}}'. You can specify a shell binary to use for the script by providing its path in this format: `{{shell /bin/ksh:...}}`. You can also use the `shell` function in JavaScript placeholders to execute shell scripts (see [JavaScript Placeholder Reference](#javascript-placeholder-reference) for more information).
+
+Example:
+
+```rust
+Explain what's going on here in simple terms: {{shell:ps -a}}
+```
+
+#### JavaScript Placeholder Reference
 
 The `{{js:...}}` placeholder allows you to execute sandboxed JavaScript code and use the return value in your pin. The code is executed in a sandboxed environment that provides read-only access to various information about the current context. All placeholders except `{{js:...}}` are available to the JavaScript code as global functions. For example, you can use `{{js:currentAppName()}}` to get the name of the frontmost application. You can combine placeholders to create more complex JavaScript code, as in the code below.
 
@@ -319,6 +375,12 @@ jxa(`(() => {
 
 This code, which can be set as , interweaves several placeholders to look up the artist of the currently playing song in Music, search Google for songs by that artist, and create a new note in Notes with the search results as the body. The entire placeholder then resolves to the text of the search results, which the AI will summarize for us. This particular example is a bit contrived, but it demonstrates the power of the `{{js:...}}` placeholder.
 
+### URL Placeholders
+
+You can instruct PromptLab to extract text from any webpage by using the `{{url:...}}` placeholder. For example, `{{url:http://68k.news}}` would be replaced with the visible text of the 68k News homepage. You can use this to interface between files, data, webpages, and APIs.
+
+URL placeholders 
+
 ------------------------
 
 ## Resources
@@ -327,3 +389,5 @@ This code, which can be set as , interweaves several placeholders to look up the
 - [Raycast Manual](https://manual.raycast.com)
 - [Date Field Symbol Table](http://www.unicode.org/reports/tr35/tr35-31/tr35-dates.html#Date_Field_Symbol_Table) - Official Unicode documentation for date format symbols.
 - [Raycast Custom Date Format Reference](https://manual.raycast.com/snippets/reference-for-supported-alphabets-in-custom-date-format) - Straight forward reference for customizing the `{{date}}` and `{{time}}` placeholders.
+- [Best practices for prompt engineering with OpenAI API](https://help.openai.com/en/articles/6654000-best-practices-for-prompt-engineering-with-openai-api) - Strategies for creating effective ChatGPT prompts, from OpenAI itself
+- [Brex's Prompt Engineering Guide](https://github.com/brexhq/prompt-engineering#what-is-a-prompt) - A guide to prompt engineering, with examples and in-depth explanations

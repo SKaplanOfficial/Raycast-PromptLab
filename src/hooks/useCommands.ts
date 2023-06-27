@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Command } from "../utils/types";
 import { Color, Icon, LocalStorage } from "@raycast/api";
 import { installDefaults } from "../utils/file-utils";
+import crypto from "crypto";
 
 export function useCommands() {
   const [commands, setCommands] = useState<Command[]>([]);
@@ -16,7 +17,23 @@ export function useCommands() {
     const commandObjs = Object.entries(items)
       .filter(([key]) => !key.startsWith("--") && !key.startsWith("id-"))
       .map(([, value]) => JSON.parse(value));
-    setCommands(commandObjs);
+    const existingIDs = commandObjs.map((command) => command.id);
+
+    // Ensure that all commands have a unique ID
+    const newCommands: Command[] = await Promise.all(commandObjs.map(async (command) => {
+      const newCommand = { ...command };
+      if (!command.id || command.id.trim().length == 0) {
+        let newID = crypto.randomUUID();
+        while (existingIDs.includes(newID)) {
+          newID = crypto.randomUUID();
+        }
+        newCommand.id = newID;
+      }
+      await LocalStorage.setItem(newCommand.name, JSON.stringify(newCommand));
+      return newCommand;
+    }));
+
+    setCommands(newCommands);
 
     // Get the command names
     const commandNames = Object.keys(items).filter((key) => !key.startsWith("--") && !key.startsWith("id-"));
@@ -47,10 +64,11 @@ export function useCommands() {
 
   const dummyCommand = (): Command => {
     return {
+      id: crypto.randomUUID(),
       name: "",
       description: "",
       icon: Icon.Gear,
-      iconColor: Color.PrimaryText,
+      iconColor: Color.Red,
       favorited: false,
       prompt: "",
       model: "",
@@ -98,6 +116,7 @@ export function useCommands() {
 
     // Create the command object
     const newCommand: Command = {
+      id: crypto.randomUUID(),
       name: newData.name,
       description: newData.description || "",
       icon: newData.icon || Icon.Gear,

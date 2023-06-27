@@ -47,18 +47,26 @@ PromptLab also supports "action scripts" -- AppleScripts which run with the AI's
 
 ## Feature Overview
 
-- Create, Edit, and Run Custom Commands
+- Create, Edit, Run, and Share Custom Commands
 - Detail, List, Chat, and No-View Command Types
 - Utilize Numerous Contextual Placeholders in Prompts
+- Use AppleScript, JXA, Shell Scripts, and JavaScript Placeholders
 - Obtain Data from External APIs, Websites, and Applications
 - Analyze Content of Selected Files
-- Extract Text, Subjects, QR Codes, etc. from Images
+- Extract Text, Subjects, QR Codes, etc. from Images and Videos
+- Quick Access to Commands via Menu Bar Item
 - Import/Export Commands
 - Save & Run Commands as Quicklinks with Optional Input Parameter
-- Run AppleScript or Bash Scripts On Model Response
+- Run AppleScript or Bash Scripts Upon Model Response
+- Execute Siri Shortcuts and Use Their Output in Prompts
 - PromptLab Chat with Autonomous Command Execution Capability
+- Multiple Chats, Chat History, and Chat Statistics
+- Chat-Specific Context Data Files
 - Upload & Download Commands To/From PromptLab Command Store
 - Use Custom Model Endpoints with Synchronous or Asynchronous Responses
+- Favorite Commands, Chats, and Models
+- Optionally Speak Responses and Provide Spoken Input
+- Create Custom Placeholders with JSON
 
 ## Top-Level Commands
 
@@ -68,8 +76,6 @@ PromptLab also supports "action scripts" -- AppleScripts which run with the AI's
     - Search and run custom PromptLab commands that you've installed or created
 - PromptLab Command Store
     - Explore and search commands uploaded to the store by other PromptLab users
-- Summarize Selected Files
-    - Summarize the contents of selected text files, PDFs, images, audio files, and more.
 - PromptLab Chat
     - Start a back-and-forth conversation with AI with selected files provided as context.       
 - PromptLab Menu Item
@@ -92,115 +98,28 @@ View more images in [the gallery](https://skaplanofficial.github.io/Raycast-Prom
 
 ## Create Your Own Commands
 
-You can create custom PromptLab commands, accessed via the "My PromptLab Commands" command, to execute your own prompts acting on the contents of selected files. A variety of useful defaults are provided, as listed under [Default Commands](#default-commands).
+You can create custom PromptLab commands, accessed via the "My PromptLab Commands" command, to execute your own prompts acting on the contents of selected files. A variety of useful defaults are provided, as listed under [Default Commands](#default-commands), and you can find more in the *PromptLab Command Store*.
 
 ### Placeholders
 
-When creating custom commands, you can use placeholders in your prompts that will be substituted with relevant information whenever you run the command. These placeholders range from simple information, like the current date, to complex data retrieval operations such as getting the content of the most recent email. Placeholders are a powerful way to add context to your PromptLab prompts. The valid placeholders are as follows:
+When creating custom commands, you can use placeholders in your prompts that will be substituted with relevant information whenever you run the command. These placeholders range from simple information, like the current date, to complex data retrieval operations such as getting the content of the most recent email or running a sequence of prompts in rapid succession and amalgamating the results. Placeholders are a powerful way to add context to your PromptLab prompts.
 
-### Command Placeholders
+A few examples of placeholders are:
 
-#### PromptLab Commands
-
-You can use the name of any PromptLab command you have installed as a placeholder by surrounding it with double curly braces, `{{like this}}`. For example, if you have a command named "Summarize Selected Files", you can use the placeholder `{{Summarize Selected Files}}` to include the output of that command in your prompt for another command. This is useful for chaining commands together, but it also slows down the execution of your command, so use it wisely.
-
-#### Raycast Commands
-
-You can run commands of other Raycast extensions by specifying their name, optionally providing the extension name to disambiguate between commands with the same name, using this format: `{{command:commandName:extensionName}}`. For example, `{{command:PromptLab Chat:PromptLab}}` would run the "PromptLab" command from the PromptLab extension.
-
-### Prompt Placeholders
-
-To include sub-prompts within a command, use this placeholder format: `{{prompt:promptText}}`. Each prompt included in this way will be run sequentially, in order of occurrence. Apart from command placeholders, these are the last placeholders to be replaced, so you can use them to build complex prompts.
-
-### Script Placeholders
-
-You can include shell scripts and AppleScripts in your commands that will be run prior to sending the prompt to Raycast AI. The output of the script, limited to 2000 characters, will be included in the final prompt.
-
-To use a shell script, surround the script with double curly braces and prefix it with `shell:`, `{{shell:like this}}`. For example, 'Summarize my current CPU usage: {{shell:top -ocpu -l 1}}'
-
-To use an AppleScript script, surround the script with double curly braces and prefix it with `as:` or `as:`, `{{as:like this}}`. For example: 'Summarize this text: {{as:tell application "TextEdit" to get text of document 1}}'.
-
-#### URL Placeholders
-
-You can instruct PromptLab to extract text from any webpage by using the {{URL}} placeholder. For example, `{{http://68k.news}}` would be replaced with the visible text of the 68k News homepage. You can use this to interface between files, data, webpages, and APIs.
-
-#### API Data Placeholders
 | Placeholder | Replaced With |
-| --- | --- |
-| `{{location}}` | Your current location in city, region, country format, obtained from [geojs.io](https://get.geojs.io) |
-| `{{nearbyLocations:searchTerm}}` | Returns a list of location addresses matching the provided search term. Uses Apple's MapKit search API. |
-| `{{todayWeather}}` | The weather forecast for today, obtained from [open-meteo.com](https://open-meteo.com) |
-| `{{weekWeather}}` | The weather forecast for the next week, obtained from [open-meteo.com](https://open-meteo.com) |
-| `{{youtube:searchText}}` | The transcript of the first YouTube video matching the search text |
-| `{{youtube:URL}}` | The transcript of the YouTube video at the specified URL |
+| ----------- | ------------- |
+| `{{clipboardText}}` | The text content of your clipboard |
+| `{{selectedFiles}}` | The paths of the files you have selected |
+| `{{imageText}}` | Text extracted from the image(s) you have selected |
+| `{{lastNote}}`| The HTML of the most recently modified note in the Notes app |
+| `{{date format="d MMMM, yyyy"}}` | The current date, optionally specifying a format |
+| `{{todayEvents}}` | The events scheduled for today, including their start and end times |
+| `{{youtube:[search term]}}` | The transcription of the first YouTube video result for the specified search term |
+| `{{url:[url]}}` | The visible text at the specified URL |
+| `{{as:...}}` | The result of the specified AppleScript code | 
+| `{{js:...}}` | The result of the specified JavaScript code |
 
-#### Application Data Placeholders
-| Placeholder | Replaced With |
-| --- | --- |
-| `{{installedApps}}` | The list of installed applications |
-| `{{lastEmail}}` | The subject, sender, and content of the most recently received email in Mail.app |
-| `{{lastNote}}` | The text of the most recently edited note in Notes.app |
-| `{{musicTracks}}` | The list of track titles in Music.app |
-| `{{safariBookmarks}}` | List of bookmarks in Safari |
-| `{{safariTopSites}}` | Your list of top visited sites in Safari |
-
-#### Calendar Data Placeholders
-| Placeholder | Replaced With |
-| --- | --- |
-| `{{date}}` | The current date (day number, month name, year) |
-| `{{time}}` | The current name (hours and minutes) |
-| `{{todayEvents}}` | Upcoming events over the next day |
-| `{{weekEvents}}` | Upcoming events over the next 7 days |
-| `{{monthEvents}}` | Upcoming events over the next month |
-| `{{yearEvents}}` | Upcoming events over the next year |
-| `{{todayReminders}}` | Upcoming reminders of the next day |
-| `{{weekReminders}}` | Upcoming reminders over the next 7 days |
-| `{{monthReminders}}` | Upcoming reminders over the next month |
-| `{{yearReminders}}` | Upcoming reminders over the next year |
-
-#### Context Data Placeholders
-| Placeholder | Replaced With |
-| --- | --- |
-| `{{clipboardText}}` | The text of the clipboard |
-| `{{currentApplication}}` | The name of the current application |
-| `{{currentDirectory}}` | The path of the current directory |
-| `{{currentTabText}}` | The text content of the active tab of the active browser |
-| `{{currentTrack}}` | The title of the track/stream currently playing in Music.app |
-| `{{currentURL}}` | The current URL of the active tab of the active browser |
-| `{{fileAICommands}}` | The list of all custom PromptLab commands |
-| `{{input}}` | An input string provided by either Quicklink input or the currently selected text |
-| `{{previousCommand}}` | The name of the last PromptLab command executed |
-| `{{previousPrompt}}` | The full prompt used by the last PromptLab command executed |
-| `{{previousResponse}}` | The response text of the last PromptLab command executed |
-| `{{selectedText}}` | The currently selected text |
-
-#### Persistent Data Placeholders
-| Placeholder | Replaced With |
-| --- | --- |
-| `{{increment:identifier}}` | The value of the local storage entry whose key is `identifier`, increased by 1 |
-| `{{decrement:identifier}}` | The value of the local storage entry whose key is `identifier`, decreased by 1 |
-
-#### File Data Placeholders
-| Placeholder | Replaced With |
-| --- | --- |
-| `{{contents}}` | The contents of the selected files |
-| `{{fileNames}}` | Replaced with the list of selected file names |
-| `{{file:path}}` | The contents of a specific file on the disk. Adds the file to your current selection. |
-| `{{files}}` | Replaced with the list of selected file paths |
-| `{{metadata}}` | Replaced with the metadata of each file as a list below the file path |
-
-#### System Data Placeholders
-| Placeholder | Replaced With |
-| --- | --- |
-| `{{computerName}}` | The computer's name (prettified form of the hostname) |
-| `{{homedir}}` | The user's home directory |
-| `{{hostname}}` | The computer's hostname |
-| `{{user}}` | Replaced with the logged in user's username |
-
-#### Other Placeholders
-| Placeholder | Replaced With |
-| --- | --- |
-| `{{END}}` | Marks the end of a prompt -- no content, metadata, or instructions will be appended after |
+These are just a few of the many placeholders available. [View the full list here](./assets/placeholders_guide.md).
 
 ### Action Scripts
 
@@ -304,7 +223,9 @@ Additional commands can be found in the [prompt-sets](./prompt-sets/) directory.
 
 ## Installation
 
-This extension is not yet published to the Raycast store. In the meantime, you can install the extension manually from this repository.
+PromptLab is now available on the Raycast extensions store! [Download it now](https://www.raycast.com/HelloImSteven/promptlab).
+
+Alternatively, you can install the extension manually from this repository by following the instructions below.
 
 ### Manual Installation
 ```bash

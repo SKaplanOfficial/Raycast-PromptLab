@@ -1,11 +1,5 @@
 import { runAppleScript } from "run-applescript";
-import {
-  objcImports,
-  replaceAllHandler,
-  rselectHandler,
-  splitHandler,
-  trimHandler,
-} from "./scripts";
+import { objcImports, replaceAllHandler, rselectHandler, splitHandler, trimHandler } from "./scripts";
 import { exec } from "child_process";
 import { Command, CommandOptions, StoreCommand } from "./types";
 import { LocalStorage, AI } from "@raycast/api";
@@ -115,16 +109,45 @@ export const runReplacements = async (
   // Replace command placeholders
   for (const cmdString of Object.values(await LocalStorage.allItems())) {
     const cmd = JSON.parse(cmdString) as Command;
-    if (!disallowedCommands.includes(cmd.name) && subbedPrompt.includes(`{{${cmd.name}}}`)) {
-      const cmdResponse = await AI.ask(
-        await runReplacements(cmd.prompt, context, [cmd.name, ...disallowedCommands])
-      );
+    if (!disallowedCommands.includes(cmd.name) && (subbedPrompt.includes(`{{${cmd.name}}}`) || subbedPrompt.includes(`{{${cmd.id}}}`))) {
+      const cmdResponse = await AI.ask(await runReplacements(cmd.prompt, context, [cmd.name, cmd.id, ...disallowedCommands]));
       if (cmd.actionScript != undefined && cmd.actionScript.trim().length > 0 && cmd.actionScript != "None") {
         await runActionScript(cmd.actionScript, cmd.prompt, "", cmdResponse, cmd.scriptKind);
       }
       subbedPrompt = subbedPrompt.replaceAll(`{{${cmd.name}}}`, cmdResponse);
+      subbedPrompt = subbedPrompt.replaceAll(`{{${cmd.id}}}`, cmdResponse);
     }
   }
 
   return subbedPrompt;
+};
+
+/**
+ * Updates a command with new data.
+ * @param oldCommandData The old data object for the command.
+ * @param newCommandData The new data object for the command.
+ * @param setCommands The function to update the list of commands.
+ */
+export const updateCommand = async (
+  oldCommandData: Command | undefined,
+  newCommandData: Command,
+  setCommands?: React.Dispatch<React.SetStateAction<Command[]>>
+) => {
+  const commandData = await LocalStorage.allItems();
+  const commandDataFiltered = Object.values(commandData).filter((cmd, index) => {
+    return (
+      !Object.keys(commandData)[index].startsWith("--") &&
+      !Object.keys(commandData)[index].startsWith("id-") &&
+      (oldCommandData == undefined || JSON.parse(cmd).name != oldCommandData.name)
+    );
+  });
+
+  if (setCommands != undefined) {
+  setCommands([...commandDataFiltered?.map((data) => JSON.parse(data)), newCommandData]);
+  }
+
+  if (oldCommandData != undefined && oldCommandData.name != newCommandData.name) {
+    await LocalStorage.removeItem(oldCommandData.name);
+  }
+  await LocalStorage.setItem(newCommandData.name, JSON.stringify(newCommandData));
 };

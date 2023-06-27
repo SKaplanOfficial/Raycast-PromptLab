@@ -1,6 +1,8 @@
 import { Action, Icon } from "@raycast/api";
 import { Command, StoreCommand, isCommand, isTrueStr } from "../../utils/types";
 import CommandResponse from "../CommandResponse";
+import { defaultAdvancedSettings } from "../../data/default-advanced-settings";
+import { isActionEnabled } from "./action-utils";
 
 /**
  * Action to run a command.
@@ -11,8 +13,14 @@ import CommandResponse from "../CommandResponse";
 export default function RunCommandAction(props: {
   command: Command | StoreCommand;
   setCommands?: React.Dispatch<React.SetStateAction<Command[]>>;
-}): JSX.Element {
-  const { command, setCommands } = props;
+  settings: typeof defaultAdvancedSettings;
+}): JSX.Element | null {
+  const { command, setCommands, settings } = props;
+
+  if (!isActionEnabled("RunCommandAction", settings)) {
+    return null;
+  }
+
   return (
     <Action.Push
       title="Run PromptLab Command"
