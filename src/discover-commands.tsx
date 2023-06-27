@@ -10,11 +10,13 @@ import RunCommandAction from "./components/actions/RunCommandAction";
 import { CopyCommandActionsSection } from "./components/actions/CopyCommandActions";
 import { CommandControlsActionsSection } from "./components/actions/CommandControlActions";
 import InstallCommandAction from "./components/actions/InstallCommandAction";
+import { useAdvancedSettings } from "./hooks/useAdvancedSettings";
 
 export default function Discover() {
   const { commands: myCommands, setCommands: setMyCommands, isLoading: loadingMyCommands } = useCommands();
   const [availableCommands, setAvailableCommands] = useCachedState<StoreCommand[]>("availableCommands", []);
   const [targetCategory, setTargetCategory] = useState<string>("All");
+  const { advancedSettings } = useAdvancedSettings();
 
   // Get available commands from store
   const { data, isLoading } = useFetch(STORE_ENDPOINT, { headers: { "X-API-KEY": STORE_KEY } });
@@ -42,14 +44,15 @@ export default function Discover() {
         detail={<CommandListDetail command={command} />}
         actions={
           <ActionPanel>
-            <InstallCommandAction command={command} commands={myCommands} setCommands={setMyCommands} />
-            {command.setupConfig?.length ? null : <RunCommandAction command={command} />}
-            <CopyCommandActionsSection command={command} />
+            <InstallCommandAction command={command} commands={myCommands} setCommands={setMyCommands} settings={advancedSettings} />
+            {command.setupConfig?.length ? null : <RunCommandAction command={command} settings={advancedSettings} />}
+            <CopyCommandActionsSection command={command} settings={advancedSettings} />
             <CommandControlsActionsSection
               command={command}
               availableCommands={availableCommands}
               commands={myCommands}
               setCommands={setMyCommands}
+              settings={advancedSettings}
             />
           </ActionPanel>
         }

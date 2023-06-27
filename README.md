@@ -286,22 +286,40 @@ Contributions are welcome! Please see the [contributing guidelines](./CONTRIBUTI
 
 ## Roadmap
 
-### Next Release: v1.1.0
+### Current Release: v1.1.0
 
-- [ ] Command Favorites
-- [ ] Video Feature Extraction
-- [ ] Switch Between Chats & Export Chat History
+- [x] Command Favorites
+- [x] Video Feature Extraction [example](./examples/promptlab-1.1.0/videoSubjectSummarization.png)
+- [x] Switch Between Chats & Export Chat History [example](./examples/promptlab-1.1.0/multipleChats.png)
 - [ ] Auto-Compress Chat History
-- [ ] Chat Settings
-    - [ ] Context Files/Folders/URLs
-    - [ ] Favorite Chats
-- [ ] Command Setup On Install
-- [ ] Speak Response
-- [ ] Voice Input
-- [ ] New Placeholders
-    - [ ] Nearby Locations
-    - [ ] Running Applications
-    - [ ] System Language
+- [x] Chat Settings [example]()
+    - [x] Context Files/Folders/URLs [example1](./examples/promptlab-1.1.0/addContextData.png) [example2](./examples/promptlab-1.1.0/contextDataSummaries.png) [example3](./examples/promptlab-1.1.0/contextualKnowledge.png)
+    - [x] Favorite Chats [example](./examples/promptlab-1.1.0/favoriteChats.png)
+    - [x] Chat Statistics [example](./examples/promptlab-1.1.0/chatStats.png)
+- [x] Command Setup On Install
+    - [x] Custom Configuration Fields [example](./examples/promptlab-1.1.0/commandConfig.png) [example2](./examples/promptlab-1.1.0/commandConfig2.png) [example](./examples/promptlab-1.1.0/)
+    - [x] Post-Install Configuration [example](./examples/promptlab-1.1.0/commandConfig4.png)
+- [x] Speak Response
+- [x] Voice Input
+- [x] New Placeholders
+    - [x] Nearby Locations [example](./examples/promptlab-1.1.0/nearbyLocations.png)
+    - [x] Running Applications
+    - [x] System Language
+    - [ ] Siri Shortcuts
+    - [ ] Day name
+    - [ ] Custom date/time formats
+    - [ ] UUIDs
+    - [ ] Persistent variables
+    - [ ] JavaScript script
+ 
+### Future Releases
+
+- LangChain integration
+- New Placeholders
+- Dashboard
+- Command Suggestions
+- Command Templates
+- GPT Function Calling
 
 ### Next Release: v1.2.0
 
