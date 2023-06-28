@@ -49,6 +49,8 @@ export const categories = [
   "Utilities",
   "Weather",
   "Web",
+  "Writing",
+  "Meta",
 ];
 
 export type ModelManager = {

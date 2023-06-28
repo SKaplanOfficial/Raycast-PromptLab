@@ -22,7 +22,7 @@ export function OpenPlaceholdersGuideAction(props: { settings: typeof defaultAdv
   const targetApp = settings.actionSettings.OpenPlaceholdersGuideAction.openIn;
 
   const placeholdersGuidePath = path.join(environment.assetsPath, PLACEHOLDERS_GUIDE_FILENAME);
-  return <Action.Open title="Open Placeholders Guide" target={placeholdersGuidePath} application={targetApp == "default" ? undefined : targetApp} />;
+  return <Action.Open title="Open Placeholders Guide" target={placeholdersGuidePath} application={targetApp == "default" ? undefined : targetApp} shortcut={{ modifiers: ["cmd", "shift"], key: "g" }} />;
 }
 
 /**

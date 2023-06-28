@@ -40,6 +40,7 @@ export default function CategoryDropdown(props: { onSelection: (newValue: string
         value="Education"
         icon={{ source: Icon.Bookmark, tintColor: Color.Orange }}
       />
+      <List.Dropdown.Item title="Writing" value="Writing" icon={{ source: Icon.Pencil, tintColor: Color.Yellow }} />
       <List.Dropdown.Item title="Reference" value="Reference" icon={{ source: Icon.Book, tintColor: Color.Red }} />
       <List.Dropdown.Item title="Weather" value="Weather" icon={{ source: Icon.CloudSun, tintColor: Color.Blue }} />
       <List.Dropdown.Item title="Media" value="Media" icon={{ source: Icon.Image, tintColor: Color.Magenta }} />
@@ -49,6 +50,7 @@ export default function CategoryDropdown(props: { onSelection: (newValue: string
         value="Utilities"
         icon={{ source: Icon.Calculator, tintColor: Color.Green }}
       />
+      <List.Dropdown.Item title="Meta" value="Meta" icon={{ source: Icon.Info, tintColor: Color.Blue }} />
     </List.Dropdown>
   );
 }

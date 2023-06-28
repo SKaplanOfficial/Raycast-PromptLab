@@ -28,7 +28,7 @@ export const runActionScript = async (
 ) => {
   try {
     if (type == "applescript" || type == undefined) {
-      await runAppleScript(`${objcImports}
+      await runAppleScript(await Placeholders.bulkApply(`${objcImports}
       ${splitHandler}
       ${trimHandler}
       ${replaceAllHandler}
@@ -36,7 +36,7 @@ export const runActionScript = async (
       set prompt to "${prompt.replaceAll('"', '\\"')}"
       set input to "${input.replaceAll('"', '\\"')}"
       set response to "${response.replaceAll('"', '\\"')}"
-      ${script}`);
+      ${script}`));
     } else if (type == "zsh") {
       const runScript = (script: string): Promise<string> => {
         const shellScript = `response="${response.trim().replaceAll('"', '\\"').replaceAll("\n", "\\n")}"
@@ -45,12 +45,14 @@ export const runActionScript = async (
         ${script.replaceAll("\n", " && ")}`;
 
         return new Promise((resolve, reject) => {
-          exec(shellScript, (error, stdout) => {
-            if (error) {
-              reject(error);
-              return;
-            }
-            resolve(stdout);
+          Placeholders.bulkApply(shellScript).then((subbedScript) => {
+            exec(subbedScript, (error, stdout) => {
+              if (error) {
+                reject(error);
+                return;
+              }
+              resolve(stdout);
+            });
           });
         });
       };
@@ -109,8 +111,13 @@ export const runReplacements = async (
   // Replace command placeholders
   for (const cmdString of Object.values(await LocalStorage.allItems())) {
     const cmd = JSON.parse(cmdString) as Command;
-    if (!disallowedCommands.includes(cmd.name) && (subbedPrompt.includes(`{{${cmd.name}}}`) || subbedPrompt.includes(`{{${cmd.id}}}`))) {
-      const cmdResponse = await AI.ask(await runReplacements(cmd.prompt, context, [cmd.name, cmd.id, ...disallowedCommands]));
+    if (
+      !disallowedCommands.includes(cmd.name) &&
+      (subbedPrompt.includes(`{{${cmd.name}}}`) || subbedPrompt.includes(`{{${cmd.id}}}`))
+    ) {
+      const cmdResponse = await AI.ask(
+        await runReplacements(cmd.prompt, context, [cmd.name, cmd.id, ...disallowedCommands])
+      );
       if (cmd.actionScript != undefined && cmd.actionScript.trim().length > 0 && cmd.actionScript != "None") {
         await runActionScript(cmd.actionScript, cmd.prompt, "", cmdResponse, cmd.scriptKind);
       }
@@ -143,7 +150,7 @@ export const updateCommand = async (
   });
 
   if (setCommands != undefined) {
-  setCommands([...commandDataFiltered?.map((data) => JSON.parse(data)), newCommandData]);
+    setCommands([...commandDataFiltered?.map((data) => JSON.parse(data)), newCommandData]);
   }
 
   if (oldCommandData != undefined && oldCommandData.name != newCommandData.name) {

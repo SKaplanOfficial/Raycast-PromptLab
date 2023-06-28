@@ -288,10 +288,11 @@ export const getTextOfWebpage = async (URL: string): Promise<string> => {
     .replaceAll(/(<br ?\/?>|[\n\r]+)/g, "\n")
     .replaceAll(
       /(<script[\s\S\n\r]+?<\/script>|<style[\s\S\n\r]+?<\/style>|<nav[\s\S\n\r]+?<\/nav>|<link[\s\S\n\r]+?<\/link>|<form[\s\S\n\r]+?<\/form>|<button[\s\S\n\r]+?<\/button>|<!--[\s\S\n\r]+?-->|<select[\s\S\n\r]+?<\/select>|<[\s\n\r\S]+?>)/g,
-      "\n"
+      "\t"
     )
-    .replaceAll(/[\n\r]{2,}/g, "\r")
-    .replaceAll(/(\([^A-Za-z0-9\n]*\)|(?<=[,.!?%*])[,.!?%*]*?\s*[,.!?%*])/g, " ");
+    .replaceAll(/([\t ]*[\n\r][\t ]*)+/g, "\r")
+    .replaceAll(/(\([^A-Za-z0-9\n]*\)|(?<=[,.!?%*])[,.!?%*]*?\s*[,.!?%*])/g, " ")
+    .replaceAll(/{{(.*?)}}/g, "$1");
   return filteredString;
 };
 
@@ -302,7 +303,7 @@ export const getTextOfWebpage = async (URL: string): Promise<string> => {
  */
 export const getYouTubeVideoTranscriptById = async (videoId: string): Promise<string> => {
   const html = await getURLHTML(`https://www.youtube.com/watch?v=${videoId}`);
-  const captionsJSON = JSON.parse(html.split(`"captions":`)[1].split(`,"videoDetails"`)[0].replace("\n", ""))[
+  const captionsJSON = JSON.parse(html.split(`"captions":`)?.[1]?.split(`,"videoDetails"`)?.[0]?.replace("\n", ""))[
     "playerCaptionsTracklistRenderer"
   ];
 
@@ -310,7 +311,7 @@ export const getYouTubeVideoTranscriptById = async (videoId: string): Promise<st
     return "No transcript available.";
   }
 
-  const title = html.matchAll(/title":"((.| )*?),"lengthSeconds/g).next().value[1];
+  const title = html.matchAll(/title":"((.| )*?),"lengthSeconds/g).next().value?.[1];
   const captionTracks = captionsJSON["captionTracks"];
   const englishCaptionTrack = captionTracks.find((track: JSONObject) => track["languageCode"] === "en");
   if (!englishCaptionTrack) {
@@ -328,7 +329,7 @@ export const getYouTubeVideoTranscriptById = async (videoId: string): Promise<st
  * @returns A promise resolving to the transcript as a string, or "No transcript available." if there is no transcript.
  */
 export const getYouTubeVideoTranscriptByURL = async (videoURL: string): Promise<string> => {
-  const videoId = videoURL.split("v=")[1].split("&")[0];
+  const videoId = videoURL.split("v=")[1]?.split("&")[0];
   return getYouTubeVideoTranscriptById(videoId);
 };
 
@@ -339,7 +340,7 @@ export const getYouTubeVideoTranscriptByURL = async (videoURL: string): Promise<
  */
 export const getMatchingYouTubeVideoID = async (searchText: string): Promise<string> => {
   const html = await getURLHTML(`https://www.youtube.com/results?search_query=${encodeURIComponent(searchText)}`);
-  const videoID = html.matchAll(/videoId\\x22:\\x22(.*?)\\x22,/g).next().value[1];
+  const videoID = html.matchAll(/videoId\\x22:\\x22(.*?)\\x22,/g).next().value?.[1];
   return videoID;
 };
 

@@ -77,17 +77,24 @@ export const defaultAdvancedSettings = {
     OpenPlaceholdersGuideAction: {
         enabled: [
             "search-commands",
+            "create-command",
+            "chat",
         ],
         openIn: "default",
     },
     OpenAdvancedSettingsAction: {
         enabled: [
             "search-commands",
+            "create-command",
+            "chat",
         ],
         openIn: "default",
     },
     EditCustomPlaceholdersAction: {
         enabled: [
+            "create-command",
+            "search-commands",
+            "chat",
         ],
         openIn: "default",
     },
@@ -157,6 +164,114 @@ export const defaultAdvancedSettings = {
             "search-commands",
             "discover-commands",
             "create-command",
+        ],
+    },
+    CopyChatResponseAction: {
+        enabled: [
+            "search-commands",
+            "discover-commands",
+            "chat",
+        ],
+    },
+    CopyChatQueryAction: {
+        enabled: [
+            "search-commands",
+            "discover-commands",
+            "chat",
+        ],
+    },
+    CopyChatBasePromptAction: {
+        enabled: [
+            "search-commands",
+            "discover-commands",
+            "chat",
+        ],
+    },
+    ChatSettingsAction: {
+        enabled: [
+            "search-commands",
+            "discover-commands",
+            "chat",
+        ],
+    },
+    RegenerateChatAction: {
+        enabled: [
+            "search-commands",
+            "discover-commands",
+            "chat",
+        ],
+    },
+    ToggleChatFavoriteAction: {
+        enabled: [
+            "search-commands",
+            "discover-commands",
+            "chat",
+        ],
+    },
+    ExportChatAction: {
+        enabled: [
+            "search-commands",
+            "discover-commands",
+            "chat",
+        ],
+    },
+    DeleteChatAction: {
+        enabled: [
+            "search-commands",
+            "discover-commands",
+            "chat",
+        ],
+    },
+    DeleteAllChatsAction: {
+        enabled: [
+            "search-commands",
+            "discover-commands",
+            "chat",
+        ],
+    },
+    ToggleModelFavoriteAction: {
+        enabled: [
+            "manage-models",
+        ],
+    },
+    ToggleModelDefaultAction: {
+        enabled: [
+            "manage-models",
+        ],
+    },
+    CreateModelDerivativeAction: {
+        enabled: [
+            "manage-models",
+        ],
+    },
+    DeleteModelAction: {
+        enabled: [
+            "manage-models",
+        ],
+    },
+    DeleteAllModelsAction: {
+        enabled: [
+            "manage-models",
+        ],
+    },
+    CopyModelJSONAction: {
+        enabled: [
+            "manage-models",
+        ],
+    },
+    CopyAllModelsJSONAction: {
+        enabled: [
+            "manage-models",
+        ],
+    },
+    AddNewModelAction: {
+        enabled: [
+            "manage-models",
+        ],
+    },
+    EditModelAction: {
+        enabled: [
+            "manage-models",
         ],
     },
   },

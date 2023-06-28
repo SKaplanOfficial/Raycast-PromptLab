@@ -14,6 +14,7 @@ export function useCommands() {
     // Get the command settings
     setIsLoading(true);
     const items = await LocalStorage.allItems();
+
     const commandObjs = Object.entries(items)
       .filter(([key]) => !key.startsWith("--") && !key.startsWith("id-"))
       .map(([, value]) => JSON.parse(value));

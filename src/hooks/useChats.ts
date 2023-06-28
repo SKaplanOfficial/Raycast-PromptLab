@@ -6,7 +6,7 @@ import { installDefaults } from "../utils/file-utils";
 import path from "path";
 import { ADVANCED_SETTINGS_FILENAME } from "../utils/constants";
 
-export function useChats() {
+export function useChats(): ChatManager {
   const [chats, setChats] = useState<Chat[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>();
@@ -274,4 +274,23 @@ export function useChats() {
     getChatContents: getChatContents,
     calculateStats: calculateStats,
   };
+}
+
+/**
+ * Wrapper type for the chat manager returned by {@link useChats}.
+ */
+export type ChatManager = {
+  chats: Chat[];
+  isLoading: boolean;
+  error: string | undefined;
+  revalidate: () => Promise<void>;
+  createChat: (name: string, basePrompt: string) => Promise<Chat | undefined>;
+  deleteChat: (name: string) => Promise<void>;
+  appendToChat: (chat: Chat, text: string) => Promise<void>;
+  loadConversation: (chatName: string) => string[] | undefined;
+  favorites: () => Chat[];
+  checkExists: (chat: Chat) => boolean;
+  updateChat: (name: string, chatData: Chat) => Promise<void>;
+  getChatContents: (chat: Chat) => string;
+  calculateStats: (chatName: string) => ChatStatistics;
 }

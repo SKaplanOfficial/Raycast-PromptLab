@@ -21,7 +21,6 @@ export default function Command() {
         if (typeof jsonObj[key] == "string") {
           jsonValue = JSON.parse(jsonObj[key] as unknown as string);
         }
-
         if (key in currentCommands) {
           let newKey = key;
           if (!values.overwrite) {
@@ -56,7 +55,7 @@ export default function Command() {
         showToast({ title: `No PromptLab commands added or replaced` });
       }
 
-      launchCommand({ name: "search-commands", type: LaunchType.UserInitiated });
+      launchCommand({ name: "search-commands", type: LaunchType.UserInitiated,  });
     },
     initialValues: {
       overwrite: true,

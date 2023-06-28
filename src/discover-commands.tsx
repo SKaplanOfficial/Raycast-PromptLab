@@ -5,11 +5,11 @@ import { useCachedState, useFetch } from "@raycast/utils";
 import { STORE_ENDPOINT, STORE_KEY } from "./utils/constants";
 import CategoryDropdown from "./components/CategoryDropdown";
 import { useCommands } from "./hooks/useCommands";
-import CommandListDetail from "./components/CommandListDetail";
-import RunCommandAction from "./components/actions/RunCommandAction";
-import { CopyCommandActionsSection } from "./components/actions/CopyCommandActions";
-import { CommandControlsActionsSection } from "./components/actions/CommandControlActions";
-import InstallCommandAction from "./components/actions/InstallCommandAction";
+import CommandListDetail from "./components/Commands/CommandListDetail";
+import RunCommandAction from "./components/Commands/actions/RunCommandAction";
+import { CopyCommandActionsSection } from "./components/Commands/actions/CopyCommandActions";
+import { CommandControlsActionsSection } from "./components/Commands/actions/CommandControlActions";
+import InstallCommandAction from "./components/Commands/actions/InstallCommandAction";
 import { useAdvancedSettings } from "./hooks/useAdvancedSettings";
 
 export default function Discover() {

@@ -17,28 +17,18 @@ PromptLab also supports "action scripts" -- AppleScripts which run with the AI's
 - [Images](#images)
 - [Create Your Own Commands](#create-your-own-commands)
     - [Placeholders](#placeholders)
-        - [Command Placeholders](#command-placeholders)
-        - [Prompt Placeholders](#prompt-placeholders)
-        - [Script Placeholders](#script-placeholders)
-        - [URL Placeholders](#url-placeholders)
-        - [API Data Placeholders](#api-data-placeholders)
-        - [Application Data Placeholders](#application-data-placeholders)
-        - [Calendar Data Placeholders](#calendar-data-placeholders)
-        - [Context Data Placeholders](#context-data-placeholders)
-        - [Persistent Data Placeholders](#persistent-data-placeholders)
-        - [File Data Placeholders](#file-data-placeholders)
-        - [System Data Placeholders](#system-data-placeholders)
-        - [Other Placeholders](#other-placeholders)
     - [Action Scripts](#action-scripts)
         - [Provided Variables](#provided-variables)
         - [Provided Handlers](#provided-handlers)
-- [List Of Useful Prompts](#list-of-useful-prompts)
-    - [Default Command Prompts](#default-command-prompts)
-    - [Non-Default Command Prompts](#non-default-command-prompts)
+    - [Custom Configuration Fields](#custom-configuration-fields)
+- [Chats, Context Data, Statistics, and More](#chats-context-data-statistics-and-more)
+    - [Chats](#chats)
+    - [Context Data](#context-data)
+    - [Statistics](#statistics)
+    - [Autonomous Agent Features](#autonomous-agent-features)
 - [Installation](#installation)
     - [Manual Installation](#manual-installation)
 - [Custom Model Endpoints](#custom-model-endpoints)
-- [Autonomous Agent Features](#autonomous-agent-features)
 - [Troubleshooting](#troubleshooting)
 - [Contributing](#contributing)
 - [Roadmap](#roadmap)
@@ -71,11 +61,13 @@ PromptLab also supports "action scripts" -- AppleScripts which run with the AI's
 ## Top-Level Commands
 
 - New PromptLab Command
-    - Create a custom PromptLab command accessible via 'My PromptLab Commands'
+    - Create a custom PromptLab command accessible via 'My PromptLab Commands'.
 - My PromptLab Commands
-    - Search and run custom PromptLab commands that you've installed or created
+    - Search and run custom PromptLab commands that you've installed or created.
+- Manage Models
+    - View, edit, add, and delete custom models.
 - PromptLab Command Store
-    - Explore and search commands uploaded to the store by other PromptLab users
+    - Explore and search commands uploaded to the store by other PromptLab users.
 - PromptLab Chat
     - Start a back-and-forth conversation with AI with selected files provided as context.       
 - PromptLab Menu Item
@@ -84,6 +76,10 @@ PromptLab also supports "action scripts" -- AppleScripts which run with the AI's
     - Add custom commands from a JSON string.
 
 ## Images
+
+![PromptLab 1.0.0 Launch Features](./assets/PromptLab-1.0.0.png)
+
+![PromptLab 1.1.0 Update Features](./assets/PromptLab-1.1.0.png)
 
 [Summarize Selected Files example](https://github.com/SKaplanOfficial/Raycast-PromptLab/assets/7865925/99460417-2e3f-46ce-ae1f-ba4c46e255c6)
 
@@ -119,7 +115,7 @@ A few examples of placeholders are:
 | `{{as:...}}` | The result of the specified AppleScript code | 
 | `{{js:...}}` | The result of the specified JavaScript code |
 
-These are just a few of the many placeholders available. [View the full list here](./assets/placeholders_guide.md).
+These are just a few of the many placeholders available. [View the full list here](./assets/placeholders_guide.md). You even create your own placeholders using JSON, if you want!
 
 ### Action Scripts
 
@@ -140,86 +136,19 @@ When configuring a PromptLab command, you can provide AppleScript code to execut
 | `replaceAll(theText, textToReplace, theReplacement)` | Replaces all occurrences of a string within the given text. | String |
 | `rselect(theArray, numItems)` | Randomly selects the specified number of items from a list. | List |
 
-## List of Useful Prompts
+### Custom Configuration Fields
 
-### Default Command Prompts
+When creating a command, you can use the `Unlock Setup Fields` action to enable custom configuration fields that must be set before the command can be run. You'll then be able to use actions to add text fields, boolean (true/false) fields, and/or number fields, providing instructions as you see fit. In your prompt, use the `{{config:fieldName}}` placeholder, camel-cased, to insert the field's current value. When you share the command to the store and others install it, they'll be prompted to fill out the custom fields before they can run the command. This is a great way to make your commands more flexible and reusable.
 
-| Command Name | Prompt |
-| --- | --- |
-| Assess Academic Validity | Assess the academic validity of the following files based on their contents, the methodologies described within, and any results obtained. Use the file names as headings. |
-| Assess File Overlap | What overlaps in content or ideas exists between the following files? What are the similarities? |
-| Compare Selected Files | Compare and contrast the content, purpose, and significance of the following files. What are the similarities and differences between them? Format the response as one markdown paragraph. |
-| Compose Response | Compose a response to the following files in the style of an email. Sign the email with the name "{{user}}" |
-| Compose Tweet | Compose a tweet based on the following files: |
-| Condense Files | Condense the content of the following files as much as possible. Summarize sentences. Use abbreviations where possible. If the response includes any lists, remove them and briefly describe them instead. Condense clarifying language as much as possible. Use the file names as headings. |
-| Create Action Items | Generate a markdown list of action items from the following files, using a unique identifier for each item as bold headings. If there are any errors in the files, make actions items to fix them. In a sublist of each item, provide a description, priority, estimated level of difficulty, reasonable duration for the task, and due date based on the the duration and today's date, "{{date}}". Here are the files: |
-| Create Flashcards | Create 3 Anki flashcards based on the content of the following files. Format the response as markdown with the bold questions and plaintext answers. Separate each entry with '---'. |
-| Create Notes | I want you to act as a notetaker. I will provide file names and their contents, and you will respond with a multi-level markdown list of well-structured, concise notes. The notes should be in your own words and should make connections between topics and ideas. Each list item should be at most 20 words long. Minimize the notes as much as possible. Here are the files: |
-| Create Slides | Generate 3 or more slideshow slides for each of the following files based on their content. Each slide should have 3 or 4 meaningful bullet points. Organize the slides by topic. Format the slides as markdown lists with '---' separating each slide. Describe an image to include with each slide. Suggest links related to each slide's content. Provide an appropriate title for the slideshow at the beginning of the response. |
-| Detect Bias | Identify and explain the significance of any biases in the content of the following files. Discuss what the risks and dangers of those biases are, and discuss how those risks could be minimized. |
-| Extend Files | Generate new content for the following files using the same style as the rest of the file's content. Explain how the new content fits with the rest. Do not repeat the current content. Use the file names as headings. |
-| Extract Code | Extract lines of code written in programming languages from the following files. Format the response as markdown code blocks. Place the programming language used in each block as the heading above it. Provide a brief description of what the code does below each block. Do not provide any other commentary. |
-| Extract Emails | Extract emails from the following files and list them as markdown links: |
-| Extract Named Entities | What are the named entities in the following files, and what are their meanings and purpose? Clarify any abbreviations. Format the response as markdown list of sentences with the entity terms in bold. Use the file names as headings. |
-| Extract Phone Numbers | Identify all phone numbers in the following files and list them using markdown. Include anything that might be a phone number. If possible, provide the name of the person or company to which the phone number belongs. |
-| Extract URLs | Extract URLs from the following files and list them as markdown links |
-| Extract Visible Text | I will give you information about files, including their contents, and I want you to output the text content. Preserve the original format of the content as best as possible. Always output something. |
-| Extract Vocabulary | Extract the most difficult vocabulary words from the following files and define them. Format the response as a markdown list. |
-| Find Errors | What errors and inconsistencies in the following files, why are they significant, and how can I fix them? Format the response as markdown list of sentences with the file names in bold. Use the file names as headings. |
-| Generate Questions | Generate questions based on the content of each of the following files, their metadata, filename, type, and other information. Format the response as a markdown list. |
-| Historical Context | Based on the topics mentioned in the following files, provide a list of the top 5 most significant relevant historical facts. Additionally, provide a paragraph summarizing a historical fact that relates to the entire content of the file. |
-| Identify Gaps | Identify any gaps in understanding or content that occur in the following files. Use the file names as headings. Provide content to fill in the gaps. |
-| Identify Selected Files | Identify the file type and most significant features of the following files based on their content. Discuss the primary purpose of the file based on its content. Categorize the content into relevant topics. Provide an assessment of the file's utility as well a list of relevant links and brief descriptions of them. Format the response as a markdown list using "## File Type", "## Topics", "## Defining Features", "## Purpose and Potential Usage", and "## Relevant Links" as headings. |
-| Identify Relationships | In one paragraph, identify any relationships that might exist between the following files based on their content and the topics they mention. Always identify some relationship, even if it is very general. Explain a use for the files together that none of them have individually. |
-| Make Jingle | Create short, memorable jingles summarizing the main ideas in each of the following files, using the file names as headings. |
-| Make Poem | Make rhyming poems about the the following files. Be creative and include references to the content and purpose of the file in unexpected ways. Do not summarize the file. Make each poem at least 3 stanzas long, but longer for longer files. Use the file names as markdown headings. |
-| Make Song | Make a song based on the content of the following files. Provide a name for the song. |
-| Meeting Agenda | Create a meeting agenda covering the contents of the following files. Use today's date and time, {{date}}, to provide headings and structure to the agenda. |
-| Metadata Analysis | I want you to give several insights about files based on their metadata and file type. Do not summarize the file content, but instead relate the metadata to the content in a meaningful way. Use metadata to suggest improvements to the content. Provide detailed explanations for your suggestions. Format your response as a paragraph summary. Use the file names as headings.\nHere's the metadata:{{metadata}}\n\nHere are the files: |
-| Pattern Analysis | Identify and describe any patterns or trends in the content of the following files. Use the file names as headers. Discuss patterns formed by any coordinates, rectangles, etc. Do not mention coordinates. |
-| Performance Summary | Give me a detailed analysis of my CPU and RAM usage based on this data. Output two friendly paragraphs. along with a markdown table. ###{{shell:top -stats command,cpu,rsize -n 10 -l 2 -s 1 -e | tail -20 | grep -iE '(PhysMem|CPU Usage)'}}### |
-| Pros And Cons | List pros and cons for the following files based on the topics mentioned within them. Format the response as a markdown list. Use the file names as headings. Do not provide any other commentary. |
-| Recent Headlines From 68k News | Discuss the recent headlines from 68k News: ###{{http://68k.news}}### |
-| Recommend Apps | Based on the list of apps I have installed, recommend 10 additional macOS applications that I might enjoy. Explain the significance of the relationship between each recommandation and my installed apps. Use any knowledge you have about the apps to inform your suggestions. Format the output as a markdown list. At the start, provide a paragraph analyzing common themes of my apps, directed at me. Here is the list of apps I have installed: ###{{installedApps}}### |
-| Response To last Email | Generate a response to the following email:###{{lastEmail}}### |
-| Split Into Text Files | Split the content of the following file into multiple logical sections. Do not put headings in their own section. Output the text of each section. Write "$$$$$" between each section. |
-| Suggest PromptLab Commands | Based on my current commands for the PromptLab extension, suggest new commands to create. Provide suggestions for titles as well prompts. The prompts must be relevant to an AI that can read the content of files, get information about the system, and get outside  data such as calendar events. The commands must be unique. Format the response as a single markdown list. Here are the commands I currently have: {{fileAICommands}} |
-| Suggest Fonts | Here are some fonts I have installed. Identify some trends in my font choices, then recommend 5 unique fonts that I might like based on those trends. For each recommendation, explain why I might like it in relation to other fonts I have installed. Here are the fonts: {{as:use framework "Foundation"\nset fontManager to current application's NSFontManager's\nsharedFontManager()\nset allFonts to fontManager's availableFonts() as list\nset randomFonts to {}\nrepeat 10 times\n	copy some item of allFonts to end of randomFonts\nend repeat\nreturn randomFonts}}
-| Suggest Hashtags | Suggest hashtags for the following files based on their contents. Use the file names as markdown headings. |
-| Suggest Improvements | Suggest improvements to the content of the following files. Use the file names as headings. Format the response as a markdown list. |
-| Suggest Project Ideas | I want you to act as a project idea generator. I will provide file names and their contents, and you will response with a list of project ideas based on the content of each file. Format the response as a markdown list. Use the file names as headings. Here are the files: |
-| Suggest Related PromptLab Prompts | Suggest prompts for an AI that can read the contents of selected files based on the contents of the following files. Use the file contents to create useful prompts that could act on the files. The AI does not have the ability to modify files or create new ones. All prompts should reference "the contents of the following files". |
-| Suggest Title | Suggest new titles for the following files based on their content and topics mentioned. Use the file names as headings. |
-| Suggest Tools | Suggest tools to use based on the topics discussed in the following files. Explain why each tool is relevant. Use the file names as headings. Do not provide any commentary other than the list of tools and their explanations. |
-| Summarize Clipboard | Summarize the following text, providing specific details. ###{{clipboardText}}### |
-| Summarize Current Tab | Based on the following text obtained from the active browser tab, what am I looking at? In your answer, discuss the content and meaning of the website. If the URL or the text are blank, report an error. For context, here is the url: {{currentURL}} And here is the text: ###{{currentTabText}}### |
-| Summarize Last Email | Summarize my most recent email and discuss its significance. I am the recipient. Format the response as a paragraph directed to me. Here is the email: ###{{lastEmail}}### |
-| Summarize Spoken Audio | Summarize and assess the the following audio files using the file names as headings. Discuss the transcribed text's purpose and significance. Here are the audio transcriptions: |
-| Table Of Contents | Generate a table of contents for each of the following files based on their content. Use the file names as headings. For each item in the table, provide an percent estimation of how far into the document the associated content occurs. Format the response as a markdown list. |
-| Today's Agenda | Make an agenda for my day using the following list of events. Format the output as friendly paragraph, directed at my, explaining when there is time for breaks or other activities that you recommend. Use today's date ({{date}}) as a markdown header. Here are the events: ###{{todayEvents}}### |
-| Translate Files To English | Translate the following files to English, using the file names as headings. Reword the translations so that they make sense in plain English. If the phrase is well known in either English or the source language, use the most commonly accepted translation. |
-| What Is This? | Based on the content of the following files, answer this question: What is this? Use the file names as headings. |
-| Write Abstract | Write an abstract for the following files in the style of an academic research paper. Use the file names as headings. If the abstract includes a list, briefly describe it instead of listing all elements. |
-| Write Caption | Write a two-sentence caption for these files in the style of a typical image caption, based on their contents. Use the file names as headings. The caption should summarize the content and describe its overall purpose and significance. |
-| Write Conclusion | Write conclusions for the following files in the style of the rest of their content, using the file names as headers. The conclusion should wrap up the meaning, purpose, significance, pitfalls, room to improvement, and suggest plans for future work. |
-| Write Discussion | Write a new discussion section for each of the following files in the style of an academic research paper. The discussion should be past tense and highlight the paper's successes. Use the file names as headings. |
-| Write Introduction | Write improved introduction sections for the following files in the style of an academic research paper. Use the file names as headings. The introductions must be at least 3 paragraphs long and describe what the file's contents are about, in future tense, as well as provide background information and a summary of the results. If the introduction includes a list, briefly describe the list instead of listing all elements.`
+## Chats, Context Data, Statistics, and More
 
-### Non-Default Command Prompts
+### Chats
 
-| Command Name | Prompt |
-| --- | --- |
-| Relate To Current Track | Relate and compare this file to the song {{currentTrack}}. |
-| Songs I Might Like | Based on the following songs in my library, recommend new songs I might like. Output the recommendations as a markdown list. For each song, explain in terms of my other songs why you think I'd like it. The recommendations must not be in my library already. Here are the songs: """{{musicTracks}}""{{END}} |
-| Suggest Names For Current Note | Suggest 3 possible names for the currently selected note. Make one concise. Here is its plaintext content: {{as:tell application "Notes"\nset theText to plaintext of item 1 of (selection as list) as text\nset maxLength to 2000\nif length of theText < maxLength then\nset maxLength to length of theText\nend if\nreturn text 1 thru maxLength of theText\nend tell}} |
-| Suggest Similar Songs | Suggest songs similar to {currentTrack}}. Use "Songs Similar To {{currentTrack}}" as the header for the output. For each suggestion, provide a brief explanation.{{END}} |
-| Suggest Websites | Suggest 5 new websites based on the following bookmarks. Under the heading "My Recommendations:", for each suggestion, explain why I might like it relative to my current bookmarks. Output the sites as markdown links. Provide a command-separated list of my current bookmarks at the start of your response under the heading "Current Bookmarks:". {{as:tell application "Brave Browser"\nset theBookmarks to {}\n	repeat with theFolder in bookmark folders\n		set theBookmarks to theBookmarks & (title of bookmark items of theFolder)\n	end repeat\n	return theBookmarks\nend tell}} |
-| Summarize Last Note | Summarize my last note: """{{lastNote}}""" |
-| Tomorrow's Agenda | Make an agenda for my day tomorrow using the following list of events. Today is {{date}}, only use events for tomorrow, ignore the rest. Format the output as friendly paragraph, directed at me. Use tomorrow's date as a heading. Here are the events:###{{weekEvents}}{{weekReminders}}### |
-| Use Cases | List 5 use cases for each of the following files based on their content. Explain how each use case relates to the file. Format the response as a markdown list. Use the file names as headings. |
-| User Stories | Create 5 user stories based on the contents of the following files. Format the response as a markdown list. Use each file name as a heading. |
+Using the "PromptLab Chat" command, you can chat with AI while making use of features like placeholders and selected file contents. Chat are preserved for later reference or continuation, and you can customize each chat's name, icon, color, and other settings. Chats can have "Context Data" associated with them, ensuring that the LLM stays aware of the files, websites, and other information relevant to your conversation. Within a chat's settings, you can view various statistics highlighting how you've interacted with the AI, and you can export the chat's contents (including the statistics) to JSON for portability.
 
-Additional commands can be found in the [prompt-sets](./prompt-sets/) directory. Feel free to contribute your own!
+### Autonomous Agent Features
+
+When using PromptLab Chat, or any command that uses a chat view, you can choose to enable autonomous agent features by checking the "Allow AI To Run Commands" checkbox. This will allow the AI to run PromptLab commands on your behalf, supplying input as needed, in order to answer your queries. For example, if you ask the AI "What's the latest news?", it might run the "Recent Headlines From 68k News" command to fulfil your request, then return the results to you. This feature is disabled by default, and can be enabled or disabled at any time.
 
 ## Installation
 
@@ -266,10 +195,6 @@ To use the OpenAI API as the model endpoint, configure the extension as follows:
 | Output Key Path | choices[0].delta.content |
 | Output Timing | Asynchronous |
 
-## Autonomous Agent Features
-
-When using PromptLab Chat, or any command that uses a chat view, you can choose to enable autonomous agent features by checking the "Allow AI To Run Commands" checkbox. This will allow the AI to run PromptLab commands on your behalf, supplying input as needed, in order to answer your queries. For example, if you ask the AI "What's the latest news?", it might run the "Recent Headlines From 68k News" command to fulfil your request, then return the results to you. This feature is disabled by default, and can be enabled or disabled at any time.
-
 ## Troubleshooting
 
 If you encounter any issues with the extension, you can try the following steps to resolve them:
@@ -288,43 +213,67 @@ Contributions are welcome! Please see the [contributing guidelines](./CONTRIBUTI
 
 ### Current Release: v1.1.0
 
-- [x] Command Favorites
-- [x] Video Feature Extraction [example](./examples/promptlab-1.1.0/videoSubjectSummarization.png)
-- [x] Switch Between Chats & Export Chat History [example](./examples/promptlab-1.1.0/multipleChats.png)
-- [ ] Auto-Compress Chat History
-- [x] Chat Settings [example]()
-    - [x] Context Files/Folders/URLs [example1](./examples/promptlab-1.1.0/addContextData.png) [example2](./examples/promptlab-1.1.0/contextDataSummaries.png) [example3](./examples/promptlab-1.1.0/contextualKnowledge.png)
-    - [x] Favorite Chats [example](./examples/promptlab-1.1.0/favoriteChats.png)
-    - [x] Chat Statistics [example](./examples/promptlab-1.1.0/chatStats.png)
-- [x] Command Setup On Install
-    - [x] Custom Configuration Fields [example](./examples/promptlab-1.1.0/commandConfig.png) [example2](./examples/promptlab-1.1.0/commandConfig2.png) [example](./examples/promptlab-1.1.0/)
-    - [x] Post-Install Configuration [example](./examples/promptlab-1.1.0/commandConfig4.png)
-- [x] Speak Response
-- [x] Voice Input
-- [x] New Placeholders
-    - [x] Nearby Locations [example](./examples/promptlab-1.1.0/nearbyLocations.png)
-    - [x] Running Applications
-    - [x] System Language
-    - [ ] Siri Shortcuts
-    - [ ] Day name
-    - [ ] Custom date/time formats
-    - [ ] UUIDs
-    - [ ] Persistent variables
-    - [ ] JavaScript script
- 
-### Future Releases
-
-- LangChain integration
+- Create, Edit, and Run Custom Commands
+- Detail, List, Chat, and No-View Command Types
+- Placeholders in Prompts
+- Get Content of Selected Files
+- Extract Text, Subjects, QR Codes, etc. from Images
+- Import/Export Commands
+- Run AppleScript or Bash Scripts On Model Response
+- PromptLab Chat with Autonomous Command Execution Capability
+- Upload & Download Commands To/From PromptLab Command Store
+- Custom Model Endpoints with Synchronous or Asynchronous Responses
+- Save & Run Commands as Quicklinks 
+- Video Feature Extraction [example](./examples/promptlab-1.1.0/videoSubjectSummarization.png)
+- Switch Between Chats & Export Chat History [example](./examples/promptlab-1.1.0/multipleChats.png)
+- Auto-Compress Chat History
+- Chat Settings [example]()
+    - Context Files/Folders/URLs [example1](./examples/promptlab-1.1.0/addContextData.png) [example2](./examples/promptlab-1.1.0/contextDataSummaries.png) [example3](./examples/promptlab-1.1.0/contextualKnowledge.png)
+    - Favorite Chats [example](./examples/promptlab-1.1.0/favoriteChats.png)
+    - Chat Statistics [example](./examples/promptlab-1.1.0/chatStats.png)
+- Command Setup On Install
+    - Custom Configuration Fields [example](./examples/promptlab-1.1.0/commandConfig.png) [example2](./examples/promptlab-1.1.0/commandConfig2.png) [example](./examples/promptlab-1.1.0/)
+    - Post-Install Configuration [example](./examples/promptlab-1.1.0/commandConfig4.png)
+- Spoken Responses
+- Voice Input
 - New Placeholders
-- Dashboard
-- Command Suggestions
-- Command Templates
-- GPT Function Calling
+    - Persistent Variables
+    - Flow Control Directives
+    - Configuration Placeholders
+    - JS Sandbox
+- Manage Models [example](./examples/promptlab-1.1.0/models.png)
+- Menu Bar Extra [example](./examples/promptlab-1.1.0/menubar.png)
+- Placeholders Guide
 
 ### Next Release: v1.2.0
 
-- [ ] Command Suggestions
-- [ ]
+#### Planned
+
+- [ ] Saved Responses 
+- [ ] WordNet Integration
+- [ ] Command Templates
+- [ ] Improved Local Processing
+    - [ ] DOCX Parsing
+    - [ ] Keynote/PowerPoint Parsing
+    - [ ] Spreadsheet Parsing
+    - [ ] XML Parsing
+    - [ ] Live Audio Classification
+- [ ] WeatherKit Integration
+
+#### Possible
+
+- [ ] Run Automator Actions
+- [ ] Global Statistics
+- [ ] TF-IDF
+- [ ] Autonomous Web Search
+- [ ] LangChain Integration
+
+### Future Releases
+
+- Dashboard
+- Chat Merging
+- GPT Function Calling
+- New Placeholders
 
 ## Useful Resources
 

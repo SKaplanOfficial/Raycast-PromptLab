@@ -27,7 +27,7 @@ export async function installDefaults() {
 
     // Load default commands
     for (const [key, value] of Object.entries(defaultCommands)) {
-      await LocalStorage.setItem(key, value);
+      await LocalStorage.setItem(key, JSON.stringify(value));
     }
 
     // Load default models

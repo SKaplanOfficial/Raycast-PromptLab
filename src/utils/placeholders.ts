@@ -1919,7 +1919,6 @@ const placeholders: PlaceholderList = {
     rules: [],
     apply: async (str: string, context?: { [key: string]: string }) => {
       try {
-        console.log(str.match(/(url|URL)( raw=(true|false))?:(([^{]|{(?!{)|{{[\s\S]*?}})*?)}}/))
         const URL =
           str.match(/(url|URL)( raw=(true|false))?:(([^{]|{(?!{)|{{[\s\S]*?}})*?)}}/)?.[4] || str.match(/https?:[\s\S]*?(?=}})/)?.[0] || "";
         const raw = str.match(/(url|URL)( raw=(true|false))?:(([^{]|{(?!{)|{{[\s\S]*?}})*?)}}/)?.[3] === "true";

@@ -120,7 +120,7 @@ In addition to the above, you can use any supported file extension as a directiv
 | `{{imageAnimals}}` | A comma-separated list of names for animals detected in currently selected image(s) in Finder. |
 | `{{imageBarcodes}}` | The text contents of barcodes detected in currently selected image(s) in Finder. |
 | `{{imageFaces}}` | The number of faces detected in currently selected image(s) in Finder. |
-| `{{imagePOI}}` | A comma-separated list of names for points of interest detected in currently selected image(s) in Finder. The points are normalized to a 1x1 coordinate space. |
+| `{{imagePOI}}` | A comma-separated list of points of interest detected in currently selected image(s) in Finder. The points are normalized to a 1x1 coordinate space. |
 | `{{imageRectangles}}` | A newline-separated list of rectangles detected in currently selected image(s) in Finder. Each rectangle is represented in the format `Rectangle #1: Midpoint=(x,y) Dimensions=wxh` |
 | `{{imageSubjects}}` | A comma-separated list of names for objects detected in currently selected image(s) in Finder. |
 | `{{imageText}}` | The text contents of currently selected image(s) in Finder. |
@@ -189,7 +189,11 @@ In addition to the above, you can use any supported file extension as a directiv
 | `{{shell:...}}` | The return value of a shell script. The shell is ZSH by default, but you can specify a different shell using the format `{{shell bin/bash:...}}`. |
 | `{{shortcut:...}}` | The value returned after executing the specified Siri Shortcut. Specify input to the shortcut using `{{shortcut:... input="..."}}`. |
 
-In addition 
+### Configuration Placeholders
+
+| Placeholder | Replaced With |
+| ----- | ----- |
+| `{{config:fieldName}}` | The value of a command configuration variable.
 
 ## Placeholder Precedence
 
