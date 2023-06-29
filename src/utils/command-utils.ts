@@ -28,7 +28,8 @@ export const runActionScript = async (
 ) => {
   try {
     if (type == "applescript" || type == undefined) {
-      await runAppleScript(await Placeholders.bulkApply(`${objcImports}
+      await runAppleScript(
+        await Placeholders.bulkApply(`${objcImports}
       ${splitHandler}
       ${trimHandler}
       ${replaceAllHandler}
@@ -36,7 +37,8 @@ export const runActionScript = async (
       set prompt to "${prompt.replaceAll('"', '\\"')}"
       set input to "${input.replaceAll('"', '\\"')}"
       set response to "${response.replaceAll('"', '\\"')}"
-      ${script}`));
+      ${script}`)
+      );
     } else if (type == "zsh") {
       const runScript = (script: string): Promise<string> => {
         const shellScript = `response="${response.trim().replaceAll('"', '\\"').replaceAll("\n", "\\n")}"

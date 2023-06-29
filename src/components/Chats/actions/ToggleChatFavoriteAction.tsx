@@ -1,6 +1,5 @@
 import { Action, Icon } from "@raycast/api";
-import { ChatManager } from "../../../hooks/useChats";
-import { Chat } from "../../../utils/types";
+import { Chat, ChatManager } from "../../../utils/types";
 
 /**
  * Action to toggle a chat's favorite status.

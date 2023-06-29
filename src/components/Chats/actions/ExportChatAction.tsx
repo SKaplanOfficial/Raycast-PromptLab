@@ -1,6 +1,5 @@
-import { Action, Icon, Toast, confirmAlert, getPreferenceValues, showToast } from "@raycast/api";
-import { Chat, ExtensionPreferences } from "../../../utils/types";
-import { ChatManager } from "../../../hooks/useChats";
+import { Action, Icon, Toast, confirmAlert, getPreferenceValues, showInFinder, showToast } from "@raycast/api";
+import { Chat, ChatManager, ExtensionPreferences } from "../../../utils/types";
 import path from "path";
 import * as fs from "fs";
 
@@ -60,11 +59,11 @@ export const ExportChatAction = (props: { chat: Chat; chats: ChatManager }) => {
           });
 
           const statsJSON = JSON.stringify(chats.calculateStats(chat.name));
-          fs.writeFile(path.resolve(dirPath, "stats.json"), statsJSON, (err) => {
-            if (err) {
-              failedExports.push("Stats");
-            }
-          });
+          try {
+            fs.writeFileSync(path.resolve(dirPath, chat.name + "-stats.json"), statsJSON);
+          } catch (err) {
+            failedExports.push("Stats");
+          }
 
           if (failedExports.length == chat.contextData?.length + 2) {
             toast.style = Toast.Style.Failure;
@@ -75,9 +74,9 @@ export const ExportChatAction = (props: { chat: Chat; chats: ChatManager }) => {
             toast.title = "Export Partially Successful";
             toast.message = dirPath;
             toast.primaryAction = {
-              title: "Open In Finder",
+              title: "Show In Finder",
               onAction: async () => {
-                await open(dirPath, "Finder");
+                await showInFinder(dirPath);
               },
             };
           } else if (failedExports.length == 0) {
@@ -85,9 +84,9 @@ export const ExportChatAction = (props: { chat: Chat; chats: ChatManager }) => {
             toast.title = "Chat Exported Successfully";
             toast.message = dirPath;
             toast.primaryAction = {
-              title: "Open In Finder",
+              title: "Show In Finder",
               onAction: async () => {
-                await open(dirPath, "Finder");
+                await showInFinder(dirPath);
               },
             };
           }
@@ -106,17 +105,28 @@ export const ExportChatAction = (props: { chat: Chat; chats: ChatManager }) => {
               toast.title = "Error";
               toast.message = "Couldn't export chat";
               throw err;
-            }
+            } else {
+              const statsJSON = JSON.stringify(chats.calculateStats(chat.name));
+              fs.writeFile(path.resolve(preferences.exportLocation, chat.name + "-stats.json"), statsJSON, (err) => {
+                if (err) {
+                  toast.style = Toast.Style.Failure;
+                  toast.title = "Error";
+                  toast.message = "Couldn't export statistics";
+                } else {
+                  failedExports.push("Stats");
 
-            toast.style = Toast.Style.Success;
-            toast.title = "Chat Exported Successfully";
-            toast.message = filePath + ".txt";
-            toast.primaryAction = {
-              title: "Open In Finder",
-              onAction: async () => {
-                await open(filePath + ".txt", "TextEdit");
-              },
-            };
+                  toast.style = Toast.Style.Success;
+                  toast.title = "Chat Exported Successfully";
+                  toast.message = filePath + ".txt";
+                  toast.primaryAction = {
+                    title: "Show In Finder",
+                    onAction: async () => {
+                      await showInFinder(filePath + ".txt");
+                    },
+                  };
+                }
+              });
+            }
           });
         }
       }}

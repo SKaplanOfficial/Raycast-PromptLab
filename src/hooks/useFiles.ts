@@ -95,10 +95,11 @@ export const useFiles = (options: CommandOptions) => {
   const [error, setError] = useState<number>();
 
   const loadSelection = async () => {
-    if (!options.minNumFiles) return {
-      paths: [],
-      csv: ""
-    }
+    if (!options.minNumFiles)
+      return {
+        paths: [],
+        csv: "",
+      };
 
     const validExtensions = (options.acceptedFileExtensions || []).map((ext) => ext.toLowerCase());
 

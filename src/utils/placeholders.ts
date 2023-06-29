@@ -23,6 +23,7 @@ import {
   getLastNote,
   getMatchingYouTubeVideoID,
   getSafariBookmarks,
+  getSafariTabText,
   getSafariTopSites,
   getTextOfWebpage,
   getTrackNames,
@@ -41,78 +42,22 @@ import { getStorage, loadAdvancedSettingsSync, setStorage } from "./storage-util
 import { ScriptRunner, addFileToSelection, getRunningApplications, searchNearbyLocations } from "./scripts";
 import { getExtensions } from "./file-utils";
 import runModel from "./runModel";
-import { audioFileExtensions, imageFileExtensions, textFileExtensions, videoFileExtensions } from "../data/file-extensions";
+import {
+  audioFileExtensions,
+  imageFileExtensions,
+  textFileExtensions,
+  videoFileExtensions,
+} from "../data/file-extensions";
 import path from "path";
-import { CalendarDuration, CustomPlaceholder, EventType, ExtensionPreferences } from "./types";
-import { defaultAdvancedSettings } from "../data/default-advanced-settings";
-
-/**
- * A placeholder type that associates Regex patterns with functions that applies the placeholder to a string, rules that determine whether or not the placeholder should be replaced, and aliases that can be used to achieve the same result.
- */
-export type PlaceholderList = {
-  [key: string]: Placeholder;
-};
-
-export type Placeholder = {
-  /**
-   * The detailed name of the placeholder.
-   */
-  name: string;
-
-  /**
-   * The aliases for the placeholder. Any of these aliases can be used in place of the placeholder to achieve the same result.
-   */
-  aliases?: string[];
-
-  /**
-   * The rules that determine whether or not the placeholder should be replaced. If any of these rules return true, the placeholder will be replaced. If no rules are provided, the placeholder will always be replaced.
-   */
-  rules: ((str: string, context?: { [key: string]: string }) => Promise<boolean>)[];
-
-  /**
-   * The function that applies the placeholder to a string.
-   * @param str The string to apply the placeholder to.
-   * @returns The string with the placeholder applied.
-   */
-  apply: (str: string, context?: { [key: string]: string }) => Promise<{ result: string; [key: string]: string }>;
-
-  /**
-   * The keys of the result object relevant to the placeholder. When placeholders are applied in bulk, this list is used to determine which keys to return as well as to make optimizations when determining which placeholders to apply. The first key in the list is the key for the placeholder's value.
-   */
-  result_keys?: string[];
-
-  /**
-   * The dependencies of the placeholder. When placeholders are applied in bulk, this list is used to determine the order in which placeholders are applied.
-   */
-  dependencies?: string[];
-
-  /**
-   * Whether or not the placeholder has a constant value during the placeholder substitution process. For example, users can use multiple URL placeholders, therefore it is not constant, while {{clipboardText}} is constant for the duration of the substitution process.
-   */
-  constant: boolean;
-
-  /**
-   * The function that applies the placeholder to a string. This function is used when the placeholder is used a {{js:...}} placeholder.
-   * @param args
-   * @returns
-   */
-  fn: (...args: (never | string)[]) => Promise<string>;
-
-  /**
-   * The example usage of the placeholder, shown when the placeholder is detected in a prompt.
-   */
-  example: string;
-
-  /**
-   * The description of the placeholder, shown when the placeholder is detected in a prompt.
-   */
-  description: string;
-
-  /**
-   * The demonstration representation of the placeholder, shown as the "name" of the placeholder when the placeholder is detected in a prompt.
-   */
-  hintRepresentation: string;
-};
+import {
+  CalendarDuration,
+  CustomPlaceholder,
+  EventType,
+  ExtensionPreferences,
+  PersistentVariable,
+  Placeholder,
+  PlaceholderList,
+} from "./types";
 
 /**
  * Placeholder specification.
@@ -740,6 +685,10 @@ const placeholders: PlaceholderList = {
           ? context["currentAppName"]
           : (await getFrontmostApplication()).name;
         const URL = context?.["currentURL"] ? context["currentURL"] : await getCurrentURL(appName);
+        if (appName == "Safari") {
+          const URLText = filterString(await getSafariTabText());
+          return { result: URLText, currentTabText: URLText, currentAppName: appName, currentURL: URL };
+        }
         const URLText = await getTextOfWebpage(URL);
         return { result: URLText, currentTabText: URLText, currentAppName: appName, currentURL: URL };
       } catch (e) {
@@ -917,7 +866,7 @@ const placeholders: PlaceholderList = {
       ).result,
     example: "Write a generic agenda for {{day locale='en-GB'}}",
     description: "Replaced with the name of the current day of the week in the specified locale.",
-    hintRepresentation: "{{day}}"
+    hintRepresentation: "{{day}}",
   },
 
   /**
@@ -1614,7 +1563,7 @@ const placeholders: PlaceholderList = {
           ).result,
         example: `{{${ext}:This one if any ${ext} file is selected:This one if no ${ext} file is selected}}`,
         description: `Flow control directive to include some content if any ${ext} file is selected and some other content if no ${ext} file is selected.`,
-        hintRepresentation: `{{${ext}:...:...}}`
+        hintRepresentation: `{{${ext}:...:...}}`,
       };
       return acc;
     }, {} as { [key: string]: Placeholder }),
@@ -1920,7 +1869,9 @@ const placeholders: PlaceholderList = {
     apply: async (str: string, context?: { [key: string]: string }) => {
       try {
         const URL =
-          str.match(/(url|URL)( raw=(true|false))?:(([^{]|{(?!{)|{{[\s\S]*?}})*?)}}/)?.[4] || str.match(/https?:[\s\S]*?(?=}})/)?.[0] || "";
+          str.match(/(url|URL)( raw=(true|false))?:(([^{]|{(?!{)|{{[\s\S]*?}})*?)}}/)?.[4] ||
+          str.match(/https?:[\s\S]*?(?=}})/)?.[0] ||
+          "";
         const raw = str.match(/(url|URL)( raw=(true|false))?:(([^{]|{(?!{)|{{[\s\S]*?}})*?)}}/)?.[3] === "true";
         if (!URL) return { result: "", url: "" };
         const urlText = raw ? await getURLHTML(URL) : await getTextOfWebpage(URL);
@@ -1934,7 +1885,8 @@ const placeholders: PlaceholderList = {
       return (await Placeholders.allPlaceholders["{{(url|URL):.*?}}"].apply(`{{url:${url}}}`)).result;
     },
     example: "{{url:https://www.google.com}}",
-    description: "Placeholder for the visible text content at a given URL. Accepts an optional `raw` parameter, e.g. `{{url:https://www.google.com raw=true}}`, to return the raw HTML of the page instead of the visible text.",
+    description:
+      "Placeholder for the visible text content at a given URL. Accepts an optional `raw` parameter, e.g. `{{url:https://www.google.com raw=true}}`, to return the raw HTML of the page instead of the visible text.",
     hintRepresentation: "{{url:...}}",
   },
 
@@ -2102,7 +2054,8 @@ const placeholders: PlaceholderList = {
     },
     constant: false,
     fn: async (text: string) =>
-      (await Placeholders.allPlaceholders["{{prompt:(([^{]|{(?!{)|{{[\\s\\S]*?}})*?)}}"].apply(`{{prompt:${text}}}`)).result,
+      (await Placeholders.allPlaceholders["{{prompt:(([^{]|{(?!{)|{{[\\s\\S]*?}})*?)}}"].apply(`{{prompt:${text}}}`))
+        .result,
     example: "{{prompt:Summarize {{url:https://example.com}}}}",
     description: "Replaced with the response to the prompt after running it in the background.",
     hintRepresentation: "{{prompt:...}}",
@@ -2267,7 +2220,8 @@ const placeholders: PlaceholderList = {
     },
     constant: false,
     fn: async (script: string, bin = "/bin/zsh") =>
-      (await Placeholders.allPlaceholders["{{shell( .*)?:(.|[ \\n\\r\\s])*?}}"].apply(`{{shell ${bin}:${script}}}`)).result,
+      (await Placeholders.allPlaceholders["{{shell( .*)?:(.|[ \\n\\r\\s])*?}}"].apply(`{{shell ${bin}:${script}}}`))
+        .result,
     example: '{{shell:echo "Hello World"}}',
     description:
       "Placeholder for output of a shell script. If the script fails, this placeholder will be replaced with an empty string.",
@@ -2395,9 +2349,11 @@ const placeholders: PlaceholderList = {
     },
     constant: false,
     fn: async (cutoff: string, content: string) =>
-      (await Placeholders.allPlaceholders["{{cutoff [0-9]+:(([^{]|{(?!{)|{{[\\s\\S]*?}})*?)}}"].apply(
-        `{{cutoff ${cutoff}:${content}}}`,
-      )).result,
+      (
+        await Placeholders.allPlaceholders["{{cutoff [0-9]+:(([^{]|{(?!{)|{{[\\s\\S]*?}})*?)}}"].apply(
+          `{{cutoff ${cutoff}:${content}}}`
+        )
+      ).result,
     example: "{{cutoff 5:Hello World}}",
     description: "Cuts off the content after the specified number of characters.",
     hintRepresentation: "{{cutoff n:...}}",
@@ -2516,7 +2472,10 @@ const loadCustomPlaceholders = async (settings: { allowCustomPlaceholderPaths: b
   try {
     const preferences = getPreferenceValues<ExtensionPreferences>();
     const customPlaceholdersPath = path.join(environment.supportPath, CUSTOM_PLACEHOLDERS_FILENAME);
-    const customPlaceholderFiles = [customPlaceholdersPath, ...(settings.allowCustomPlaceholderPaths ? preferences.customPlaceholderFiles.split(/, ?/g) : [])];
+    const customPlaceholderFiles = [
+      customPlaceholdersPath,
+      ...(settings.allowCustomPlaceholderPaths ? preferences.customPlaceholderFiles.split(/, ?/g) : []),
+    ];
     const customPlaceholderFileContents = await Promise.all(
       customPlaceholderFiles.map(async (customPlaceholdersPath) => {
         try {
@@ -2598,7 +2557,7 @@ export const checkForPlaceholders = async (str: string): Promise<Placeholder[]> 
       } else {
         return (
           str.match(new RegExp(key, "g")) != undefined ||
-          (str.match(new RegExp("(^| )" + key.replace("{{", "").replace("}}", ""), "g")) != undefined) ||
+          str.match(new RegExp("(^| )" + key.replace("{{", "").replace("}}", ""), "g")) != undefined ||
           str.match(new RegExp(`(^| )(?<!{{)${placeholder.name.replace(/[!#+-]/g, "\\$1")}(?!}})`, "g")) != undefined
         );
       }
@@ -2695,15 +2654,6 @@ const bulkApply = async (str: string, context?: { [key: string]: string }): Prom
   }
   return subbedStr;
 };
-
-/**
- * A user-defined variable created via the {{set:...}} placeholder. These variables are stored in the extension's persistent local storage.
- */
-export interface PersistentVariable {
-  name: string;
-  value: string;
-  initialValue: string;
-}
 
 /**
  * Gets the current value of persistent variable from the extension's persistent local storage.

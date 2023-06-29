@@ -42,20 +42,24 @@ export const defaultAdvancedSettings = {
     inputSchema: "",
     outputKeyPath: "",
     outputTiming: "async",
-    lengthLimit: 2500,
+    lengthLimit: "2500",
     favorited: false,
     icon: Icon.Cog,
     iconColor: Color.Red,
     notes: "",
     isDefault: false,
-    temperature: 1.0,
+    temperature: "1.0",
   },
   chatDefaults: {
     icon: Icon.Message,
     iconColor: Color.Red,
     favorited: false,
     condensingStrategy: "summarize",
-    summaryLength: 100,
+    summaryLength: "100",
+    showBasePrompt: true,
+    useSelectedFilesContext: false,
+    useConversationContext: true,
+    allowAutonomy: false,
   },
   placeholderSettings: {
     processPlaceholders: true,
@@ -65,214 +69,115 @@ export const defaultAdvancedSettings = {
   },
   actionSettings: {
     RunCommandAction: {
-        enabled: [
-            "search-commands",
-        ]
+      enabled: ["search-commands"],
     },
     ShareCommandAction: {
-        enabled: [
-            "search-commands",
-        ]
+      enabled: ["search-commands"],
     },
     OpenPlaceholdersGuideAction: {
-        enabled: [
-            "search-commands",
-            "create-command",
-            "chat",
-        ],
-        openIn: "default",
+      enabled: ["search-commands", "create-command", "chat"],
+      openIn: "default",
     },
     OpenAdvancedSettingsAction: {
-        enabled: [
-            "search-commands",
-            "create-command",
-            "chat",
-        ],
-        openIn: "default",
+      enabled: ["search-commands", "create-command", "chat"],
+      openIn: "default",
     },
     EditCustomPlaceholdersAction: {
-        enabled: [
-            "create-command",
-            "search-commands",
-            "chat",
-        ],
-        openIn: "default",
+      enabled: ["create-command", "search-commands", "chat"],
+      openIn: "default",
     },
     CopyCommandPromptAction: {
-        enabled: [
-            "search-commands",
-        ]
+      enabled: ["search-commands"],
     },
     CopyCommandJSONAction: {
-        enabled: [
-            "search-commands",
-        ]
+      enabled: ["search-commands"],
     },
     CopyCommandIDAction: {
-        enabled: [
-            "search-commands",
-        ]
+      enabled: ["search-commands"],
     },
     ExportAllCommandsAction: {
-        enabled: [
-            "search-commands",
-        ]
+      enabled: ["search-commands"],
     },
     ToggleFavoriteAction: {
-        enabled: [
-            "search-commands",
-        ]
+      enabled: ["search-commands"],
     },
     CreateQuickLinkAction: {
-        enabled: [
-            "search-commands",
-        ]
+      enabled: ["search-commands"],
     },
     EditCommandAction: {
-        enabled: [
-            "search-commands",
-        ],
+      enabled: ["search-commands"],
     },
     CreateDerivativeAction: {
-        enabled: [
-            "search-commands",
-            "discover-commands",
-        ],
+      enabled: ["search-commands", "discover-commands"],
     },
     DeleteCommandAction: {
-        enabled: [
-            "search-commands",
-        ],
+      enabled: ["search-commands"],
     },
     DeleteAllCommandsAction: {
-        enabled: [
-            "search-commands",
-        ],
+      enabled: ["search-commands"],
     },
     InstallAllCommandsAction: {
-        enabled: [
-            "discover-commands",
-        ],
+      enabled: ["discover-commands"],
     },
     InstallCommandAction: {
-        enabled: [
-            "discover-commands",
-        ],
+      enabled: ["discover-commands"],
     },
     ToggleSetupFieldsAction: {
-        enabled: [
-            "search-commands",
-            "discover-commands",
-            "create-command",
-        ],
+      enabled: ["search-commands", "discover-commands", "create-command"],
     },
     CopyChatResponseAction: {
-        enabled: [
-            "search-commands",
-            "discover-commands",
-            "chat",
-        ],
+      enabled: ["search-commands", "discover-commands", "chat"],
     },
     CopyChatQueryAction: {
-        enabled: [
-            "search-commands",
-            "discover-commands",
-            "chat",
-        ],
+      enabled: ["search-commands", "discover-commands", "chat"],
     },
     CopyChatBasePromptAction: {
-        enabled: [
-            "search-commands",
-            "discover-commands",
-            "chat",
-        ],
+      enabled: ["search-commands", "discover-commands", "chat"],
     },
     ChatSettingsAction: {
-        enabled: [
-            "search-commands",
-            "discover-commands",
-            "chat",
-        ],
+      enabled: ["search-commands", "discover-commands", "chat"],
     },
     RegenerateChatAction: {
-        enabled: [
-            "search-commands",
-            "discover-commands",
-            "chat",
-        ],
+      enabled: ["search-commands", "discover-commands", "chat"],
     },
     ToggleChatFavoriteAction: {
-        enabled: [
-            "search-commands",
-            "discover-commands",
-            "chat",
-        ],
+      enabled: ["search-commands", "discover-commands", "chat"],
     },
     ExportChatAction: {
-        enabled: [
-            "search-commands",
-            "discover-commands",
-            "chat",
-        ],
+      enabled: ["search-commands", "discover-commands", "chat"],
     },
     DeleteChatAction: {
-        enabled: [
-            "search-commands",
-            "discover-commands",
-            "chat",
-        ],
+      enabled: ["search-commands", "discover-commands", "chat"],
     },
     DeleteAllChatsAction: {
-        enabled: [
-            "search-commands",
-            "discover-commands",
-            "chat",
-        ],
+      enabled: ["search-commands", "discover-commands", "chat"],
     },
     ToggleModelFavoriteAction: {
-        enabled: [
-            "manage-models",
-        ],
+      enabled: ["manage-models"],
     },
     ToggleModelDefaultAction: {
-        enabled: [
-            "manage-models",
-        ],
+      enabled: ["manage-models"],
     },
     CreateModelDerivativeAction: {
-        enabled: [
-            "manage-models",
-        ],
+      enabled: ["manage-models"],
     },
     DeleteModelAction: {
-        enabled: [
-            "manage-models",
-        ],
+      enabled: ["manage-models"],
     },
     DeleteAllModelsAction: {
-        enabled: [
-            "manage-models",
-        ],
+      enabled: ["manage-models"],
     },
     CopyModelJSONAction: {
-        enabled: [
-            "manage-models",
-        ],
+      enabled: ["manage-models"],
     },
     CopyAllModelsJSONAction: {
-        enabled: [
-            "manage-models",
-        ],
+      enabled: ["manage-models"],
     },
     AddNewModelAction: {
-        enabled: [
-            "manage-models",
-        ],
+      enabled: ["manage-models"],
     },
     EditModelAction: {
-        enabled: [
-            "manage-models",
-        ],
+      enabled: ["manage-models"],
     },
   },
 };

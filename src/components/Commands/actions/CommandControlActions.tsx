@@ -23,7 +23,20 @@ export const CommandControlsActionsSection = (props: {
 }) => {
   const { command, availableCommands, commands, setCommands, settings } = props;
 
-  if (!anyActionsEnabled(["ToggleFavoriteAction", "CreateQuickLinkAction", "EditCommandAction", "CreateDerivativeAction", "DeleteCommandAction", "DeleteAllCommandsAction", "InstallAllCommandsAction"], settings)) {
+  if (
+    !anyActionsEnabled(
+      [
+        "ToggleFavoriteAction",
+        "CreateQuickLinkAction",
+        "EditCommandAction",
+        "CreateDerivativeAction",
+        "DeleteCommandAction",
+        "DeleteAllCommandsAction",
+        "InstallAllCommandsAction",
+      ],
+      settings
+    )
+  ) {
     return null;
   }
 
@@ -71,7 +84,7 @@ export const ToggleFavoriteAction = (props: {
       shortcut={{ modifiers: ["cmd", "shift"], key: "f" }}
       onAction={async () => {
         const newCmdData = { ...command, favorited: command.favorited == true ? false : true };
-        await updateCommand(command, newCmdData, setCommands)
+        await updateCommand(command, newCmdData, setCommands);
         await showToast({
           title: command.favorited ? `Removed From Favorites` : `Added To Favorites`,
           style: Toast.Style.Success,

@@ -48,7 +48,7 @@ declare namespace Preferences {
   export type CreateCommand = ExtensionPreferences & {}
   /** Preferences accessible in the `search-commands` command */
   export type SearchCommands = ExtensionPreferences & {
-  /**  - If checked, each command category will have its own section in the search results. */
+  /** Search Settings - If checked, each command category will have its own section in the search results. */
   "groupByCategory"?: boolean
 }
   /** Preferences accessible in the `chat` command */
@@ -59,7 +59,7 @@ declare namespace Preferences {
   "useConversationHistory"?: boolean,
   /**  - If checked, autonomous agent features such as 'Allow AI To Run Commands' will be enabled by default. */
   "autonomousFeatures"?: boolean,
-  /** Base Prompt - The base prompt that provides the initial context for the conversation. */
+  /** Base Prompt - The base prompt that provides the initial context for conversations. */
   "basePrompt"?: string
 }
   /** Preferences accessible in the `import-commands` command */

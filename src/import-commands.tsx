@@ -55,7 +55,7 @@ export default function Command() {
         showToast({ title: `No PromptLab commands added or replaced` });
       }
 
-      launchCommand({ name: "search-commands", type: LaunchType.UserInitiated,  });
+      launchCommand({ name: "search-commands", type: LaunchType.UserInitiated });
     },
     initialValues: {
       overwrite: true,

@@ -1,15 +1,5 @@
-import {
-  Action,
-  ActionPanel,
-  Form,
-  showToast,
-  Icon,
-  useNavigation,
-  Color,
-  environment,
-  Toast,
-} from "@raycast/api";
-import { Chat, ChatStatistics } from "../../utils/types";
+import { Action, ActionPanel, Form, showToast, Icon, useNavigation, Color, environment, Toast } from "@raycast/api";
+import { Chat, ChatManager, ChatStatistics } from "../../utils/types";
 import { useEffect, useState } from "react";
 import { filterString, getTextOfWebpage } from "../../utils/context-utils";
 import runModel from "../../utils/runModel";
@@ -26,6 +16,10 @@ interface ChatSettingsFormValues {
   [key: string]: string[] | string | boolean;
   chatCondensingStrategyField: string;
   chatSummaryLengthField: string;
+  chatShowBasePromptField: boolean;
+  chatUseSelectedFilesContextField: boolean;
+  chatUseConversationContextField: boolean;
+  chatAllowAutonomyField: boolean;
 }
 
 const statNames: { [key: string]: string } = {
@@ -46,20 +40,7 @@ const statNames: { [key: string]: string } = {
 
 export default function ChatSettingsForm(props: {
   oldData: Chat;
-  chats: {
-    chats: Chat[];
-    isLoading: boolean;
-    error: string | undefined;
-    revalidate: () => Promise<void>;
-    createChat: (name: string, basePrompt: string) => Promise<Chat | undefined>;
-    deleteChat: (name: string) => Promise<void>;
-    appendToChat: (chat: Chat, text: string) => Promise<void>;
-    loadConversation: (chatName: string) => string[] | undefined;
-    favorites: () => Chat[];
-    checkExists: (chat: Chat) => boolean;
-    updateChat: (name: string, chatData: Chat) => Promise<void>;
-    calculateStats: (chatName: string) => ChatStatistics;
-  };
+  chats: ChatManager;
   setCurrentChat: React.Dispatch<React.SetStateAction<Chat | undefined>>;
   settings: typeof defaultAdvancedSettings;
 }) {
@@ -266,6 +247,10 @@ export default function ChatSettingsForm(props: {
                 contextData: filledContextFields.filter((field) => field.data.length > 0),
                 condensingStrategy: values.chatCondensingStrategyField,
                 summaryLength: values.chatSummaryLengthField,
+                showBasePrompt: values.chatShowBasePromptField,
+                useSelectedFilesContext: values.chatUseSelectedFilesContextField,
+                useConversationContext: values.chatUseConversationContextField,
+                allowAutonomy: values.chatAllowAutonomyField,
               };
 
               chats.updateChat(oldData.name, newChat);
@@ -389,6 +374,37 @@ export default function ChatSettingsForm(props: {
 
       <Form.Separator />
 
+      <Form.Checkbox
+        title="Features"
+        label="Display Base Prompt"
+        defaultValue={oldData ? oldData.showBasePrompt : true}
+        id="chatShowBasePromptField"
+        info="Whether to display the base prompt in the chat view."
+      />
+
+      <Form.Checkbox
+        label="Use Selected Files/Folders As Context"
+        defaultValue={oldData ? oldData.useSelectedFilesContext : false}
+        id="chatUseSelectedFilesContextField"
+        info="Whether to use the selected files/folders as context for the chat. If enabled, the contents and metadata of selected files will be injected into the conversation alongside your queries."
+      />
+
+      <Form.Checkbox
+        label="Use Conversation History As Context"
+        defaultValue={oldData ? oldData.useConversationContext : true}
+        id="chatUseConversationContextField"
+        info="Whether to use the conversation history as context for the chat. If enabled, previous queries and responses will be included alongside your current query, allowing for a chat-like experience."
+      />
+
+      <Form.Checkbox
+        label="Allow AI to Run PromptLab Commands"
+        defaultValue={oldData ? oldData.allowAutonomy : false}
+        id="chatAllowAutonomyField"
+        info="Whether to allow the model to act autonomously, running PromptLab commands as needed to respond to queries."
+      />
+
+      <Form.Separator />
+
       <Form.Description
         title="Context Data"
         text="Context data is always maintained in the conversation history. The data is minimize such that it fits within the configured token limit. To add context data, use one of the actions from the Actions menu to add additional fields to this form."
@@ -411,7 +427,9 @@ export default function ChatSettingsForm(props: {
         title="Summary Length"
         placeholder="Length of the summary"
         info="The target length of summaries to generate for each context data field. This is an approximate length, and the actual length may vary."
-        defaultValue={oldData.summaryLength ? oldData.summaryLength : "50"}
+        defaultValue={
+          oldData.summaryLength != undefined && oldData.summaryLength.length ? oldData.summaryLength : "100"
+        }
         id="chatSummaryLengthField"
       />
 

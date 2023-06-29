@@ -1,3 +1,5 @@
+import { Color, Icon } from "@raycast/api";
+
 /**
  * The base URL for the PromptLab Store API.
  */
@@ -40,4 +42,122 @@ export const StorageKeys = {
    * Key for the list of UUIDs used in placeholders thus far.
    */
   USED_UUIDS: "--uuids",
-}
+};
+
+export const commandCategories = [
+  {
+    name: "Other",
+    icon: Icon.Circle,
+    color: Color.SecondaryText,
+  },
+  {
+    name: "Calendar",
+    icon: Icon.Calendar,
+    color: Color.Red,
+  },
+  {
+    name: "Data",
+    icon: Icon.List,
+    color: Color.Blue,
+  },
+  {
+    name: "Development",
+    icon: Icon.Terminal,
+    color: Color.PrimaryText,
+  },
+  {
+    name: "Education",
+    icon: Icon.Bookmark,
+    color: Color.Orange,
+  },
+  {
+    name: "Entertainment",
+    icon: Icon.Video,
+    color: Color.Red,
+  },
+  {
+    name: "Files",
+    icon: Icon.Folder,
+    color: Color.Blue,
+  },
+  {
+    name: "Finance",
+    icon: Icon.Coin,
+    color: Color.Green,
+  },
+  {
+    name: "Health",
+    icon: Icon.Heartbeat,
+    color: Color.Red,
+  },
+  {
+    name: "Lifestyle",
+    icon: Icon.Person,
+    color: Color.Green,
+  },
+  {
+    name: "Media",
+    icon: Icon.Image,
+    color: Color.Magenta,
+  },
+  {
+    name: "Meta",
+    icon: Icon.Info,
+    color: Color.SecondaryText,
+  },
+  {
+    name: "News",
+    icon: Icon.Important,
+    color: Color.Blue,
+  },
+  {
+    name: "Productivity",
+    icon: Icon.Checkmark,
+    color: Color.Green,
+  },
+  {
+    name: "Reference",
+    icon: Icon.Book,
+    color: Color.Red,
+  },
+  {
+    name: "Shopping",
+    icon: Icon.Cart,
+    color: Color.Purple,
+  },
+  {
+    name: "Social",
+    icon: Icon.TwoPeople,
+    color: Color.Green,
+  },
+  {
+    name: "Sports",
+    icon: Icon.SoccerBall,
+    color: Color.PrimaryText,
+  },
+  {
+    name: "Travel",
+    icon: Icon.Airplane,
+    color: Color.Yellow,
+  },
+  {
+    name: "Utilities",
+    icon: Icon.Calculator,
+    color: Color.Blue,
+  },
+  {
+    name: "Weather",
+    icon: Icon.CloudSun,
+    color: Color.Blue,
+  },
+  {
+    name: "Web",
+    icon: Icon.Network,
+    color: Color.Red,
+  },
+  {
+    name: "Writing",
+    icon: Icon.Pencil,
+    color: Color.Yellow,
+  },
+];

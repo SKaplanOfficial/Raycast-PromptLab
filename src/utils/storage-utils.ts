@@ -38,4 +38,4 @@ export const loadAdvancedSettingsSync = () => {
     console.error(error);
   }
   return defaultAdvancedSettings;
-}
+};

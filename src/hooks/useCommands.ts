@@ -21,18 +21,20 @@ export function useCommands() {
     const existingIDs = commandObjs.map((command) => command.id);
 
     // Ensure that all commands have a unique ID
-    const newCommands: Command[] = await Promise.all(commandObjs.map(async (command) => {
-      const newCommand = { ...command };
-      if (!command.id || command.id.trim().length == 0) {
-        let newID = crypto.randomUUID();
-        while (existingIDs.includes(newID)) {
-          newID = crypto.randomUUID();
+    const newCommands: Command[] = await Promise.all(
+      commandObjs.map(async (command) => {
+        const newCommand = { ...command };
+        if (!command.id || command.id.trim().length == 0) {
+          let newID = crypto.randomUUID();
+          while (existingIDs.includes(newID)) {
+            newID = crypto.randomUUID();
+          }
+          newCommand.id = newID;
         }
-        newCommand.id = newID;
-      }
-      await LocalStorage.setItem(newCommand.name, JSON.stringify(newCommand));
-      return newCommand;
-    }));
+        await LocalStorage.setItem(newCommand.name, JSON.stringify(newCommand));
+        return newCommand;
+      })
+    );
 
     setCommands(newCommands);
 

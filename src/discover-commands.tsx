@@ -44,7 +44,12 @@ export default function Discover() {
         detail={<CommandListDetail command={command} />}
         actions={
           <ActionPanel>
-            <InstallCommandAction command={command} commands={myCommands} setCommands={setMyCommands} settings={advancedSettings} />
+            <InstallCommandAction
+              command={command}
+              commands={myCommands}
+              setCommands={setMyCommands}
+              settings={advancedSettings}
+            />
             {command.setupConfig?.length ? null : <RunCommandAction command={command} settings={advancedSettings} />}
             <CopyCommandActionsSection command={command} settings={advancedSettings} />
             <CommandControlsActionsSection

@@ -39,7 +39,7 @@ export const defaultModels: { [key: string]: Model } = {
     isDefault: true,
     temperature: "1.0",
   },
-  "--model-claude-instant-v1-100k": {
+  "--model-claude-instant-1-100k": {
     authType: "x-api-key",
     id: "",
     favorited: false,
@@ -51,10 +51,10 @@ export const defaultModels: { [key: string]: Model } = {
     apiKey: "",
     endpoint: "https://api.anthropic.com/v1/complete",
     isDefault: false,
-    name: "claude-instant-v1-100k",
+    name: "claude-instant-1-100k",
     lengthLimit: "95000",
     inputSchema:
-      '{"prompt": "\\n\\n{prompt}\\n\\nAssistant: ", "model": "claude-v1-instant-100k", "max_tokens_to_sample": 3000, "stop_sequences": ["\\n\\nHuman:"], "stream": true }',
+      '{"prompt": "\\n\\nHuman: {{prompt}} \\n\\nAssistant:", "model": "claude-instant-1-100k", "max_tokens_to_sample": 3000, "stream": true }',
     description:
       "An enhanced version of claude-instant-v1 with a 100,000 token context window that retains its performance. Well-suited for high throughput use cases needing both speed and additional context, allowing deeper understanding from extended conversations and documents.",
     temperature: "1.0",

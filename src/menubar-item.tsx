@@ -37,7 +37,8 @@ export default function PromptLabMenubar() {
             (cmd, index) =>
               !Object.keys(commandData)[index].startsWith("--") && !Object.keys(commandData)[index].startsWith("id-")
           )
-          .map((cmd) => JSON.parse(cmd) as Command).sort((a, b) => a.name.localeCompare(b.name))
+          .map((cmd) => JSON.parse(cmd) as Command)
+          .sort((a, b) => a.name.localeCompare(b.name));
         const menubarCommands = allCommands.filter((cmd) => cmd.showInMenuBar);
         setCommands(menubarCommands);
       });
@@ -94,7 +95,10 @@ export default function PromptLabMenubar() {
         ))
     : [];
 
-  const hasOtherCategory = commands?.some((cmd) => !cmd.favorited && (!cmd.categories?.length || (cmd.categories?.length == 1 && cmd.categories[0] == "Other")))
+  const hasOtherCategory = commands?.some(
+    (cmd) =>
+      !cmd.favorited && (!cmd.categories?.length || (cmd.categories?.length == 1 && cmd.categories[0] == "Other"))
+  );
 
   const categories = preferences.displayCategories
     ? commands
@@ -109,12 +113,16 @@ export default function PromptLabMenubar() {
             }
             return acc;
           },
-          hasOtherCategory ? ["Other"] as string[] : []
+          hasOtherCategory ? (["Other"] as string[]) : []
         )
         .map((category) => (
           <MenuBarExtra.Submenu title={category} icon={preferences.displayIcons ? Icon.Tag : undefined} key={category}>
             {commands
-              .filter((cmd) => !cmd.favorited && (cmd.categories?.includes(category) || (category == "Other" && !cmd.categories?.length)))
+              .filter(
+                (cmd) =>
+                  !cmd.favorited &&
+                  (cmd.categories?.includes(category) || (category == "Other" && !cmd.categories?.length))
+              )
               .map((cmd) => (
                 <MenuBarExtra.Item
                   title={cmd.name}
@@ -152,7 +160,10 @@ export default function PromptLabMenubar() {
       ) : favorites.length > 0 ? (
         <MenuBarExtra.Section>{menuItems}</MenuBarExtra.Section>
       ) : menuItems.length == 0 ? (
-        <MenuBarExtra.Item title="No Commands Enabled" tooltip="To display commands in this menu, enable the 'Show In Menu Bar' checkbox in their settings." />
+        <MenuBarExtra.Item
+          title="No Commands Enabled"
+          tooltip="To display commands in this menu, enable the 'Show In Menu Bar' checkbox in their settings."
+        />
       ) : (
         menuItems
       )}

@@ -1,6 +1,5 @@
 import { Action, Alert, Icon, Toast, confirmAlert, showToast } from "@raycast/api";
-import { ChatManager } from "../../../hooks/useChats";
-import { Chat } from "../../../utils/types";
+import { Chat, ChatManager } from "../../../utils/types";
 
 /**
  * Action to delete a chat.

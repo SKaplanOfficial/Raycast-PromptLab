@@ -84,9 +84,17 @@ export const getImageDetails = async (
   imageFaces: string;
   imageEXIFData: string;
 }> => {
-  const imageDetails = await ScriptRunner.ImageFeatureExtractor(filePath, options.useSubjectClassification || false, options.useBarcodeDetection || false, options.useFaceDetection || false, options.useRectangleDetection || false, options.useSaliencyAnalysis || false);
+  const imageDetails = await ScriptRunner.ImageFeatureExtractor(
+    filePath,
+    options.useSubjectClassification || false,
+    options.useBarcodeDetection || false,
+    options.useFaceDetection || false,
+    options.useRectangleDetection || false,
+    options.useSaliencyAnalysis || false
+  );
   const imageVisionInstructions = filterString(imageDetails.output);
-  const exifData = options.useMetadata && !filePath.endsWith(".svg") ? filterString(await getFileExifData(filePath)) : ``;
+  const exifData =
+    options.useMetadata && !filePath.endsWith(".svg") ? filterString(await getFileExifData(filePath)) : ``;
   const exifInstruction = options.useMetadata ? `<EXIF data: ###${exifData}###>` : ``;
   return {
     ...imageDetails,

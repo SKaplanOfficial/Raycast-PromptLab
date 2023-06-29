@@ -44,9 +44,9 @@ export const useSpeech = (options: CommandOptions, isLoading: boolean, response:
 
   useEffect(() => {
     if (!speaking && restartSpeech) {
-        startSpeaking();
-        sendContent.current?.(`$$msg$$${response}`);
-        setRestartSpeech(false);
+      startSpeaking();
+      sendContent.current?.(`$$msg$$${response}`);
+      setRestartSpeech(false);
     }
   }, [speaking, restartSpeech]);
 

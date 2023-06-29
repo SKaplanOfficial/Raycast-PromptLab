@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Chat, ChatStatistics, ExtensionPreferences } from "../utils/types";
+import { Chat, ChatManager, ChatStatistics, ExtensionPreferences } from "../utils/types";
 import * as fs from "fs";
 import { Color, Icon, LocalStorage, environment, getPreferenceValues } from "@raycast/api";
 import { installDefaults } from "../utils/file-utils";
@@ -21,13 +21,71 @@ export function useChats(): ChatManager {
     }
   }, []);
 
+  const createChat = async (name: string, basePrompt: string, options: object, fileExistsAlready = false) => {
+    if (chats.find((chat) => chat.name === name)) {
+      setError("A chat with that name already exists.");
+      return;
+    }
+
+    const chatFile = `${chatsDir}/${name}.txt`;
+    if (!fileExistsAlready) {
+      fs.writeFileSync(chatFile, "");
+    }
+
+    let newChat: Chat = {
+      name: name,
+      icon: Icon.Message,
+      iconColor: Color.Red,
+      basePrompt: basePrompt,
+      favorited: false,
+      contextData: [],
+      condensingStrategy: "summarize",
+      summaryLength: "100",
+      showBasePrompt: true,
+      useSelectedFilesContext: false,
+      useConversationContext: true,
+      allowAutonomy: false,
+      ...options,
+    };
+
+    try {
+      const advancedSettingsValues = JSON.parse(
+        fs.readFileSync(path.join(environment.supportPath, ADVANCED_SETTINGS_FILENAME), "utf-8")
+      );
+      if ("chatDefaults" in advancedSettingsValues) {
+        newChat = { ...advancedSettingsValues.chatDefaults, name: name, basePrompt: basePrompt, contextData: [] };
+      }
+    } catch (error) {
+      console.error(error);
+    }
+
+    await LocalStorage.setItem(`--chat-${name}`, JSON.stringify(newChat));
+    return newChat;
+  };
+
   const loadChats = async () => {
     // Get the chat settings
     setIsLoading(true);
-    const items = await LocalStorage.allItems();
-    const chatObjs = Object.entries(items)
+
+    // Load chats from local storage
+    const localItems = await LocalStorage.allItems();
+    const chatObjs = Object.entries(localItems)
       .filter(([key]) => key.startsWith("--chat-"))
       .map(([, value]) => JSON.parse(value));
+
+    // Load chats from the chats directory
+    const preferences = getPreferenceValues<{ basePrompt: string }>();
+    const chatFiles = fs.readdirSync(chatsDir);
+    for (const chatFile of chatFiles) {
+      const chatName = chatFile.replace(".txt", "");
+      if (chatName.length == 0 || chatName.startsWith(".")) continue;
+      if (chatObjs.find((chat) => chat.name === chatName)) continue;
+      const chat = await createChat(chatName, preferences.basePrompt, {}, true);
+      if (chat) {
+        chatObjs.push(chat);
+      }
+    }
+
     setChats(chatObjs);
     setIsLoading(false);
   };
@@ -44,41 +102,6 @@ export function useChats(): ChatManager {
 
   const favorites = () => {
     return chats.filter((chat) => chat.favorited);
-  };
-
-  const createChat = async (name: string, basePrompt: string) => {
-    if (chats.find((chat) => chat.name === name)) {
-      setError("A chat with that name already exists.");
-      return;
-    }
-
-    const chatFile = `${chatsDir}/${name}.txt`;
-    fs.writeFileSync(chatFile, "");
-
-    let newChat: Chat = {
-      name: name,
-      icon: Icon.Message,
-      iconColor: Color.Red,
-      basePrompt: basePrompt,
-      favorited: false,
-      contextData: [],
-      condensingStrategy: "summarize",
-      summaryLength: "100",
-    };
-
-    try {
-      const advancedSettingsValues = JSON.parse(
-        fs.readFileSync(path.join(environment.supportPath, ADVANCED_SETTINGS_FILENAME), "utf-8")
-      );
-      if ("chatDefaults" in advancedSettingsValues) {
-        newChat = { ...advancedSettingsValues.chatDefaults, name: name, basePrompt: basePrompt, contextData: [] };
-      }
-    } catch (error) {
-      console.error(error);
-    }
-
-    await LocalStorage.setItem(`--chat-${name}`, JSON.stringify(newChat));
-    return newChat;
   };
 
   const deleteChat = async (name: string) => {
@@ -100,6 +123,11 @@ export function useChats(): ChatManager {
   const appendToChat = async (chat: Chat, text: string) => {
     const chatFile = `${chatsDir}/${chat.name}.txt`;
     fs.appendFileSync(chatFile, `${text}\n`);
+  };
+
+  const setChatProperty = async (chat: Chat, property: string, value: string | boolean) => {
+    const newChat = { ...chat, [property]: value };
+    await LocalStorage.setItem(`--chat-${chat.name}`, JSON.stringify(newChat));
   };
 
   const updateChat = async (name: string, chatData: Chat) => {
@@ -270,27 +298,9 @@ export function useChats(): ChatManager {
     loadConversation: loadConversation,
     favorites: favorites,
     checkExists: checkExists,
+    setChatProperty: setChatProperty,
     updateChat: updateChat,
     getChatContents: getChatContents,
     calculateStats: calculateStats,
   };
-}
-
-/**
- * Wrapper type for the chat manager returned by {@link useChats}.
- */
-export type ChatManager = {
-  chats: Chat[];
-  isLoading: boolean;
-  error: string | undefined;
-  revalidate: () => Promise<void>;
-  createChat: (name: string, basePrompt: string) => Promise<Chat | undefined>;
-  deleteChat: (name: string) => Promise<void>;
-  appendToChat: (chat: Chat, text: string) => Promise<void>;
-  loadConversation: (chatName: string) => string[] | undefined;
-  favorites: () => Chat[];
-  checkExists: (chat: Chat) => boolean;
-  updateChat: (name: string, chatData: Chat) => Promise<void>;
-  getChatContents: (chat: Chat) => string;
-  calculateStats: (chatName: string) => ChatStatistics;
 }

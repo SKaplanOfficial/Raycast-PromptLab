@@ -8,7 +8,7 @@ PromptLab allows you to create custom AI commands with prompts that utilize cont
 
 PromptLab also supports "action scripts" -- AppleScripts which run with the AI's response as input, as well as experimental autonomous agent features that allow the AI to run commands on your behalf. These capabilities, paired with PromptLab's extensive customization options, open a whole new world of possibilities for enhancing your workflows with AI.
 
-[My Other Extensions](https://www.raycast.com/HelloImSteven) | [Donate](https://www.paypal.com/donate/?hosted_button_id=2XFX5UXXR8M6J)
+[Install PromptLab](https://www.raycast.com/HelloImSteven/promptlab) | [My Other Extensions](https://www.raycast.com/HelloImSteven) | [Donate](https://www.paypal.com/donate/?hosted_button_id=2XFX5UXXR8M6J)
 
 ## Table Of Contents
 
@@ -232,7 +232,7 @@ Contributions are welcome! Please see the [contributing guidelines](./CONTRIBUTI
     - Favorite Chats [example](./examples/promptlab-1.1.0/favoriteChats.png)
     - Chat Statistics [example](./examples/promptlab-1.1.0/chatStats.png)
 - Command Setup On Install
-    - Custom Configuration Fields [example](./examples/promptlab-1.1.0/commandConfig.png) [example2](./examples/promptlab-1.1.0/commandConfig2.png) [example](./examples/promptlab-1.1.0/)
+    - Custom Configuration Fields [example](./examples/promptlab-1.1.0/commandConfig.png) [example2](./examples/promptlab-1.1.0/commandConfig2.png) [example3](./examples/promptlab-1.1.0/)
     - Post-Install Configuration [example](./examples/promptlab-1.1.0/commandConfig4.png)
 - Spoken Responses
 - Voice Input

@@ -1,6 +1,6 @@
 import { AI, environment, getPreferenceValues } from "@raycast/api";
 import { useAI } from "@raycast/utils";
-import { ExtensionPreferences, Model, modelOutput } from "../utils/types";
+import { ExtensionPreferences, Model, JSONObject } from "../utils/types";
 import { useEffect, useRef, useState } from "react";
 import fetch, { Response } from "node-fetch";
 import { useModels } from "./useModels";
@@ -23,14 +23,23 @@ export default function useModel(
 ) {
   const preferences = getPreferenceValues<ExtensionPreferences>();
   const [data, setData] = useState<string>("");
-  const [error, setError] = useState<string>();
+  const [error] = useState<string>();
   const [dataTag, setDataTag] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(execute);
   const models = useModels();
   const AIRef = useRef<{ fetch: Promise<Response>; tag: string; forceStop: () => void }>();
 
   // We can be a little forgiving of how users specify Raycast AI
-  const validRaycastAIReps = ["raycast ai", "raycastai", "raycast", "raycast-ai", "raycast ai 3.5", "raycast gpt 4", "raycast 4", "raycast ai 4"];
+  const validRaycastAIReps = [
+    "raycast ai",
+    "raycastai",
+    "raycast",
+    "raycast-ai",
+    "raycast ai 3.5",
+    "raycast gpt 4",
+    "raycast 4",
+    "raycast ai 4",
+  ];
   const fallbackModel: Model = {
     endpoint: "Raycast AI",
     authType: "",
@@ -82,7 +91,7 @@ export default function useModel(
     : 1.0;
 
   // Get the value at the specified key path
-  const get = (obj: modelOutput | string, pathString: string, def?: string) => {
+  const get = (obj: JSONObject | string | string[] | JSONObject[], pathString: string, def?: string) => {
     const path: string[] = [];
 
     // Split the key path string into an array of keys
@@ -100,8 +109,8 @@ export default function useModel(
     let current = obj;
     if (typeof current == "object") {
       for (let i = 0; i < path.length; i++) {
-        if (!(current as modelOutput)[path[i]]) return def;
-        current = (current as modelOutput)[path[i]];
+        if (!(current as JSONObject)[path[i]]) return def;
+        current = (current as JSONObject)[path[i]];
       }
     }
     return current;
@@ -189,7 +198,7 @@ export default function useModel(
       ?.then((response) => {
         if (response.ok && targetModel.outputTiming == "sync") {
           response.json().then((json) => {
-            const output = get(json as modelOutput, targetModel.outputKeyPath) as string;
+            const output = get(json as JSONObject, targetModel.outputKeyPath) as string;
             setData(output);
           });
         } else if (response.ok && targetModel.outputTiming == "async") {

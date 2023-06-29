@@ -10,7 +10,10 @@ import { isActionEnabled } from "../../actions/action-utils";
  * @param props.command The command to share.
  * @returns {JSX.Element} The action component.
  */
-export default function ShareCommandAction(props: { command: Command, settings: typeof defaultAdvancedSettings }): JSX.Element | null {
+export default function ShareCommandAction(props: {
+  command: Command;
+  settings: typeof defaultAdvancedSettings;
+}): JSX.Element | null {
   const { command, settings } = props;
 
   if (!isActionEnabled("ShareCommandAction", settings)) {

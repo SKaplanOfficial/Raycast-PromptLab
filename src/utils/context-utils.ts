@@ -1,7 +1,7 @@
 import { runAppleScript } from "run-applescript";
 import * as os from "os";
 import { getPreferenceValues } from "@raycast/api";
-import { ExtensionPreferences } from "./types";
+import { ExtensionPreferences, JSONObject } from "./types";
 import fetch from "node-fetch";
 
 /**
@@ -49,6 +49,16 @@ const getCurrentSafariURL = async (): Promise<string> => {
             return URL of document 1
         end tell
     end try`);
+};
+
+/**
+ * Gets the visible text of the active tab in Safari (avoiding paywalls and other issues with the URL).
+ * @returns A promise which resolves to the visible text of the active tab as a string.
+ */
+export const getSafariTabText = async (): Promise<string> => {
+  return runAppleScript(`try
+    tell application "Safari" to return text of current tab of window 1
+  end try`);
 };
 
 /**
@@ -257,13 +267,6 @@ export const getURLHTML = async (URL: string): Promise<string> => {
   const request = await fetch(URL);
   return await request.text();
 };
-
-/**
- * A JSON object returned by {@link getJSONResponse}.
- */
-interface JSONObject {
-  [key: string]: string | JSONObject;
-}
 
 /**
  * Gets the JSON objects returned from a URL.

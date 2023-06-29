@@ -665,6 +665,7 @@ export const defaultCommands = {
     useSubjectClassification: false,
     icon: "app-window-16",
     useMetadata: false,
+    showInMenuBar: true,
   },
   "Compose Tweet": {
     name: "Compose Tweet",
@@ -1081,7 +1082,7 @@ export const defaultCommands = {
     setupLocked: false,
     useSpeech: false,
     speakResponse: false,
-    showInMenuBar: false,
+    showInMenuBar: true,
     favorited: false,
   },
   "Extract Phone Numbers": {
@@ -1182,7 +1183,7 @@ export const defaultCommands = {
     setupLocked: false,
     useSpeech: false,
     speakResponse: false,
-    showInMenuBar: false,
+    showInMenuBar: true,
     favorited: false,
   },
   "Historical Context": {
@@ -1272,7 +1273,8 @@ export const defaultCommands = {
     useBarcodeDetection: false,
     useAudioDetails: false,
     iconColor: "raycast-blue",
-    categories: ["Weather"],
+    categories: ["Weather", "Data"],
+    showInMenuBar: true,
     favorited: false,
   },
   "Make Jingle": {

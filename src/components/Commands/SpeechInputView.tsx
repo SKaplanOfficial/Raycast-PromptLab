@@ -3,12 +3,10 @@ import { useEffect, useState } from "react";
 import { execScript } from "../../utils/scripts";
 import path from "path";
 
-interface SpeechInputProps {
+export default function SpeechInputView(props: {
   prompt: string;
   setSpeechInput: React.Dispatch<React.SetStateAction<string | undefined>>;
-}
-
-export default function SpeechInputView(props: SpeechInputProps) {
+}) {
   const { prompt, setSpeechInput } = props;
   const [currentInput, setCurrentInput] = useState<string>("");
 

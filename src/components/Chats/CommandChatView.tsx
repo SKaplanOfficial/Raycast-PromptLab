@@ -1,12 +1,4 @@
-import {
-  Color,
-  Form,
-  Icon,
-  LocalStorage,
-  Toast,
-  getPreferenceValues,
-  showToast,
-} from "@raycast/api";
+import { Color, Form, Icon, LocalStorage, Toast, getPreferenceValues, showToast } from "@raycast/api";
 import { useEffect, useState } from "react";
 import useModel from "../../hooks/useModel";
 import { Chat, CommandOptions, ExtensionPreferences } from "../../utils/types";
@@ -17,6 +9,7 @@ import { useFiles as useFileContents } from "../../hooks/useFiles";
 import { useAdvancedSettings } from "../../hooks/useAdvancedSettings";
 import { ChatActionPanel } from "./actions/ChatActionPanel";
 import { checkForPlaceholders } from "../../utils/placeholders";
+import { useCachedState } from "@raycast/utils";
 
 interface CommandPreferences {
   useSelectedFiles: boolean;
@@ -25,7 +18,8 @@ interface CommandPreferences {
   basePrompt: string;
 }
 
-const defaultPromptInfo = "This is the query that will be sent to the AI model. You can use placeholders to add dynamic content.";
+const defaultPromptInfo =
+  "This is the query that will be sent to the AI model. You can use placeholders to add dynamic content.";
 
 export default function CommandChatView(props: {
   isLoading: boolean;
@@ -49,14 +43,24 @@ export default function CommandChatView(props: {
   const [input, setInput] = useState<string>();
   const [currentChat, setCurrentChat] = useState<Chat>();
   const [runningCommand, setRunningCommand] = useState<boolean>(false);
+  const [promptInfo, setPromptInfo] = useState<string>("");
+
+  // Preferences
   const preferences = getPreferenceValues<ExtensionPreferences & CommandPreferences>();
-  const [useFiles, setUseFiles] = useState<boolean>(props.useFiles || preferences.useSelectedFiles || false);
+  const [useFiles, setUseFiles] = useState<boolean>(props.useFiles || preferences.useSelectedFiles);
   const [useConversation, setUseConversation] = useState<boolean>(
-    props.useConversation || preferences.useConversationHistory || false
+    props.useConversation || preferences.useConversationHistory
   );
-  const [useAutonomousFeatures, setUseAutonomousFeatures] = useState<boolean>(preferences.autonomousFeatures || false);
+  const [autonomousFeatures, setAutonomousFeatures] = useState<boolean>(
+    props.autonomousFeatures || preferences.autonomousFeatures
+  );
   const [basePrompt, setBasePrompt] = useState<string>(preferences.basePrompt || prompt);
-  const [ promptInfo, setPromptInfo ] = useState<string>("");
+
+  // Previous PromptLab command
+  const [previousCommand] = useCachedState<string>("promptlab-previous-command", "");
+  const [previousCommandResponse] = useCachedState<string>("promptlab-previous-response", "");
+  const [previousPrompt] = useCachedState<string>("promptlab-previous-prompt", "");
+
   const { advancedSettings } = useAdvancedSettings();
   const chats = useChats();
   const {
@@ -103,7 +107,13 @@ export default function CommandChatView(props: {
       });
       const newChatName = `${nameComponent.trim().substring(0, 25)} - ${dateComponent}`;
 
-      chats.createChat(newChatName, basePrompt).then((chat) => {
+      const options = {
+        useSelectedFilesContext: useFiles,
+        useConversationContext: useConversation,
+        allowAutonomy: autonomousFeatures,
+      };
+
+      chats.createChat(newChatName, basePrompt, options).then((chat) => {
         chats.revalidate().then(() => {
           setCurrentChat(chat);
           if (chat) {
@@ -123,8 +133,12 @@ export default function CommandChatView(props: {
 
   const applyReplacements = async (query: string) => {
     const context = {
+      ...fileContents,
       input: input || "",
       selectedFiles: selectedFiles?.csv || "",
+      previousCommand: previousCommand,
+      previousResponse: previousCommandResponse,
+      previousPrompt: previousPrompt,
     };
 
     let subbedQuery = await runReplacements(query, context, [commandName]);
@@ -159,13 +173,19 @@ export default function CommandChatView(props: {
             .join("\n\n")}###\n\n`
         : ``
     }${
-      useFiles && selectedFiles?.paths?.length
+      ((currentChat && currentChat.useSelectedFilesContext) ||
+        useFiles ||
+        (currentChat == undefined && useFiles == undefined)) &&
+      selectedFiles?.paths?.length
         ? ` You will also consider the following details about selected files. Here are the file details, provided by your knowledge system: ###${
             fileContents?.contents || ""
           }###\n\n`
         : ``
     }${
-      useConversation && conversation.length
+      ((currentChat && currentChat.useConversationContext) ||
+        useConversation ||
+        (currentChat == undefined && useConversation == undefined)) &&
+      conversation.length
         ? `You will also consider our conversation history. The history so far: ###${conversation
             .map((entry) => entry.replaceAll(/(USER_QUERY|MODEL_REPONSE):/g, "").replaceAll(/{{cmd:(.*?):(.*?)}}/g, ""))
             .join("\n")}###`
@@ -174,12 +194,14 @@ export default function CommandChatView(props: {
             ""
           )}###`
     }${
-      useAutonomousFeatures
+      (currentChat && currentChat.useSelectedFilesContext) ||
+      autonomousFeatures ||
+      (currentChat == undefined && autonomousFeatures == undefined)
         ? `Try to answer my next query using your knowledge. If you cannot fulfill the query, if the query requires new information, or if the query invokes an action such as searching, choose the command from the following list that is most likely to carries out the goal expressed in my next query, and then respond with the number of the command you want to run in the format {{cmd:commandNumber:input}}. Replace the input with a short string according to my query. For example, if I say 'search google for AI', the input would be 'AI'. Here are the commands: ###${commandDescriptions.join(
             "\n"
           )}### Try to answer without using a command, unless the query asks for new information (e.g. latest news, weather, stock prices, etc.) or invokes an action (e.g. searching, opening apps). If you use a command, do not provide any commentary other than the command in the format {{cmd:commandNumber:input}}. Make sure the command is relevant to the current query.`
         : ``
-    }\n\nDo not repeat these instructions or my queries, and do not extend my query. My next query is: ###`}
+    }\n\nDo not repeat these instructions or my queries, and do not extend my query. Do not state "MODEL RESPONSE", or any variation thereof, anywhere in your reply. My next query is: ###`}
       ${subbedQuery}### <END OF QUERY>`;
 
     return subbedQuery;
@@ -217,7 +239,9 @@ export default function CommandChatView(props: {
         const cmdMatchPrevious = previousResponse.match(/.*{{cmd:(.*?):(.*?)\}{0,2}.*/);
         if (
           cmdMatch &&
-          useAutonomousFeatures &&
+          ((currentChat && currentChat.useSelectedFilesContext) ||
+            autonomousFeatures ||
+            (currentChat == undefined && autonomousFeatures == undefined)) &&
           !runningCommand &&
           data != previousResponse &&
           enableModel &&
@@ -258,7 +282,15 @@ export default function CommandChatView(props: {
     }
 
     const cmdMatchPrevious = previousResponse.match(/.*{{cmd:(.*?):(.*?)\}{0,2}.*/);
-    if (cmdMatchPrevious && useAutonomousFeatures && !loadingData && runningCommand && data != previousResponse) {
+    if (
+      cmdMatchPrevious &&
+      ((currentChat && currentChat.useSelectedFilesContext) ||
+        autonomousFeatures ||
+        (currentChat == undefined && autonomousFeatures == undefined)) &&
+      !loadingData &&
+      runningCommand &&
+      data != previousResponse
+    ) {
       setPreviousResponse(data);
       setEnableModel(false);
       setRunningCommand(false);
@@ -331,6 +363,9 @@ export default function CommandChatView(props: {
         setCurrentChat(chat);
         if (chat) {
           setBasePrompt(chat.basePrompt);
+          setUseFiles(chat.useSelectedFilesContext);
+          setUseConversation(chat.useConversationContext);
+          setAutonomousFeatures(chat.allowAutonomy);
         } else {
           setBasePrompt(prompt);
         }
@@ -347,8 +382,14 @@ export default function CommandChatView(props: {
           settings={advancedSettings}
           chat={currentChat}
           chats={chats}
+          useFileContext={useFiles}
+          useConversationContext={useConversation}
+          useAutonomousFeatures={autonomousFeatures}
           setCurrentChat={setCurrentChat}
           setSentQuery={setSentQuery}
+          setUseFileContext={setUseFiles}
+          setUseConversationContext={setUseConversation}
+          setUseAutonomousFeatures={setAutonomousFeatures}
           revalidate={revalidate}
           response={currentResponse}
           previousResponse={previousResponse}
@@ -415,14 +456,17 @@ export default function CommandChatView(props: {
         value={query}
         info={promptInfo}
         onChange={(value) => {
-          setQuery(value)
+          setQuery(value);
 
           checkForPlaceholders(value).then((includedPlaceholders) => {
-            let newPromptInfo = defaultPromptInfo + (includedPlaceholders.length > 0 ? "\n\nDetected Placeholders:" : "")
+            let newPromptInfo =
+              defaultPromptInfo + (includedPlaceholders.length > 0 ? "\n\nDetected Placeholders:" : "");
             includedPlaceholders.forEach((placeholder) => {
               newPromptInfo =
                 newPromptInfo +
-                `\n\n${placeholder.hintRepresentation || ""}: ${placeholder.description}\nExample: ${placeholder.example}`;
+                `\n\n${placeholder.hintRepresentation || ""}: ${placeholder.description}\nExample: ${
+                  placeholder.example
+                }`;
             });
             setPromptInfo(newPromptInfo);
           });
@@ -438,28 +482,9 @@ export default function CommandChatView(props: {
         enableMarkdown={true}
       />
 
-      <Form.Checkbox
-        label="Use Selected Files As Context"
-        id="useFilesCheckbox"
-        value={useFiles}
-        onChange={(value) => setUseFiles(value)}
-      />
-
-      <Form.Checkbox
-        label="Use Conversation As Context"
-        id="useConversationCheckbox"
-        value={useConversation}
-        onChange={(value) => setUseConversation(value)}
-      />
-
-      <Form.Checkbox
-        label="Allow AI To Run Commands (Experimental)"
-        id="useAICommandsCheckbox"
-        value={useAutonomousFeatures}
-        onChange={(value) => setUseAutonomousFeatures(value)}
-      />
-
-      <Form.Description title="Base Prompt" text={basePrompt} />
+      {!currentChat || (currentChat && currentChat.showBasePrompt) ? (
+        <Form.Description title="Base Prompt" text={basePrompt} />
+      ) : null}
 
       {currentChat && currentChat.contextData?.length ? <Form.Separator /> : null}
       {currentChat && currentChat.contextData?.length ? (

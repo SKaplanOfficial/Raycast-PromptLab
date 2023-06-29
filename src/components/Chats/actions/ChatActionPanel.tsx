@@ -2,22 +2,29 @@ import { Action, ActionPanel, Form, Icon } from "@raycast/api";
 import { ToggleChatFavoriteAction } from "./ToggleChatFavoriteAction";
 import { ExportChatAction } from "./ExportChatAction";
 import { DeleteAllChatsAction, DeleteChatAction } from "./DeleteChatActions";
-import { ChatManager } from "../../../hooks/useChats";
-import { Chat } from "../../../utils/types";
 import { defaultAdvancedSettings } from "../../../data/default-advanced-settings";
 import ChatSettingsForm from "../ChatSettingsForm";
 import { CopyChatActionsSection } from "./CopyChatActions";
 import { anyActionsEnabled, isActionEnabled } from "../../actions/action-utils";
 import { AdvancedActionSubmenu } from "../../actions/AdvancedActionSubmenu";
+import ContextSettingsActionSection from "./ContextSettingsActionSection";
+import { Chat, ChatManager } from "../../../utils/types";
 
 /**
- * Actions panel for the Chat command. 
+ * Actions panel for the Chat command.
  */
 export const ChatActionPanel = (props: {
   isLoading: boolean;
   chat: Chat | undefined;
   chats: ChatManager;
+  useFileContext: boolean;
+  useConversationContext: boolean;
+  useAutonomousFeatures: boolean;
   setCurrentChat: (value: React.SetStateAction<Chat | undefined>) => void;
+  setSentQuery: React.Dispatch<React.SetStateAction<string>>;
+  setUseFileContext: React.Dispatch<React.SetStateAction<boolean>>;
+  setUseConversationContext: React.Dispatch<React.SetStateAction<boolean>>;
+  setUseAutonomousFeatures: React.Dispatch<React.SetStateAction<boolean>>;
   response: string;
   previousResponse: string;
   query: string;
@@ -25,7 +32,6 @@ export const ChatActionPanel = (props: {
   onSubmit: (values: Form.Values) => void;
   onCancel: () => void;
   settings: typeof defaultAdvancedSettings;
-  setSentQuery: React.Dispatch<React.SetStateAction<string>>;
   revalidate: () => void;
 }) => {
   const {
@@ -33,8 +39,14 @@ export const ChatActionPanel = (props: {
     settings,
     chat,
     chats,
+    useFileContext,
+    useConversationContext,
+    useAutonomousFeatures,
     setCurrentChat,
     setSentQuery,
+    setUseFileContext,
+    setUseConversationContext,
+    setUseAutonomousFeatures,
     response,
     previousResponse,
     query,
@@ -51,31 +63,64 @@ export const ChatActionPanel = (props: {
         <Action.SubmitForm title="Submit Query" onSubmit={onSubmit} />
       )}
 
-      {anyActionsEnabled(["ChatSettingsAction", "ToggleChatFavoriteAction", "ExportChatAction", "DeleteChatAction", "DeleteAllChatsAction"], settings) ?
-      <ActionPanel.Section title="Chat Actions">
-        {chat && isActionEnabled("ChatSettingsAction", settings) ? (
-          <Action.Push
-            title="Chat Settings..."
-            icon={Icon.Gear}
-            target={<ChatSettingsForm oldData={chat} chats={chats} setCurrentChat={setCurrentChat} settings={settings} />}
-            shortcut={{ modifiers: ["cmd", "shift"], key: "," }}
-          />
-        ) : null}
+      <ContextSettingsActionSection
+        chat={chat}
+        chats={chats}
+        useFileContext={useFileContext}
+        useConversationContext={useConversationContext}
+        useAutonomousFeatures={useAutonomousFeatures}
+        setUseFileContext={setUseFileContext}
+        setUseConversationContext={setUseConversationContext}
+        setUseAutonomousFeatures={setUseAutonomousFeatures}
+      />
 
-        {isActionEnabled("ToggleChatFavoriteAction", settings) ? <ToggleChatFavoriteAction chat={chat} chats={chats} setCurrentChat={setCurrentChat} /> : null}
+      {anyActionsEnabled(
+        [
+          "ChatSettingsAction",
+          "ToggleChatFavoriteAction",
+          "ExportChatAction",
+          "DeleteChatAction",
+          "DeleteAllChatsAction",
+        ],
+        settings
+      ) ? (
+        <ActionPanel.Section title="Chat Actions">
+          {chat && isActionEnabled("ChatSettingsAction", settings) ? (
+            <Action.Push
+              title="Edit Chat Settings..."
+              icon={Icon.Gear}
+              target={
+                <ChatSettingsForm oldData={chat} chats={chats} setCurrentChat={setCurrentChat} settings={settings} />
+              }
+              shortcut={{ modifiers: ["cmd", "shift"], key: "," }}
+            />
+          ) : null}
 
-        {chat && isActionEnabled("ExportChatAction", settings) ? <ExportChatAction chat={chat} chats={chats} /> : null}
+          {isActionEnabled("ToggleChatFavoriteAction", settings) ? (
+            <ToggleChatFavoriteAction chat={chat} chats={chats} setCurrentChat={setCurrentChat} />
+          ) : null}
 
-        {chat && isActionEnabled("DeleteChatAction", settings) ? <DeleteChatAction chat={chat} chats={chats} setCurrentChat={setCurrentChat} /> : null}
-        {isActionEnabled("DeleteAllChatsAction", settings) ? <DeleteAllChatsAction chats={chats} setCurrentChat={setCurrentChat} /> : null}
-      </ActionPanel.Section> : null}
+          {chat && isActionEnabled("ExportChatAction", settings) ? (
+            <ExportChatAction chat={chat} chats={chats} />
+          ) : null}
 
-      {isActionEnabled("RegenerateChatAction", settings) ? <Action
-        title="Regenerate"
-        icon={Icon.ArrowClockwise}
-        onAction={previousResponse?.length ? () => setSentQuery(query + " ") : revalidate}
-        shortcut={{ modifiers: ["cmd"], key: "r" }}
-      /> : null}
+          {chat && isActionEnabled("DeleteChatAction", settings) ? (
+            <DeleteChatAction chat={chat} chats={chats} setCurrentChat={setCurrentChat} />
+          ) : null}
+          {chats.chats.length > 0 && isActionEnabled("DeleteAllChatsAction", settings) ? (
+            <DeleteAllChatsAction chats={chats} setCurrentChat={setCurrentChat} />
+          ) : null}
+        </ActionPanel.Section>
+      ) : null}
+
+      {isActionEnabled("RegenerateChatAction", settings) ? (
+        <Action
+          title="Regenerate"
+          icon={Icon.ArrowClockwise}
+          onAction={previousResponse?.length ? () => setSentQuery(query + " ") : revalidate}
+          shortcut={{ modifiers: ["cmd"], key: "r" }}
+        />
+      ) : null}
 
       <CopyChatActionsSection response={response} query={query} basePrompt={basePrompt} settings={settings} />
 

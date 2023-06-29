@@ -33,9 +33,11 @@ export default function ManageModels() {
 
   const [favorites, otherModels] = models.models.reduce(
     (acc, model) => {
-      model.favorited ? acc[0].push(model) : acc[1].push(model)
-      return acc
-    }, [[], []] as [Model[], Model[]])
+      model.favorited ? acc[0].push(model) : acc[1].push(model);
+      return acc;
+    },
+    [[], []] as [Model[], Model[]]
+  );
 
   return (
     <List

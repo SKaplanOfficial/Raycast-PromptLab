@@ -83,7 +83,7 @@ export default function CommandResponse(props: {
     input || contentPromptString,
     options.temperature == undefined ? "1.0" : options.temperature,
     substitutedPrompt.trim().length > 0 &&
-    !loadingData &&
+      !loadingData &&
       (!options.minNumFiles || (fileContents?.contents?.length != undefined && fileContents.contents.length > 0)) &&
       !shouldCancel &&
       (!options.useSpeech || (speechInput != "" && speechInput != undefined)),
@@ -158,8 +158,8 @@ export default function CommandResponse(props: {
     );
   }
 
-   // Don't show the response if the user has disabled it
-   if (options.showResponse == false || (!loadingData && substitutedPrompt == "")) {
+  // Don't show the response if the user has disabled it
+  if (options.showResponse == false || (!loadingData && substitutedPrompt == "")) {
     if (options.showResponse == false) {
       Promise.resolve(showHUD(`Running '${commandName}'...`));
     }

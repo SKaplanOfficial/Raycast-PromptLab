@@ -7,7 +7,7 @@ import path from "path";
 
 /**
  * Hook for managing advanced settings.
- * @returns 
+ * @returns
  */
 export const useAdvancedSettings = () => {
   const [advancedSettings, setAdvancedSettings] = useState(defaultAdvancedSettings);

@@ -224,6 +224,7 @@
       "preferences": [
         {
           "name": "groupByCategory",
+          "title": "Search Settings",
           "label": "Group Commands By Category",
           "type": "checkbox",
           "default": false,
@@ -277,7 +278,7 @@
           "type": "textfield",
           "required": false,
           "default": "I want you to act as an interactive information engine. When I supply a question, you will respond with an answer based on any information I've provided and your own inferences.",
-          "description": "The base prompt that provides the initial context for the conversation."
+          "description": "The base prompt that provides the initial context for conversations."
         }
       ]
     },
@@ -367,7 +368,7 @@
           "name": "displayCategories",
           "label": "Display Categories",
           "type": "checkbox",
-          "default": true,
+          "default": false,
           "description": "Whether to separate commands by category.",
           "required": false
         }

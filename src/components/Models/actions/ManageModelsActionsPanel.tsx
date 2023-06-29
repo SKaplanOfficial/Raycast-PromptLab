@@ -11,26 +11,44 @@ import { defaultAdvancedSettings } from "../../../data/default-advanced-settings
 import { anyActionsEnabled } from "../../actions/action-utils";
 import { Model, ModelManager } from "../../../utils/types";
 
-export default function ManageModelsActionPanel(props: { model: Model, models: ModelManager, settings: typeof defaultAdvancedSettings }) {
-    const { model, models, settings } = props;
+export default function ManageModelsActionPanel(props: {
+  model: Model;
+  models: ModelManager;
+  settings: typeof defaultAdvancedSettings;
+}) {
+  const { model, models, settings } = props;
 
-    return (
-        <ActionPanel>
-            <AddNewModelAction models={models} settings={settings} />
-            {anyActionsEnabled(["EditModelAction", "ToggleModelFavoriteAction", "ToggleModelDefaultAction", "CopyModelJSONAction", "CopyAllModelsJSONAction", "CreateModelDerivativeAction", "DeleteModelAction", "DeleteAllModelsAction"], settings) ? <ActionPanel.Section title="Model Actions">
-              <EditModelAction model={model} models={models} settings={settings} />
-              <ToggleModelFavoriteAction model={model} models={models} settings={settings} />
-              <ToggleModelDefaultAction model={model} models={models} settings={settings} />
+  return (
+    <ActionPanel>
+      <AddNewModelAction models={models} settings={settings} />
+      {anyActionsEnabled(
+        [
+          "EditModelAction",
+          "ToggleModelFavoriteAction",
+          "ToggleModelDefaultAction",
+          "CopyModelJSONAction",
+          "CopyAllModelsJSONAction",
+          "CreateModelDerivativeAction",
+          "DeleteModelAction",
+          "DeleteAllModelsAction",
+        ],
+        settings
+      ) ? (
+        <ActionPanel.Section title="Model Actions">
+          <EditModelAction model={model} models={models} settings={settings} />
+          <ToggleModelFavoriteAction model={model} models={models} settings={settings} />
+          <ToggleModelDefaultAction model={model} models={models} settings={settings} />
 
-              <CopyModelJSONAction model={model} settings={settings} />
-              <CopyAllModelsJSONAction models={models} settings={settings} />
+          <CopyModelJSONAction model={model} settings={settings} />
+          <CopyAllModelsJSONAction models={models} settings={settings} />
 
-              <CreateModelDerivativeAction model={model} models={models} settings={settings} />
+          <CreateModelDerivativeAction model={model} models={models} settings={settings} />
 
-              <DeleteModelAction model={model} models={models} settings={settings} />
-              <DeleteAllModelsAction models={models} settings={settings} />
-            </ActionPanel.Section> : null}
-            <AdvancedActionSubmenu settings={settings} />
-          </ActionPanel>
-    )
+          <DeleteModelAction model={model} models={models} settings={settings} />
+          <DeleteAllModelsAction models={models} settings={settings} />
+        </ActionPanel.Section>
+      ) : null}
+      <AdvancedActionSubmenu settings={settings} />
+    </ActionPanel>
+  );
 }
