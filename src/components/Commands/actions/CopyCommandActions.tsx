@@ -4,7 +4,7 @@ import { Command, ExtensionPreferences, StoreCommand, isCommand } from "../../..
 import path from "path";
 import * as fs from "fs";
 import { defaultAdvancedSettings } from "../../../data/default-advanced-settings";
-import { isActionEnabled } from "../../actions/action-utils";
+import { isActionEnabled } from "../../../utils/action-utils";
 
 /**
  * Action panel section for actions related to copying command data to the clipboard.

@@ -6,7 +6,7 @@ import {
 } from "../../utils/constants";
 import path from "path";
 import { defaultAdvancedSettings } from "../../data/default-advanced-settings";
-import { isActionEnabled } from "./action-utils";
+import { isActionEnabled } from "../../utils/action-utils";
 
 /**
  * Action to open the placeholders guide in the default markdown text editor.

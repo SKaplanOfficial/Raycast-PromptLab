@@ -1,5 +1,5 @@
 import { environment } from "@raycast/api";
-import { defaultAdvancedSettings } from "../../data/default-advanced-settings";
+import { defaultAdvancedSettings } from "../data/default-advanced-settings";
 
 export const isActionEnabled = (actionName: string, advancedSettings: typeof defaultAdvancedSettings): boolean => {
   const cmdName = environment.commandName;

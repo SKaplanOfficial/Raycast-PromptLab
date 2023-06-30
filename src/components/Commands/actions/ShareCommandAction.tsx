@@ -3,7 +3,7 @@ import { Command, StoreCommand } from "../../../utils/types";
 import { STORE_ENDPOINT, STORE_KEY } from "../../../utils/constants";
 import fetch from "node-fetch";
 import { defaultAdvancedSettings } from "../../../data/default-advanced-settings";
-import { isActionEnabled } from "../../actions/action-utils";
+import { isActionEnabled } from "../../../utils/action-utils";
 
 /**
  * Action to share a command to the PromptLab store.

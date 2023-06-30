@@ -44,6 +44,9 @@ export const StorageKeys = {
   USED_UUIDS: "--uuids",
 };
 
+/**
+ * Command categories and their icons/icon colors.
+ */
 export const commandCategories = [
   {
     name: "Other",

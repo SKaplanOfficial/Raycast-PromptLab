@@ -4,7 +4,7 @@ import CommandForm from "../CommandForm";
 import { QUICKLINK_URL_BASE } from "../../../utils/constants";
 import { updateCommand } from "../../../utils/command-utils";
 import { defaultAdvancedSettings } from "../../../data/default-advanced-settings";
-import { anyActionsEnabled } from "../../actions/action-utils";
+import { anyActionsEnabled } from "../../../utils/action-utils";
 
 /**
  * Section for actions related to modifying commands (editing, deleting, etc.).

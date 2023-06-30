@@ -1,7 +1,7 @@
 import { Action } from "@raycast/api";
 import { defaultAdvancedSettings } from "../../../data/default-advanced-settings";
 import { Model, ModelManager } from "../../../utils/types";
-import { isActionEnabled } from "../../actions/action-utils";
+import { isActionEnabled } from "../../../utils/action-utils";
 
 /**
  * Action to copy a model's JSON representation to the clipboard.

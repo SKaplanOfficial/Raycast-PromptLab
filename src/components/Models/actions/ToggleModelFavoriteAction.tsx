@@ -1,7 +1,7 @@
 import { Action, Icon } from "@raycast/api";
 import { Model, ModelManager } from "../../../utils/types";
 import { defaultAdvancedSettings } from "../../../data/default-advanced-settings";
-import { isActionEnabled } from "../../actions/action-utils";
+import { isActionEnabled } from "../../../utils/action-utils";
 
 /**
  * Action to toggle a model's favorite status.

@@ -2,7 +2,7 @@ import { Action, Icon, useNavigation } from "@raycast/api";
 import ModelForm from "../ModelForm";
 import { Model, ModelManager } from "../../../utils/types";
 import { defaultAdvancedSettings } from "../../../data/default-advanced-settings";
-import { isActionEnabled } from "../../actions/action-utils";
+import { isActionEnabled } from "../../../utils/action-utils";
 
 /**
  * Action to create a new model based on an existing model.

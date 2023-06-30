@@ -1,7 +1,7 @@
 import { Action, Alert, Icon, confirmAlert, showToast } from "@raycast/api";
 import { defaultAdvancedSettings } from "../../../data/default-advanced-settings";
 import { Model, ModelManager } from "../../../utils/types";
-import { isActionEnabled } from "../../actions/action-utils";
+import { isActionEnabled } from "../../../utils/action-utils";
 
 /**
  * Action to delete a model.

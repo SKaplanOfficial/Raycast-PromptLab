@@ -22,12 +22,12 @@ let maxCharacters = (() => {
   return parseInt(preferences.lengthLimit) || 2500;
 })();
 
-const isDotFile = (filepath: string) => {
-  return path.basename(filepath).startsWith(".");
-};
-
 const isTrueDirectory = (filepath: string) => {
-  return fs.lstatSync(filepath).isDirectory() && !isApp(filepath);
+  try {
+    return fs.lstatSync(filepath).isDirectory() && !isApp(filepath);
+  } catch (e) {
+    return false;
+  }
 };
 
 const isApp = (filepath: string) => {
@@ -110,9 +110,8 @@ export const useFiles = (options: CommandOptions) => {
     const selection = rawSelection.paths.reduce(
       (acc, filepath) => {
         if (
-          validExtensions.length == 0 ||
-          !isDotFile(filepath) ||
-          validExtensions.includes(path.extname(filepath).slice(1).toLowerCase())
+          filepath.trim().length > 0 &&
+          (validExtensions.length == 0 || validExtensions.includes(path.extname(filepath).slice(1).toLowerCase()))
         ) {
           return { paths: [...acc.paths, filepath], csv: acc.csv + "," + filepath };
         }
@@ -142,42 +141,45 @@ export const useFiles = (options: CommandOptions) => {
       const currentData = { contents: `{File ${index + 1} - ${path.basename(filepath)}}:\n` };
 
       // If the file is too large, just return the metadata
-      if (
-        fs.lstatSync(filepath).size > 10000000 &&
-        !videoFileExtensions.includes(path.extname(filepath).slice(1).toLowerCase())
-      ) {
-        addMetadataDetails(filepath, currentData);
+      try {
+        if (
+          fs.lstatSync(filepath).size > 10000000 &&
+          !videoFileExtensions.includes(path.extname(filepath).slice(1).toLowerCase())
+        ) {
+          addMetadataDetails(filepath, currentData);
+          currentData.contents = fileData.contents + "\n" + currentData.contents;
+          Object.assign(fileData, currentData);
+          continue;
+        }
+
+        if (isTextFile(filepath)) addTextFileDetails(filepath, currentData);
+
+        if (isTrueDirectory(filepath)) addDirectoryDetails(filepath, currentData);
+        else if (isApp(filepath)) await addAppDetails(filepath, currentData, options);
+        else if (isPDF(filepath)) await addPDFDetails(filepath, currentData, options);
+        else if (isVideoFile(filepath)) await addVideoDetails(filepath, currentData, options);
+        else if (isAudioFile(filepath)) await addAudioDetails(filepath, currentData, options);
+        else if (isImageFile(filepath)) await addImageDetails(filepath, currentData, options);
+        else if (!isTextFile(filepath)) attemptAddRawText(filepath, currentData);
+
+        if (options.useMetadata) addMetadataDetails(filepath, currentData);
+
         currentData.contents = fileData.contents + "\n" + currentData.contents;
         Object.assign(fileData, currentData);
-        continue;
+      } catch (e) {
+        console.error(e);
       }
-
-      if (isTrueDirectory(filepath)) addDirectoryDetails(filepath, currentData);
-      else if (isApp(filepath)) await addAppDetails(filepath, currentData, options);
-      else if (isPDF(filepath)) await addPDFDetails(filepath, currentData, options);
-      else if (isVideoFile(filepath)) await addVideoDetails(filepath, currentData, options);
-      else if (isAudioFile(filepath)) await addAudioDetails(filepath, currentData, options);
-      else if (isImageFile(filepath)) await addImageDetails(filepath, currentData, options);
-      else if (isTextFile(filepath)) addTextFileDetails(filepath, currentData);
-      else attemptAddRawText(filepath, currentData);
-
-      if (options.useMetadata) addMetadataDetails(filepath, currentData);
-
-      currentData.contents = fileData.contents + "\n" + currentData.contents;
-      Object.assign(fileData, currentData);
     }
 
     setFileContents(fileData);
+    return fileData;
   };
 
   const revalidate = async () => {
-    Promise.resolve(loadSelection()).then((selection) => {
-      Promise.resolve(
-        loadFileContents(selection).then(() => {
-          setIsLoading(false);
-        })
-      );
-    });
+    const selection = await loadSelection();
+    const fileContents = await loadFileContents(selection);
+    setIsLoading(false);
+    return { selectedFiles: selection, fileContents };
   };
 
   useEffect(() => {
@@ -315,8 +317,12 @@ const attemptAddRawText = (filepath: string, currentData: { [key: string]: strin
 };
 
 const addMetadataDetails = (filepath: string, currentData: { [key: string]: string; contents: string }) => {
-  const rawMetadata = JSON.stringify(fs.lstatSync(filepath));
-  const metadata = filterString(rawMetadata);
-  const instruction = `\n<Metadata of the file: ###${metadata}###>`;
-  currentData.contents += instruction;
+  try {
+    const rawMetadata = JSON.stringify(fs.lstatSync(filepath));
+    const metadata = filterString(rawMetadata);
+    const instruction = `\n<Metadata of the file: ###${metadata}###>`;
+    currentData.contents += instruction;
+  } catch (err) {
+    console.error(err);
+  }
 };

@@ -8,7 +8,7 @@ import CreateModelDerivativeAction from "./CreateModelDerivativeAction";
 import { DeleteAllModelsAction, DeleteModelAction } from "./DeleteModelActions";
 import { AdvancedActionSubmenu } from "../../actions/AdvancedActionSubmenu";
 import { defaultAdvancedSettings } from "../../../data/default-advanced-settings";
-import { anyActionsEnabled } from "../../actions/action-utils";
+import { anyActionsEnabled } from "../../../utils/action-utils";
 import { Model, ModelManager } from "../../../utils/types";
 
 export default function ManageModelsActionPanel(props: {

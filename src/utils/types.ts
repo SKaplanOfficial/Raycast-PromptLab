@@ -92,36 +92,6 @@ export type searchPreferences = {
   groupByCategory: boolean;
 };
 
-// /**
-//  * Command categories.
-//  */
-// export const categories = [
-//   /**
-//    * Test
-//    */
-//   "Calendar",
-//   "Data",
-//   "Development",
-//   "Education",
-//   "Entertainment",
-//   "Finance",
-//   "Health",
-//   "Lifestyle",
-//   "Media",
-//   "News",
-//   "Other",
-//   "Reference",
-//   "Shopping",
-//   "Social",
-//   "Sports",
-//   "Travel",
-//   "Utilities",
-//   "Weather",
-//   "Web",
-//   "Writing",
-//   "Meta",
-// ];
-
 /**
  * User-customizable options for PromptLab commands.
  */

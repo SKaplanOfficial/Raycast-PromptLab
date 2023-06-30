@@ -1,6 +1,6 @@
 import { Action, ActionPanel } from "@raycast/api";
 import { defaultAdvancedSettings } from "../../../data/default-advanced-settings";
-import { anyActionsEnabled } from "../../actions/action-utils";
+import { anyActionsEnabled } from "../../../utils/action-utils";
 
 export const CopyChatActionsSection = (props: {
   response: string;

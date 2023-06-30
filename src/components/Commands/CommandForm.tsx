@@ -33,7 +33,7 @@ import * as fs from "fs";
 import path from "path";
 import { ADVANCED_SETTINGS_FILENAME, commandCategories } from "../../utils/constants";
 import { useAdvancedSettings } from "../../hooks/useAdvancedSettings";
-import { isActionEnabled } from "../actions/action-utils";
+import { isActionEnabled } from "../../utils/action-utils";
 
 interface CommandFormValues {
   name: string;
