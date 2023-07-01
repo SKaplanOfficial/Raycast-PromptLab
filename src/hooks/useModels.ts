@@ -2,9 +2,10 @@ import { useEffect, useState } from "react";
 import { Model } from "../utils/types";
 import { Color, Icon, LocalStorage } from "@raycast/api";
 import { installDefaults } from "../utils/file-utils";
+import { useCachedState } from "@raycast/utils";
 
 export function useModels() {
-  const [models, setModels] = useState<Model[]>([]);
+  const [models, setModels] = useCachedState<Model[]>("--models", []);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>();
 
@@ -14,7 +15,8 @@ export function useModels() {
     const items = await LocalStorage.allItems();
     const modelObjs = Object.entries(items)
       .filter(([key]) => key.startsWith("--model-"))
-      .map(([, value]) => JSON.parse(value));
+      .map(([, value]) => JSON.parse(value))
+      .sort((a, b) => a.name.localeCompare(b.name));
     setModels(modelObjs);
     setIsLoading(false);
   };

@@ -3,10 +3,11 @@ import { Command } from "../utils/types";
 import { Color, Icon, LocalStorage } from "@raycast/api";
 import { installDefaults } from "../utils/file-utils";
 import crypto from "crypto";
+import { useCachedState } from "@raycast/utils";
 
 export function useCommands() {
-  const [commands, setCommands] = useState<Command[]>([]);
-  const [commandNames, setCommandNames] = useState<string[]>([]);
+  const [commands, setCommands] = useCachedState<Command[]>("--commands", []);
+  const [commandNames, setCommandNames] = useCachedState<string[]>("--command-names", []);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>();
 
@@ -30,8 +31,8 @@ export function useCommands() {
           newID = crypto.randomUUID();
         }
         newCommand.id = newID;
+        await LocalStorage.setItem(newCommand.name, JSON.stringify(newCommand));
       }
-      await LocalStorage.setItem(newCommand.name, JSON.stringify(newCommand));
       newCommands.push(newCommand);
     }
     setCommands(newCommands);

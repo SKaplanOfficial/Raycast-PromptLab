@@ -1,6 +1,6 @@
-import { closeMainWindow, showHUD, showToast, Toast, useNavigation } from "@raycast/api";
+import { closeMainWindow, getPreferenceValues, LocalStorage, showHUD, showToast, Toast, useNavigation } from "@raycast/api";
 import { useEffect, useState } from "react";
-import { Command, CommandOptions, ERRORTYPE } from "../../utils/types";
+import { Command, CommandOptions, ERRORTYPE, ExtensionPreferences } from "../../utils/types";
 import { runActionScript, runReplacements } from "../../utils/command-utils";
 import useModel from "../../hooks/useModel";
 import CommandDetailView from "./CommandDetailView";
@@ -12,6 +12,8 @@ import { useModels } from "../../hooks/useModels";
 import CommandSetupForm from "./CommandSetupForm";
 import SpeechInputView from "./SpeechInputView";
 import { useFiles } from "../../hooks/useFiles";
+import runModel from "../../utils/runModel";
+import { addInsight, objectsByFrequency } from "../../hooks/useInsights";
 
 export default function CommandResponse(props: {
   commandName: string;
@@ -29,11 +31,44 @@ export default function CommandResponse(props: {
   const [previousPrompt, setPreviousPrompt] = useCachedState<string>("promptlab-previous-prompt", "");
   const [speechInput, setSpeechInput] = useState<string>();
   const [options, setOptions] = useState<CommandOptions>({ ...props.options });
-
   const { pop } = useNavigation();
 
   const models = useModels();
   const { selectedFiles, fileContents, isLoading: loading, error: errorType } = useFiles(options);
+
+  const preferences = getPreferenceValues<ExtensionPreferences>();
+
+  useEffect(() => {
+    if (!preferences.useCommandStatistics) {
+      return;
+    }
+
+    LocalStorage.allItems().then((items) => {
+      const commands = Object.entries(items)
+        .filter(([key]) => !key.startsWith("--") && !key.startsWith("id-"))
+        .map(([, value]) => (JSON.parse(value) as Command).name);
+
+      objectsByFrequency("_executions", "name", 5).then((mostFrequentCommands) => {
+        const modelInput = `I want you to recommend commands for me to use based on the following information. First, here are the commands that I most frequently use:\n\n${mostFrequentCommands.join(
+          ", "
+        )}\n\nNext, here are all of the other commands that I have installed:\n\n${commands
+          .filter((c) => !mostFrequentCommands.includes(c))
+          .join(
+            "\n"
+          )}\n\nFrom the second list, which commands are most complimentary to the ones that I use most frequently? Output the names of 3 complimentary commands, separated by commas. Do not output any other text.`;
+
+        runModel(modelInput, modelInput, "").then((response) => addInsight(
+            "Command Suggestions",
+            `Your most frequently used PromptLab commands are: ${mostFrequentCommands.join(
+              ", "
+            )}.\n\nBased on those, consider using these commands, too: ${response}`,
+            ["commands"],
+            []
+          ).then(() => addInsight(`Command Execution`, `Executed command ${commandName}`, ["commands"], []))
+        );
+      });
+    });
+  }, []);
 
   useEffect(() => {
     if (

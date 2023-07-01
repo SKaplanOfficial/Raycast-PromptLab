@@ -1,5 +1,18 @@
 # PromptLab DevLog - A More Detailed ChangeLog
 
+### 2023-06-30
+
+- Added support for `target` parameter to `{{js:...}}` placeholders.
+    - Specify a browser to run the script in. The script will run in the active tab. The placeholder will be replaced with the script's return value.
+- Added Insights (experimental)
+    - Small summaries of your PromptLab usage generated locally as you use the extension.
+    - Used to deliver command and placeholder suggestions.
+        - Added command suggestions (toggleable, off by default) in menubar and 'My PromptLab Commands'.
+        - Added placeholder suggestions (toggleable, off by default) command creation and editing views.
+        - Added `{{insights:tag}}` placeholder - returns a summary of recent insights, optionally filtered by tag.
+- Added `{{elementText:...}}`, `{{elementHTML:...}}`, and `{{focusedElement}}` for getting the text/html of HTML elements in the active tab of a browser.
+    - Doesn't work in iCab.
+
 ### 2023-06-27
 
 - Added advanced settings JSON file & integration throughout the extension

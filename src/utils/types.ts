@@ -83,6 +83,21 @@ export type ExtensionPreferences = {
    * Comma-separated list of files to source custom placeholders from.
    */
   customPlaceholderFiles: string;
+
+  /**
+   * Whether to track statistics for placeholder usage.
+   */
+  usePlaceholderStatistics: boolean;
+
+  /**
+   * Whether to track statistics for command usage.
+   */
+  useCommandStatistics: boolean;
+
+  /**
+   * Whether to track statistics for chat usage.
+   */
+  useChatStatistics: boolean;
 };
 
 /**
@@ -881,11 +896,6 @@ export type Placeholder = {
   aliases?: string[];
 
   /**
-   * The rules that determine whether or not the placeholder should be replaced. If any of these rules return true, the placeholder will be replaced. If no rules are provided, the placeholder will always be replaced.
-   */
-  rules: ((str: string, context?: { [key: string]: string }) => Promise<boolean>)[];
-
-  /**
    * The function that applies the placeholder to a string.
    * @param str The string to apply the placeholder to.
    * @returns The string with the placeholder applied.
@@ -979,3 +989,65 @@ export interface PersistentVariable {
    */
   initialValue: string;
 }
+
+
+
+/************/
+/* Insights */
+/************/
+
+/**
+ * Wrapper type for the insight manager returned by {@link useInsights}.
+ */
+export type InsightManager = {
+  /**
+   * The list of insights, loaded from the disk and sorted by date.
+   */
+  insights: Insight[];
+
+  /**
+   * True if the insights are currently being loaded from the disk, false otherwise.
+   */
+  loadingInsights: boolean;
+
+  /**
+   * Revalidates the insights by reloading them from the disk and sorting them by date.
+   * @returns A promise that resolves when the insights have been revalidated.
+   */
+  revalidateInsights: () => Promise<void>;
+};
+
+/**
+ * A piece of insight generated as a result of a user's actions.
+ */
+export type Insight = {
+  /**
+   * The unique ID of the insight. This is used as the filename of the insight.
+   */
+  id: string;
+
+  /**
+   * The title of the insight, non-unique.
+   */
+  title: string;
+
+  /**
+   * The descriptive text of the insight.
+   */
+  description: string;
+
+  /**
+   * The date the insight was created.
+   */
+  date: Date;
+
+  /**
+   * The tags associated with the insight.
+   */
+  tags: string[];
+
+  /**
+   * The related insights, by ID.
+   */
+  relatedInsights: string[];
+};

@@ -23,8 +23,7 @@ export function useChats(): ChatManager {
 
   const createChat = async (name: string, basePrompt: string, options: object, fileExistsAlready = false) => {
     if (chats.find((chat) => chat.name === name)) {
-      setError("A chat with that name already exists.");
-      return;
+      return chats.find((chat) => chat.name === name);
     }
 
     const chatFile = `${chatsDir}/${name}.txt`;
@@ -58,7 +57,6 @@ export function useChats(): ChatManager {
     } catch (error) {
       console.error(error);
     }
-
     await LocalStorage.setItem(`--chat-${name}`, JSON.stringify(newChat));
     return newChat;
   };
@@ -68,14 +66,12 @@ export function useChats(): ChatManager {
     setIsLoading(true);
 
     // Load chats from local storage
-    const localItems = await LocalStorage.allItems();
-    const chatObjs = Object.entries(localItems)
-      .filter(([key]) => key.startsWith("--chat-"))
-      .map(([, value]) => JSON.parse(value));
+    const chatObjs: Chat[] = [];
 
     // Load chats from the chats directory
     const preferences = getPreferenceValues<{ basePrompt: string }>();
-    const chatFiles = fs.readdirSync(chatsDir);
+    const chatFiles = fs.readdirSync(chatsDir).sort((a, b) => fs.statSync(`${chatsDir}/${b}`).mtimeMs - fs.statSync(`${chatsDir}/${a}`).mtimeMs > 0 ? 1 : -1);
+
     for (const chatFile of chatFiles) {
       const chatName = chatFile.replace(".txt", "");
       if (chatName.length == 0 || chatName.startsWith(".")) continue;
@@ -85,6 +81,8 @@ export function useChats(): ChatManager {
         chatObjs.push(chat);
       }
     }
+
+    console.log("ye", chatObjs)
 
     setChats(chatObjs);
     setIsLoading(false);
@@ -97,7 +95,7 @@ export function useChats(): ChatManager {
   }, []);
 
   const revalidate = async () => {
-    return loadChats();
+    return await loadChats();
   };
 
   const favorites = () => {

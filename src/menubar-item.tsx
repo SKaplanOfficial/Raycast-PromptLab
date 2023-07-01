@@ -11,6 +11,7 @@ import { useEffect } from "react";
 import { Command } from "./utils/types";
 import { useCachedState } from "@raycast/utils";
 import { installDefaults } from "./utils/file-utils";
+import SuggestedCommandsSection from "./components/SuggestedCommandsSection";
 
 interface CommandPreferences {
   showNewChatShortcut: boolean;
@@ -21,10 +22,11 @@ interface CommandPreferences {
   displayColors: boolean;
   displayFavorites: boolean;
   displayCategories: boolean;
+  displaySuggestions: boolean;
 }
 
 export default function PromptLabMenubar() {
-  const [commands, setCommands] = useCachedState<Command[]>("--commands", []);
+  const [commands, setCommands] = useCachedState<Command[]>("--menubar-commands", []);
 
   const preferences = getPreferenceValues<CommandPreferences>();
 
@@ -45,9 +47,8 @@ export default function PromptLabMenubar() {
     });
   }, []);
 
-  const menuItems = commands
-    ?.filter((cmd) => (preferences.displayFavorites ? !cmd.favorited : true))
-    .map((cmd) => (
+  const commandsToItems = (commands: Command[]) =>
+    commands.map((cmd) => (
       <MenuBarExtra.Item
         title={cmd.name}
         icon={
@@ -69,31 +70,9 @@ export default function PromptLabMenubar() {
       />
     ));
 
-  const favorites = preferences.displayFavorites
-    ? commands
-        ?.filter((cmd) => cmd.favorited)
-        .map((cmd) => (
-          <MenuBarExtra.Item
-            title={cmd.name}
-            icon={
-              preferences.displayIcons
-                ? { source: cmd.icon, tintColor: preferences.displayColors ? cmd.iconColor : undefined }
-                : undefined
-            }
-            tooltip={cmd.description}
-            key={cmd.name}
-            onAction={async (event) => {
-              if (event.type == "left-click") {
-                await launchCommand({
-                  name: "search-commands",
-                  type: LaunchType.UserInitiated,
-                  arguments: { commandName: cmd.name },
-                });
-              }
-            }}
-          />
-        ))
-    : [];
+  const menuItems = commandsToItems(commands.filter((cmd) => (preferences.displayFavorites ? !cmd.favorited : true)));
+
+  const favorites = preferences.displayFavorites ? commandsToItems(commands?.filter((cmd) => cmd.favorited)) : [];
 
   const hasOtherCategory = commands?.some(
     (cmd) =>
@@ -167,6 +146,8 @@ export default function PromptLabMenubar() {
       ) : (
         menuItems
       )}
+
+      <SuggestedCommandsSection />
 
       <MenuBarExtra.Section>
         {preferences.showAllCommandsShortcut ? (

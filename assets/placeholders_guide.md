@@ -3,8 +3,8 @@
 ------------------------
 
 Author: Stephen Kaplan _(HelloImSteven)_ <br />
-Last Updated: 2023-06-25 <br />
-PromptLab Version: 1.1.0
+Last Updated: 2023-06-30 <br />
+PromptLab Version: 1.2.0
 
 ------------------------
 
@@ -94,6 +94,7 @@ In addition to the above, you can use any supported file extension as a directiv
 | `{{homedir}}` or <br /> `{{homeDirectory}}` | The path to the user's home directory. |
 | `{{hostname}}` | The hostname of the computer. |
 | `{{input}}` | The text entered by the user in an input dialog. You can specify a prompt using `{{input prompt="..."}}`. |
+| `{{insights}}` | Local data entries for user events and interactions with PromptLab, e.g. for use in identifying trends and patterns in your workflow. Use `{{insights:...}}` to specify a particular tag to retrieve, e.g. `{{insights:commands}}`. See [here](# TODO: make insights page/file) for more information. |
 | `{{previousCommand}}` or <br /> `{{lastCommand}}` | The name of the previously executed PromptLab command. |
 | `{{previousPrompt}}` or <br /> `{{lastPrompt}}` | The fully-substituted prompt text of the previously executed PromptLab command. |
 | `{{previousResponse}}` or <br /> `{{previousOutput}}` or <br /> `{{lastResponse}}` or <br /> `{{lastOutput}}` | The fully-substituted output text of the previously executed PromptLab command. |
@@ -172,12 +173,15 @@ In addition to the above, you can use any supported file extension as a directiv
 
 | Placeholder | Replaced With |
 | ----- | ----- |
+| `{{elementHTML:...}}` or <br /> `{{element:...}}` or <br /> `{{HTMLOfElement:...}}` | The raw HTML source of an HTML element in the active tab of a supported browser. The first matching element will be used. Specify a browser using `{{elementHTML browser="..."}}`. |
+| `{{elementText:...}}` or <br /> `{{textOfElement:...}}` | The text content of the specified HTML element, e.g. `{{elementText:#myElement}}`, `{{elementText:.myClass}}`, or `{{elementText:<body>}}`. The first matching element will be used. Specify a browser using `{{elementText browser="..."}}`. |
+| `{{focusedElement}}` or <br /> `{{activeElement}}` or <br /> `{{selectedElement}}` or <br /> `{{focusedElementText}}` or <br /> `{{activeElementText}}` or <br /> `{{selectedElementText}}` | The text content of the currently focused element in the active tab of a supported browser. Specify a browser using `{{focusedElement browser="..."}}`. |
 | `{{location}}` | The user's current location in the format `city, region, country`. Obtained using [geojs.io](https://get.geojs.io).
 | `{{nearbyLocations:...}}` | A comma-separated list of nearby locations matching the provided query, e.g. `{{nearbyLocations:food}}`. |
 | `{{todayWeather}}` | 24-hour weather forecast data at the user's current location, in JSON format. Obtained using [open-meteo.com](https://open-meteo.com).
+| `{{url:...}}` or <br /> `{{URL:...}}` or <br /> `{{...}}` | The visible text content at the specified URL, e.g. `{{url:https://google.com}}` or `{{https://google.com}}`. Note: Only the HTTP(S) protocol is supported at this time. Use `{{url raw=true:https://google.com}}` to get the raw HTML of the page instead of the visible text. |
 | `{{weekWeather}}` | 7-day weather forecast data at the user's current location, in JSON format. Obtained using [open-meteo.com](https://open-meteo.com).
 | `{{youtube:...}}` | The transcript of the first YouTube video matching the provided query or URL, e.g. `{{youtube:how to make a sandwich}}` or `{{youtube:https://www.youtube.com/watch?v=...}}`. |
-| `{{url:...}}` or <br /> `{{URL:...}}` or <br /> `{{...}}` | The visible text content at the specified URL, e.g. `{{url:https://google.com}}` or `{{https://google.com}}`. Note: Only the HTTP(S) protocol is supported at this time. Use `{{url raw=true:https://google.com}}` to get the raw HTML of the page instead of the visible text. |
 
 ### Script Placeholders
 

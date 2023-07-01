@@ -2,7 +2,7 @@ import { runAppleScript } from "run-applescript";
 import { objcImports, replaceAllHandler, rselectHandler, splitHandler, trimHandler } from "./scripts";
 import { exec } from "child_process";
 import { Command, CommandOptions, StoreCommand } from "./types";
-import { LocalStorage, AI } from "@raycast/api";
+import { LocalStorage, AI, showToast, Toast, Clipboard } from "@raycast/api";
 import { Placeholders } from "./placeholders";
 
 /**
@@ -34,16 +34,25 @@ export const runActionScript = async (
       ${trimHandler}
       ${replaceAllHandler}
       ${rselectHandler}
-      set prompt to "${prompt.replaceAll('"', '\\"')}"
-      set input to "${input.replaceAll('"', '\\"')}"
-      set response to "${response.replaceAll('"', '\\"')}"
+      set prompt to "${prompt.replaceAll('"', '\\"').replaceAll(/(\n|\r|\t|\\)/g, "\\$1")}"
+      set input to "${input.replaceAll('"', '\\"').replaceAll(/(\n|\r|\t|\\)/g, "\\$1")}"
+      set response to "${response.replaceAll('"', '\\"').replaceAll(/(\n|\r|\t|\\)/g, "\\$1")}"
       ${script}`)
       );
     } else if (type == "zsh") {
       const runScript = (script: string): Promise<string> => {
-        const shellScript = `response="${response.trim().replaceAll('"', '\\"').replaceAll("\n", "\\n")}"
-        prompt="${prompt.trim().replaceAll('"', '\\"').replaceAll("\n", "\\n")}"
-        input="${input.trim().replaceAll('"', '\\"').replaceAll("\n", "\\n")}"
+        const shellScript = `response="${response
+          .trim()
+          .replaceAll('"', '\\"')
+          .replaceAll(/(\$|\n|\r|\t|\\)/g, "\\$1")}"
+        prompt="${prompt
+          .trim()
+          .replaceAll('"', '\\"')
+          .replaceAll(/(\$|\n|\r|\t|\\)/g, "\\$1")}"
+        input="${input
+          .trim()
+          .replaceAll('"', '\\"')
+          .replaceAll(/(\$|\n|\r|\t|\\)/g, "\\$1")}"
         ${script.replaceAll("\n", " && ")}`;
 
         return new Promise((resolve, reject) => {
@@ -62,6 +71,12 @@ export const runActionScript = async (
     }
   } catch (error) {
     console.error(error);
+    showToast({
+      title: "Error Running Script",
+      message: (error as Error).message,
+      style: Toast.Style.Failure,
+      primaryAction: { title: "Copy Error", onAction: async () => await Clipboard.copy((error as Error).message) },
+    });
   }
 };
 

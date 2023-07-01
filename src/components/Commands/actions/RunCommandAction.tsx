@@ -1,8 +1,9 @@
-import { Action, Icon } from "@raycast/api";
-import { Command, StoreCommand, isCommand, isTrueStr } from "../../../utils/types";
+import { Action, Icon, getPreferenceValues, useNavigation } from "@raycast/api";
+import { Command, ExtensionPreferences, StoreCommand, isCommand, isTrueStr } from "../../../utils/types";
 import CommandResponse from "../CommandResponse";
 import { defaultAdvancedSettings } from "../../../data/default-advanced-settings";
 import { isActionEnabled } from "../../../utils/action-utils";
+import { getPersistentVariable, setPersistentVariable } from "../../../utils/placeholders";
 
 /**
  * Action to run a command.
@@ -16,16 +17,25 @@ export default function RunCommandAction(props: {
   settings: typeof defaultAdvancedSettings;
 }): JSX.Element | null {
   const { command, setCommands, settings } = props;
+  const { push } = useNavigation();
+  const preferences = getPreferenceValues<ExtensionPreferences>();
 
   if (!isActionEnabled("RunCommandAction", settings)) {
     return null;
   }
 
   return (
-    <Action.Push
+    <Action
       title="Run PromptLab Command"
-      target={
-        <CommandResponse
+      onAction={async () => {
+        
+        if (preferences.useCommandStatistics) {
+          const currentCountString = await getPersistentVariable(`${command.name}_executions`);
+          const currentCount = currentCountString.length ? parseInt(currentCountString) : 0;
+          await setPersistentVariable(`${command.name}_executions`, (currentCount + 1).toString());
+        }
+
+        push(<CommandResponse
           commandName={command.name}
           prompt={command.prompt}
           options={{
@@ -57,7 +67,8 @@ export default function RunCommandAction(props: {
             speakResponse: isTrueStr(command.speakResponse),
           }}
           setCommands={setCommands}
-        />
+        />);
+      }
       }
       icon={Icon.ArrowRight}
       shortcut={{ modifiers: ["cmd"], key: "r" }}

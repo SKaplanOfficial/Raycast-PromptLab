@@ -199,6 +199,31 @@
       "required": false,
       "default": "2500",
       "description": "The maximum length of the prompt that will be sent to the model endpoint, beyond which it will be truncated. Larger values will support more content, but may result in token count errors. Adjust this value according to the model's token limit (but leave some space, e.g. 1000 characters, for additional input and placeholders)."
+    },
+    {
+      "title": "Insights Settings",
+      "name": "usePlaceholderStatistics",
+      "label": "Placeholder Insights",
+      "type": "checkbox",
+      "default": false,
+      "description": "If checked, PromptLab will track your usage of placeholders and use this data to generate more accurate placeholder suggestions. This data is stored locally on your computer and is not sent to any external servers.",
+      "required": false
+    },
+    {
+      "name": "useCommandStatistics",
+      "label": "Command Insights",
+      "type": "checkbox",
+      "default": false,
+      "description": "If checked, PromptLab will track your usage of commands and use this data to deliver command suggestions and inferences. This data is stored locally on your computer and is not sent to any external servers.",
+      "required": false
+    },
+    {
+      "name": "useChatStatistics",
+      "label": "Chat Insights",
+      "type": "checkbox",
+      "default": false,
+      "description": "If checked, PromptLab will track the creation of and switching between chats, along with chat titles, and will use this data to deliver chat suggestions and inferences. This data is stored locally on your computer and is not sent to any external servers.",
+      "required": false
     }
   ],
   "commands": [
@@ -229,6 +254,14 @@
           "type": "checkbox",
           "default": false,
           "description": "If checked, each command category will have its own section in the search results.",
+          "required": false
+        },
+        {
+          "name": "displaySuggestions",
+          "label": "Display Suggested Commands",
+          "type": "checkbox",
+          "default": false,
+          "description": "Whether to display suggested commands based on your usage. Requires 'Command Insights' to be enabled.",
           "required": false
         }
       ]
@@ -370,6 +403,14 @@
           "type": "checkbox",
           "default": false,
           "description": "Whether to separate commands by category.",
+          "required": false
+        },
+        {
+          "name": "displaySuggestions",
+          "label": "Display Suggested Commands",
+          "type": "checkbox",
+          "default": false,
+          "description": "Whether to display suggested commands based on your usage. Requires 'Command Insights' to be enabled.",
           "required": false
         }
       ]

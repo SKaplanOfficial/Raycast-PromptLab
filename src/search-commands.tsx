@@ -1,18 +1,14 @@
-import { ActionPanel, Color, getPreferenceValues, Icon, List } from "@raycast/api";
+import { getPreferenceValues, List } from "@raycast/api";
 import { useEffect, useState } from "react";
 import CommandResponse from "./components/Commands/CommandResponse";
 import { Command, ExtensionPreferences, searchPreferences } from "./utils/types";
 import CategoryDropdown from "./components/CategoryDropdown";
 import { useCommands } from "./hooks/useCommands";
-import CommandListDetail from "./components/Commands/CommandListDetail";
-import RunCommandAction from "./components/Commands/actions/RunCommandAction";
-import ShareCommandAction from "./components/Commands/actions/ShareCommandAction";
-import { CopyCommandActionsSection } from "./components/Commands/actions/CopyCommandActions";
-import { CommandControlsActionsSection } from "./components/Commands/actions/CommandControlActions";
 import { useAdvancedSettings } from "./hooks/useAdvancedSettings";
 import { useCachedState } from "@raycast/utils";
-import { AdvancedActionSubmenu } from "./components/actions/AdvancedActionSubmenu";
 import { commandCategories } from "./utils/constants";
+import CommandListItem from "./components/Commands/CommandListItem";
+import SuggestedCommandsSection from "./components/SuggestedCommandsSection";
 
 export default function SearchCommand(props: { arguments: { commandName: string; queryInput: string } }) {
   const { commandName, queryInput } = props.arguments;
@@ -62,52 +58,13 @@ export default function SearchCommand(props: { arguments: { commandName: string;
       ?.filter((command) => command.categories?.includes(targetCategory) || targetCategory == "All")
       .sort((a, b) => (a.name > b.name ? 1 : -1))
       .map((command) => (
-        <List.Item
-          title={command.name}
-          icon={{
-            source: command.icon,
-            tintColor: command.iconColor == undefined ? Color.PrimaryText : command.iconColor,
-          }}
-          key={command.name}
-          accessories={[
-            {
-              icon: command.favorited ? { source: Icon.StarCircle, tintColor: Color.Yellow } : undefined,
-              tooltip: command.favorited ? "Favorited" : undefined,
-            },
-            {
-              icon:
-                previousCommand == command.name ? { source: Icon.Clock, tintColor: Color.SecondaryText } : undefined,
-              tooltip: previousCommand == command.name ? "Previous Command" : undefined,
-            },
-            {
-              icon: command.showInMenuBar ? { source: Icon.AppWindowList, tintColor: Color.SecondaryText } : undefined,
-              tooltip: command.showInMenuBar ? "Shown in Menu Bar" : undefined,
-            },
-          ]}
-          detail={<CommandListDetail command={command} />}
-          actions={
-            <ActionPanel>
-              <RunCommandAction command={command} setCommands={setCommands} settings={advancedSettings} />
-              <ShareCommandAction command={command} settings={advancedSettings} />
-
-              <ActionPanel.Submenu
-                title="Copy Command Data..."
-                icon={Icon.Clipboard}
-                shortcut={{ modifiers: ["cmd", "shift"], key: "c" }}
-              >
-                <CopyCommandActionsSection command={command} showTitle={false} settings={advancedSettings} />
-              </ActionPanel.Submenu>
-
-              <CommandControlsActionsSection
-                command={command}
-                commands={commands}
-                setCommands={setCommands}
-                settings={advancedSettings}
-              />
-
-              <AdvancedActionSubmenu settings={advancedSettings} />
-            </ActionPanel>
-          }
+        <CommandListItem
+          command={command}
+          previousCommand={previousCommand}
+          commands={commands}
+          setCommands={setCommands}
+          settings={advancedSettings}
+          key={command.id}
         />
       )) || [];
 
@@ -163,12 +120,20 @@ export default function SearchCommand(props: { arguments: { commandName: string;
       <List.EmptyView title="No Custom Commands" />
       {favorites.length && !preferences.groupByCategory ? (
         <List.Section title="Favorites">
-          {listItems.filter((item) => favorites.map((command) => command.name).includes(item.props.title))}
+          {listItems.filter((item) => favorites.map((command) => command.name).includes(item.props.command.name))}
         </List.Section>
       ) : null}
+
+      <SuggestedCommandsSection
+        commands={commands}
+        setCommands={setCommands}
+        previousCommand={previousCommand}
+        settings={advancedSettings}
+      />
+      
       {otherCommands.length && !preferences.groupByCategory ? (
         <List.Section title={favorites.length ? `Other Commands` : `All Commands`}>
-          {listItems.filter((item) => otherCommands.map((command) => command.name).includes(item.props.title))}
+          {listItems.filter((item) => otherCommands.map((command) => command.name).includes(item.props.command.name))}
         </List.Section>
       ) : null}
       {preferences.groupByCategory ? listItems : null}

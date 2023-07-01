@@ -14,7 +14,7 @@ import { useAdvancedSettings } from "./hooks/useAdvancedSettings";
 
 export default function Discover() {
   const { commands: myCommands, setCommands: setMyCommands, isLoading: loadingMyCommands } = useCommands();
-  const [availableCommands, setAvailableCommands] = useCachedState<StoreCommand[]>("availableCommands", []);
+  const [availableCommands, setAvailableCommands] = useCachedState<StoreCommand[]>("--available-commands", []);
   const [targetCategory, setTargetCategory] = useState<string>("All");
   const { advancedSettings } = useAdvancedSettings();
 

@@ -294,6 +294,14 @@ export default function useModel(
       AIRef.current = undefined;
     }
     setAttempt(attempt + 1);
+
+    while (AIRef.current == undefined || isLoading) {
+      await new Promise((r) => setTimeout(r, 100));
+    }
+
+    while (AIRef.current != undefined || isLoading) {
+      await new Promise((r) => setTimeout(r, 100));
+    }
   };
 
   if (validRaycastAIReps.includes(targetModel.endpoint.toLowerCase()) || models.isLoading) {

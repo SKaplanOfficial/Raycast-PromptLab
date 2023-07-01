@@ -4,13 +4,14 @@ import * as fs from "fs";
 import { environment, showToast } from "@raycast/api";
 import { ADVANCED_SETTINGS_FILENAME } from "../utils/constants";
 import path from "path";
+import { useCachedState } from "@raycast/utils";
 
 /**
  * Hook for managing advanced settings.
  * @returns
  */
 export const useAdvancedSettings = () => {
-  const [advancedSettings, setAdvancedSettings] = useState(defaultAdvancedSettings);
+  const [advancedSettings, setAdvancedSettings] = useCachedState("--advanced-settings", defaultAdvancedSettings);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const advancedSettingsPath = path.join(environment.supportPath, ADVANCED_SETTINGS_FILENAME);

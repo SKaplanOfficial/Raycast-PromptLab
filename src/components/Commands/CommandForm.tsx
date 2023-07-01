@@ -22,7 +22,7 @@ import {
 import { Fragment, useEffect, useState } from "react";
 import * as crypto from "crypto";
 import { useRef } from "react";
-import { checkForPlaceholders } from "../../utils/placeholders";
+import { Placeholders, checkForPlaceholders } from "../../utils/placeholders";
 import {
   EditCustomPlaceholdersAction,
   OpenAdvancedSettingsAction,
@@ -34,6 +34,8 @@ import path from "path";
 import { ADVANCED_SETTINGS_FILENAME, commandCategories } from "../../utils/constants";
 import { useAdvancedSettings } from "../../hooks/useAdvancedSettings";
 import { isActionEnabled } from "../../utils/action-utils";
+import runModel from "../../utils/runModel";
+import { addInsight, objectsByFrequency } from "../../hooks/useInsights";
 
 interface CommandFormValues {
   name: string;
@@ -68,9 +70,6 @@ interface CommandFormValues {
   showInMenuBar?: boolean;
 }
 
-const defaultPromptInfo =
-  "This is the prompt that the AI will use to generate a response. You can use placeholders to add dynamic content to your prompt. Use the 'Open Placeholders Guide' action to learn more.";
-
 export default function CommandForm(props: {
   oldData?: Command;
   setCommands?: React.Dispatch<React.SetStateAction<Command[]>>;
@@ -78,12 +77,10 @@ export default function CommandForm(props: {
 }) {
   const { oldData, setCommands, duplicate } = props;
   const { advancedSettings } = useAdvancedSettings();
-  const [promptInfo, setPromptInfo] = useState<string>(defaultPromptInfo);
+  const [promptInfo, setPromptInfo] = useState<string>("");
   const [scriptInfo, setScriptInfo] = useState<string>("");
-  const [showResponse, setShowResponse] = useState<boolean>(
-    oldData != undefined && oldData.showResponse != undefined ? oldData.showResponse : true
-  );
   const models = useModels();
+  const [insightMessage, setInsightMessage] = useState<string>("");
   const { pop } = useNavigation();
 
   const [setupFields, setSetupFields] = useState<
@@ -160,13 +157,59 @@ export default function CommandForm(props: {
   };
 
   useEffect(() => {
+    if (!preferences.usePlaceholderStatistics) {
+      return;
+    }
+    
+    const placeholders = Object.values(Placeholders.allPlaceholders).filter((p) => p.name.includes(":") ? Math.random() < 0.25 : true);
+
+    // Shuffle the array (to avoid bias)
+    for (let i = placeholders.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const temp = placeholders[i];
+      placeholders[i] = placeholders[j];
+      placeholders[j] = temp;
+    }
+
+    objectsByFrequency("_count", "name", 5).then((mostFrequentPlaceholders) => {
+      const modelInput = `I want you to recommend placeholders for me to use based on the following information. First, here are the placeholders that I most frequently use:\n\n${mostFrequentPlaceholders.join("\n")}\n\nNext, here are all of the other placeholders that I know about:\n\n${placeholders
+        .filter((p) => !mostFrequentPlaceholders.includes(p.name))
+        .map((p) => p.name)
+        .join(
+          "\n"
+        )}\n\nFrom the second list, which placeholders best compliment to the ones that I use most frequently? Output the names of 3 complimentary placeholders, separated by commas. Do not output any other text.`;
+
+      runModel(modelInput, modelInput, "").then((response) => {
+        const message = response
+          ? `\n\nSuggested Placeholders Based on Your Usage:\n${response
+              .split(",")
+              .map((p) =>
+                Object.values(Placeholders.allPlaceholders).find((placeholder) => placeholder.name == p.trim())
+              )
+              .map((p) => `\n${p?.hintRepresentation}: ${p?.description}\nExample: ${p?.example}`)
+              .join("\n")}`
+          : "";
+        setInsightMessage(message);
+        if (message) {
+          addInsight(
+            "Placeholder Suggestions",
+            `Your most frequently used placeholders in PromptLab prompts are: ${mostFrequentPlaceholders}. \n\nBased on those, consider using these placeholders: ${response}`,
+            ["placeholders"],
+            []
+          );
+        }
+      });
+    });
+  }, []);
+
+  useEffect(() => {
     lastAddedFieldRef.current?.focus();
   }, [currentFieldFocus]);
 
   useEffect(() => {
     if (oldData) {
       checkForPlaceholders(oldData.prompt).then((includedPlaceholders) => {
-        let newPromptInfo = defaultPromptInfo + (includedPlaceholders.length > 0 ? "\n\nDetected Placeholders:" : "");
+        let newPromptInfo = includedPlaceholders.length > 0 ? "\n\nDetected Placeholders:" : "";
         includedPlaceholders.forEach((placeholder) => {
           newPromptInfo =
             newPromptInfo +
@@ -767,12 +810,14 @@ export default function CommandForm(props: {
       <Form.TextArea
         title="Prompt"
         placeholder="Instructions for AI to follow"
-        info={promptInfo}
+        info={`This is the prompt that the AI will use to generate a response. You can use placeholders to add dynamic content to your prompt. Use the 'Open Placeholders Guide' action to learn more. ${
+          promptInfo ? promptInfo : insightMessage
+        }`}
         {...itemProps.prompt}
         onChange={async (value) => {
           itemProps.prompt.onChange?.(value);
           const includedPlaceholders = await checkForPlaceholders(value);
-          let newPromptInfo = defaultPromptInfo + (includedPlaceholders.length > 0 ? "\n\nDetected Placeholders:" : "");
+          let newPromptInfo = includedPlaceholders.length > 0 ? "\n\nDetected Placeholders:" : "";
           includedPlaceholders.forEach((placeholder) => {
             newPromptInfo =
               newPromptInfo +
@@ -787,10 +832,9 @@ export default function CommandForm(props: {
       <Form.TextArea
         title="Script"
         placeholder="Script to run after response is received"
-        info={
-          "Code for the script to run after receiving a response to the prompt. Use the `response` variable to access the text of the response." +
-          scriptInfo
-        }
+        info={`Code for the script to run after receiving a response to the prompt. Use the 'response' variable to access the text of the response. ${
+          scriptInfo ? scriptInfo : insightMessage
+        }`}
         {...itemProps.actionScript}
         onChange={async (value) => {
           itemProps.actionScript.onChange?.(value);
@@ -816,7 +860,7 @@ export default function CommandForm(props: {
 
       <Form.Description title="Settings" text="Customize the way your command works and what data is accesses." />
 
-      {showResponse ? (
+      {values.showResponse ? (
         <Form.Dropdown
           title="Output View"
           info="The view in which the command's output will be rendered. Detail is the most likely to work for any given command, but PromptLab will do its best to give you usable output no matter what."
@@ -832,8 +876,6 @@ export default function CommandForm(props: {
       <Form.Checkbox
         label="Show Response View"
         {...itemProps.showResponse}
-        value={showResponse}
-        onChange={setShowResponse}
         info="If checked, the AI's output will be displayed in Raycast. Disabling this is only useful if you provide an action script."
       />
 

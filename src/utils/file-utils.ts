@@ -18,6 +18,22 @@ import { defaultAdvancedSettings } from "../data/default-advanced-settings";
  * @returns A promise to a void result
  */
 export async function installDefaults() {
+  // Set up data files
+  const customPlaceholdersPath = path.join(environment.supportPath, CUSTOM_PLACEHOLDERS_FILENAME);
+  if (!fs.existsSync(customPlaceholdersPath)) {
+    await fs.promises.writeFile(customPlaceholdersPath, JSON.stringify(defaultCustomPlaceholders, null, 2));
+  }
+
+  const advancedSettingsPath = path.join(environment.supportPath, ADVANCED_SETTINGS_FILENAME);
+  if (!fs.existsSync(advancedSettingsPath)) {
+    await fs.promises.writeFile(advancedSettingsPath, JSON.stringify(defaultAdvancedSettings, null, 2));
+  }
+
+  const insightsPath = path.join(environment.supportPath, "insights");
+  if (!fs.existsSync(insightsPath)) {
+    await fs.promises.mkdir(insightsPath);
+  }
+
   const defaultsItem = await LocalStorage.getItem("--defaults-installed");
   if (!defaultsItem) {
     const numItems = Object.keys(await LocalStorage.allItems()).length;
@@ -33,17 +49,6 @@ export async function installDefaults() {
     // Load default models
     for (const [key, value] of Object.entries(defaultModels)) {
       await LocalStorage.setItem(key, JSON.stringify({ ...value, id: randomUUID() }));
-    }
-
-    // Set up data files
-    const customPlaceholdersPath = path.join(environment.supportPath, CUSTOM_PLACEHOLDERS_FILENAME);
-    if (!fs.existsSync(customPlaceholdersPath)) {
-      await fs.promises.writeFile(customPlaceholdersPath, JSON.stringify(defaultCustomPlaceholders, null, 2));
-    }
-
-    const advancedSettingsPath = path.join(environment.supportPath, ADVANCED_SETTINGS_FILENAME);
-    if (!fs.existsSync(advancedSettingsPath)) {
-      await fs.promises.writeFile(advancedSettingsPath, JSON.stringify(defaultAdvancedSettings, null, 2));
     }
 
     await LocalStorage.setItem("--defaults-installed", "true");

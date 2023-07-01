@@ -37,7 +37,13 @@ type ExtensionPreferences = {
   /** Output Timing - Whether output from the model endpoint should be processed synchronously or asynchronously. Often, this is also an option on the model API. This is only used if the model source is set to something other than Raycast AI. */
   "outputTiming"?: "sync" | "async",
   /** Prompt Length Limit - The maximum length of the prompt that will be sent to the model endpoint, beyond which it will be truncated. Larger values will support more content, but may result in token count errors. Adjust this value according to the model's token limit (but leave some space, e.g. 1000 characters, for additional input and placeholders). */
-  "lengthLimit"?: string
+  "lengthLimit"?: string,
+  /** Insights Settings - If checked, PromptLab will track your usage of placeholders and use this data to generate more accurate placeholder suggestions. This data is stored locally on your computer and is not sent to any external servers. */
+  "usePlaceholderStatistics"?: boolean,
+  /**  - If checked, PromptLab will track your usage of commands and use this data to deliver command suggestions and inferences. This data is stored locally on your computer and is not sent to any external servers. */
+  "useCommandStatistics"?: boolean,
+  /**  - If checked, PromptLab will track the creation of and switching between chats, along with chat titles, and will use this data to deliver chat suggestions and inferences. This data is stored locally on your computer and is not sent to any external servers. */
+  "useChatStatistics"?: boolean
 }
 
 /** Preferences accessible in all the extension's commands */
@@ -49,7 +55,9 @@ declare namespace Preferences {
   /** Preferences accessible in the `search-commands` command */
   export type SearchCommands = ExtensionPreferences & {
   /** Search Settings - If checked, each command category will have its own section in the search results. */
-  "groupByCategory"?: boolean
+  "groupByCategory"?: boolean,
+  /**  - Whether to display suggested commands based on your usage. Requires 'Command Insights' to be enabled. */
+  "displaySuggestions"?: boolean
 }
   /** Preferences accessible in the `chat` command */
   export type Chat = ExtensionPreferences & {
@@ -85,7 +93,9 @@ declare namespace Preferences {
   /**  - Whether to separate favorite commands from the rest of the menu items. */
   "displayFavorites"?: boolean,
   /**  - Whether to separate commands by category. */
-  "displayCategories"?: boolean
+  "displayCategories"?: boolean,
+  /**  - Whether to display suggested commands based on your usage. Requires 'Command Insights' to be enabled. */
+  "displaySuggestions"?: boolean
 }
 }
 
