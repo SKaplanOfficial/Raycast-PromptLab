@@ -1,11 +1,12 @@
 import { Action, ActionPanel, Form, showToast, Icon, useNavigation, Color, environment, Toast } from "@raycast/api";
-import { Chat, ChatManager, ChatStatistics } from "../../utils/types";
+import { Chat, ChatStatistics } from "../../utils/types";
 import { useEffect, useState } from "react";
 import { filterString, getTextOfWebpage } from "../../utils/context-utils";
 import runModel from "../../utils/runModel";
 import { getFileContent } from "../../hooks/useFiles";
 import { AdvancedActionSubmenu } from "../actions/AdvancedActionSubmenu";
 import { defaultAdvancedSettings } from "../../data/default-advanced-settings";
+import { calculateStats, updateChat } from "../../utils/chat-utils";
 
 interface ChatSettingsFormValues {
   chatNameField: string;
@@ -40,11 +41,11 @@ const statNames: { [key: string]: string } = {
 
 export default function ChatSettingsForm(props: {
   oldData: Chat;
-  chats: ChatManager;
+  revalidateChats: () => Promise<void>;
   setCurrentChat: React.Dispatch<React.SetStateAction<Chat | undefined>>;
   settings: typeof defaultAdvancedSettings;
 }) {
-  const { oldData, chats, setCurrentChat, settings } = props;
+  const { oldData, revalidateChats, setCurrentChat, settings } = props;
   const [contextFields, setContextFields] = useState<{ type: string; source: string; data: string }[]>(
     [...oldData.contextData] || []
   );
@@ -52,7 +53,7 @@ export default function ChatSettingsForm(props: {
   const { pop } = useNavigation();
 
   useEffect(() => {
-    setStats(chats.calculateStats(oldData.name));
+    Promise.resolve(calculateStats(oldData)).then((stats) => setStats(stats));
   }, [contextFields]);
 
   return (
@@ -239,11 +240,13 @@ export default function ChatSettingsForm(props: {
               }
 
               const newChat: Chat = {
+                id: oldData.id,
                 name: values.chatNameField,
                 icon: values.chatIconField,
                 iconColor: values.chatIconColorField,
                 basePrompt: values.chatBasePromptField,
                 favorited: values.chatFavoritedField,
+                conversation: oldData.conversation,
                 contextData: filledContextFields.filter((field) => field.data.length > 0),
                 condensingStrategy: values.chatCondensingStrategyField,
                 summaryLength: values.chatSummaryLengthField,
@@ -253,9 +256,9 @@ export default function ChatSettingsForm(props: {
                 allowAutonomy: values.chatAllowAutonomyField,
               };
 
-              chats.updateChat(oldData.name, newChat);
+              updateChat(newChat);
 
-              chats.revalidate().then(() => {
+              revalidateChats().then(() => {
                 setCurrentChat(newChat);
 
                 toast.title = "Chat Settings Saved";

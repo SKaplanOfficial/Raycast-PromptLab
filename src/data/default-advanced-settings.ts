@@ -68,22 +68,31 @@ export const defaultAdvancedSettings = {
     useUserShellEnvironment: true,
   },
   actionSettings: {
+    DeleteAction: {
+      enabled: ["search-commands", "chat", "manage-models", "saved-responses"],
+    },
+    DeleteAllAction: {
+      enabled: ["search-commands", "chat", "manage-models", "saved-responses"],
+    },
+    CopyIDAction: {
+      enabled: ["search-commands", "chat", "manage-models", "saved-responses"],
+    },
     RunCommandAction: {
-      enabled: ["search-commands"],
+      enabled: ["search-commands", "discover-commands"],
     },
     ShareCommandAction: {
       enabled: ["search-commands"],
     },
     OpenPlaceholdersGuideAction: {
-      enabled: ["search-commands", "create-command", "chat"],
+      enabled: ["search-commands", "create-command", "chat", "saved-responses"],
       openIn: "default",
     },
     OpenAdvancedSettingsAction: {
-      enabled: ["search-commands", "create-command", "chat"],
+      enabled: ["search-commands", "create-command", "chat", "saved-responses"],
       openIn: "default",
     },
     EditCustomPlaceholdersAction: {
-      enabled: ["create-command", "search-commands", "chat"],
+      enabled: ["create-command", "search-commands", "chat", "saved-responses"],
       openIn: "default",
     },
     CopyCommandPromptAction: {
@@ -92,14 +101,11 @@ export const defaultAdvancedSettings = {
     CopyCommandJSONAction: {
       enabled: ["search-commands"],
     },
-    CopyCommandIDAction: {
-      enabled: ["search-commands"],
-    },
     ExportAllCommandsAction: {
       enabled: ["search-commands"],
     },
     ToggleFavoriteAction: {
-      enabled: ["search-commands"],
+      enabled: ["search-commands", "discover-commands", "chat", "manage-models", "saved-responses"],
     },
     CreateQuickLinkAction: {
       enabled: ["search-commands"],
@@ -109,12 +115,6 @@ export const defaultAdvancedSettings = {
     },
     CreateDerivativeAction: {
       enabled: ["search-commands", "discover-commands"],
-    },
-    DeleteCommandAction: {
-      enabled: ["search-commands"],
-    },
-    DeleteAllCommandsAction: {
-      enabled: ["search-commands"],
     },
     InstallAllCommandsAction: {
       enabled: ["discover-commands"],
@@ -140,31 +140,13 @@ export const defaultAdvancedSettings = {
     RegenerateChatAction: {
       enabled: ["search-commands", "discover-commands", "chat"],
     },
-    ToggleChatFavoriteAction: {
-      enabled: ["search-commands", "discover-commands", "chat"],
-    },
     ExportChatAction: {
       enabled: ["search-commands", "discover-commands", "chat"],
-    },
-    DeleteChatAction: {
-      enabled: ["search-commands", "discover-commands", "chat"],
-    },
-    DeleteAllChatsAction: {
-      enabled: ["search-commands", "discover-commands", "chat"],
-    },
-    ToggleModelFavoriteAction: {
-      enabled: ["manage-models"],
     },
     ToggleModelDefaultAction: {
       enabled: ["manage-models"],
     },
     CreateModelDerivativeAction: {
-      enabled: ["manage-models"],
-    },
-    DeleteModelAction: {
-      enabled: ["manage-models"],
-    },
-    DeleteAllModelsAction: {
       enabled: ["manage-models"],
     },
     CopyModelJSONAction: {
@@ -178,6 +160,9 @@ export const defaultAdvancedSettings = {
     },
     EditModelAction: {
       enabled: ["manage-models"],
+    },
+    EditSavedResponseAction: {
+      enabled: ["saved-responses"],
     },
   },
 };

@@ -1,16 +1,23 @@
 import { Action, ActionPanel } from "@raycast/api";
 import { defaultAdvancedSettings } from "../../../data/default-advanced-settings";
 import { anyActionsEnabled } from "../../../utils/action-utils";
+import CopyIDAction from "../../actions/CopyIDAction";
 
 export const CopyChatActionsSection = (props: {
+  chatId: string;
   response: string;
   query: string;
   basePrompt: string;
   settings: typeof defaultAdvancedSettings;
 }) => {
-  const { response, query, basePrompt, settings } = props;
+  const { chatId, response, query, basePrompt, settings } = props;
 
-  if (!anyActionsEnabled(["CopyChatResponseAction", "CopyChatQueryAction", "CopyChatBasePromptAction"], settings)) {
+  if (
+    !anyActionsEnabled(
+      ["CopyChatResponseAction", "CopyChatQueryAction", "CopyChatBasePromptAction", "CopyIDAction"],
+      settings
+    )
+  ) {
     return null;
   }
 
@@ -27,6 +34,7 @@ export const CopyChatActionsSection = (props: {
         content={basePrompt}
         shortcut={{ modifiers: ["cmd", "shift"], key: "p" }}
       />
+      <CopyIDAction id={chatId} objectType="Chat" settings={settings} />
     </ActionPanel.Section>
   );
 };

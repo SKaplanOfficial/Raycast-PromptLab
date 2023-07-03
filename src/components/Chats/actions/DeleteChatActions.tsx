@@ -1,5 +1,8 @@
-import { Action, Alert, Icon, Toast, confirmAlert, showToast } from "@raycast/api";
-import { Chat, ChatManager } from "../../../utils/types";
+import { Chat, ChatRef } from "../../../utils/types";
+import { deleteChat } from "../../../utils/chat-utils";
+import DeleteAllAction from "../../actions/DeleteAllAction";
+import DeleteAction from "../../actions/DeleteAction";
+import { defaultAdvancedSettings } from "../../../data/default-advanced-settings";
 
 /**
  * Action to delete a chat.
@@ -10,73 +13,47 @@ import { Chat, ChatManager } from "../../../utils/types";
  */
 export const DeleteChatAction = (props: {
   chat: Chat;
-  chats: ChatManager;
+  revalidateChats: () => Promise<void>;
   setCurrentChat: (value: React.SetStateAction<Chat | undefined>) => void;
+  settings: typeof defaultAdvancedSettings;
 }) => {
-  const { chat, chats, setCurrentChat } = props;
   return (
-    <Action
-      title="Delete Chat"
-      icon={Icon.Trash}
-      style={Action.Style.Destructive}
-      shortcut={{ modifiers: ["cmd", "shift"], key: "d" }}
-      onAction={async () => {
-        if (
-          await confirmAlert({
-            title: "Delete Chat",
-            message: "Are you sure?",
-            primaryAction: { title: "Delete", style: Alert.ActionStyle.Destructive },
-          })
-        ) {
-          setCurrentChat(undefined);
-          await chats.deleteChat(chat.name);
-          await chats.revalidate();
-          await showToast({ title: "Chat Deleted" });
-        }
+    <DeleteAction
+      deleteMethod={async () => {
+        props.setCurrentChat(undefined);
+        await deleteChat(props.chat.id);
+        await props.revalidateChats();
       }}
+      objectType="Chat"
+      settings={props.settings}
     />
   );
 };
 
 /**
  * Action to delete all chats.
- * @param props.chats The chat manager object.
+ * @param props.chatRefs The list of chat references.
  * @param props.setCurrentChat The function to update the current chat.
  * @returns An action component.
  */
 export const DeleteAllChatsAction = (props: {
-  chats: ChatManager;
+  chatRefs: ChatRef[];
+  revalidateChats: () => Promise<void>;
   setCurrentChat: (value: React.SetStateAction<Chat | undefined>) => void;
+  settings: typeof defaultAdvancedSettings;
 }) => {
-  const { chats, setCurrentChat } = props;
   return (
-    <Action
-      title="Delete All Chats"
-      icon={Icon.Trash}
-      style={Action.Style.Destructive}
-      shortcut={{ modifiers: ["cmd", "shift", "opt"], key: "d" }}
-      onAction={async () => {
-        if (
-          await confirmAlert({
-            title: `Delete ${chats.chats.length} Chat${chats.chats.length == 1 ? "" : "s"}}`,
-            message: "Are you sure?",
-            primaryAction: { title: "Delete", style: Alert.ActionStyle.Destructive },
-          })
-        ) {
-          const toast = await showToast({ title: "Deleting Chats...", style: Toast.Style.Animated });
-          const totalCount = chats.chats.length;
-          setCurrentChat(undefined);
-          for (let i = 0; i < chats.chats.length; i++) {
-            const chat = chats.chats[i];
-            await chats.deleteChat(chat.name);
-            toast.message = `${i + 1} of ${totalCount}`;
-          }
-          await chats.revalidate();
-          toast.title = `${totalCount} Chats Deleted`;
-          toast.message = "";
-          toast.style = Toast.Style.Success;
+    <DeleteAllAction
+      deleteMethod={async () => {
+        props.setCurrentChat(undefined);
+        for (let i = 0; i < props.chatRefs.length; i++) {
+          const ref = props.chatRefs[i];
+          await deleteChat(ref);
         }
+        await props.revalidateChats();
       }}
+      objectType="Chats"
+      settings={props.settings}
     />
   );
 };

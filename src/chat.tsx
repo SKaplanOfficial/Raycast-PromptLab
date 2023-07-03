@@ -28,7 +28,6 @@ export default function Command(props: { arguments: { initialQuery: string } }) 
   return (
     <CommandChatView
       isLoading={false}
-      commandName="PromptLab Chat"
       options={options}
       prompt={preferences.basePrompt}
       initialQuery={initialQuery}

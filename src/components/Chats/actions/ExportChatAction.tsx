@@ -1,7 +1,8 @@
 import { Action, Icon, Toast, confirmAlert, getPreferenceValues, showInFinder, showToast } from "@raycast/api";
-import { Chat, ChatManager, ExtensionPreferences } from "../../../utils/types";
+import { Chat, ExtensionPreferences } from "../../../utils/types";
 import path from "path";
 import * as fs from "fs";
+import { calculateStats } from "../../../utils/chat-utils";
 
 /**
  * Action to export a chat to a JSON file.
@@ -9,8 +10,8 @@ import * as fs from "fs";
  * @param props.chats The chat manager object.
  * @returns An action component.
  */
-export const ExportChatAction = (props: { chat: Chat; chats: ChatManager }) => {
-  const { chat, chats } = props;
+export const ExportChatAction = (props: { chat: Chat }) => {
+  const { chat } = props;
   const preferences = getPreferenceValues<ExtensionPreferences>();
   return (
     <Action
@@ -29,7 +30,7 @@ export const ExportChatAction = (props: { chat: Chat; chats: ChatManager }) => {
             dismissAction: { title: "No" },
           }));
 
-        const chatContents = chats.getChatContents(chat);
+        const chatContents = chat.conversation.map((message) => `${message.type}:${message.text}`).join("\n");
 
         const failedExports: string[] = [];
         if (includeContext && chat.contextData?.length > 0) {
@@ -58,7 +59,7 @@ export const ExportChatAction = (props: { chat: Chat; chats: ChatManager }) => {
             }
           });
 
-          const statsJSON = JSON.stringify(chats.calculateStats(chat.name));
+          const statsJSON = JSON.stringify(calculateStats(chat));
           try {
             fs.writeFileSync(path.resolve(dirPath, chat.name + "-stats.json"), statsJSON);
           } catch (err) {
@@ -106,7 +107,7 @@ export const ExportChatAction = (props: { chat: Chat; chats: ChatManager }) => {
               toast.message = "Couldn't export chat";
               throw err;
             } else {
-              const statsJSON = JSON.stringify(chats.calculateStats(chat.name));
+              const statsJSON = JSON.stringify(calculateStats(chat));
               fs.writeFile(path.resolve(preferences.exportLocation, chat.name + "-stats.json"), statsJSON, (err) => {
                 if (err) {
                   toast.style = Toast.Style.Failure;

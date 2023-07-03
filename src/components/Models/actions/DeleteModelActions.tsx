@@ -1,7 +1,7 @@
-import { Action, Alert, Icon, confirmAlert, showToast } from "@raycast/api";
 import { defaultAdvancedSettings } from "../../../data/default-advanced-settings";
 import { Model, ModelManager } from "../../../utils/types";
-import { isActionEnabled } from "../../../utils/action-utils";
+import DeleteAllAction from "../../actions/DeleteAllAction";
+import DeleteAction from "../../actions/DeleteAction";
 
 /**
  * Action to delete a model.
@@ -15,31 +15,15 @@ export const DeleteModelAction = (props: {
   models: ModelManager;
   settings: typeof defaultAdvancedSettings;
 }) => {
-  const { model, models, settings } = props;
-
-  if (!isActionEnabled("DeleteModelAction", settings)) {
-    return null;
-  }
-
   return (
-    <Action
-      title="Delete Model"
-      icon={Icon.Trash}
-      shortcut={{ modifiers: ["cmd"], key: "d" }}
-      style={Action.Style.Destructive}
-      onAction={async () => {
-        if (
-          await confirmAlert({
-            title: "Delete Model?",
-            message: "Are you sure?",
-            primaryAction: { title: "Delete", style: Alert.ActionStyle.Destructive },
-          })
-        ) {
-          await models.deleteModel(model);
-          await models.revalidate();
-        }
-        await showToast({ title: `Deleted Model`, message: model.name });
+    <DeleteAction
+      deleteMethod={async () => {
+        await props.models.deleteModel(props.model);
+        await props.models.revalidate();
       }}
+      objectType="Model"
+      message={props.model.name}
+      settings={props.settings}
     />
   );
 };
@@ -51,34 +35,16 @@ export const DeleteModelAction = (props: {
  * @returns An action component.
  */
 export const DeleteAllModelsAction = (props: { models: ModelManager; settings: typeof defaultAdvancedSettings }) => {
-  const { models, settings } = props;
-
-  if (!isActionEnabled("DeleteAllModelsAction", settings)) {
-    return null;
-  }
-
   return (
-    <Action
-      title="Delete All Models"
-      icon={Icon.Trash}
-      shortcut={{ modifiers: ["cmd", "opt"], key: "d" }}
-      style={Action.Style.Destructive}
-      onAction={async () => {
-        if (
-          await confirmAlert({
-            title: `Delete ${models.models.length} Models?`,
-            message: "Are you sure?",
-            primaryAction: { title: "Delete", style: Alert.ActionStyle.Destructive },
-          })
-        ) {
-          const totalAmount = models.models.length;
-          for (const model of models.models) {
-            await models.deleteModel(model);
-            await models.revalidate();
-          }
-          await showToast({ title: `Deleted ${totalAmount} Models` });
+    <DeleteAllAction
+      deleteMethod={async () => {
+        for (const model of props.models.models) {
+          await props.models.deleteModel(model);
+          await props.models.revalidate();
         }
       }}
+      objectType="Models"
+      settings={props.settings}
     />
   );
 };

@@ -42,6 +42,11 @@ export const StorageKeys = {
    * Key for the list of UUIDs used in placeholders thus far.
    */
   USED_UUIDS: "--uuids",
+
+  /**
+   * Key for the list of cached saved response objects.
+   */
+  SAVED_RESPONSES: "--saved-responses",
 };
 
 /**

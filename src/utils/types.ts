@@ -558,110 +558,82 @@ export type Model = {
 /**************/
 
 /**
- * Wrapper type for the chat manager returned by {@link useChats}.
+ * A references to a chat, without the full conversation or context data.
  */
-export type ChatManager = {
+export type ChatRef = {
   /**
-   * The list of chats.
+   * Whether the chat is favorited.
    */
-  chats: Chat[];
+  favorited: boolean;
 
   /**
-   * Whether the chats are currently being loaded.
+   * The Raycast icon for the chat.
    */
-  isLoading: boolean;
+  icon: string;
 
   /**
-   * The error message, if any.
+   * The Raycast color for the chat.
    */
-  error: string | undefined;
+  iconColor: string;
 
   /**
-   * Reloads the chats, ensuring that the latest version is loaded.
-   * @returns A promise that resolves when the chats have been reloaded.
+   * The unique ID of the chat.
    */
-  revalidate: () => Promise<void>;
+  id: string;
 
   /**
-   * Creates a new chat.
-   * @param name The name of the chat.
-   * @param basePrompt The base prompt for the chat.
-   * @param options Any predefined settings for the chat.
-   * @returns A promise that resolves to the newly created chat, or undefined if the chat could not be created.
+   * The file path to the chat.
    */
-  createChat: (name: string, basePrompt: string, options: object) => Promise<Chat | undefined>;
+  file: string;
 
   /**
-   * Deletes a chat.
-   * @param name The name of the chat to delete.
-   * @returns A promise that resolves when the chat has been deleted.
+   * The name of the chat.
    */
-  deleteChat: (name: string) => Promise<void>;
+  name: string;
+};
+
+export const isChatRef = (obj: object): obj is ChatRef => {
+  return "file" in obj;
+};
+
+/**
+ * The type of a message in a chat conversation.
+ */
+export enum MessageType {
+  QUERY = "USER_QUERY",
+  RESPONSE = "MODEL_RESPONSE",
+  SYSTEM = "SYSTEM_MESSAGE",
+}
+
+/**
+ * A message in a chat conversation.
+ */
+export type ChatMessage = {
+  /**
+   * The type of the message, i.e. who sent it.
+   */
+  type: MessageType;
 
   /**
-   * Appends text to a chat conversation & updates the chat's file.
-   * @param chat The chat to append to.
-   * @param text The text to append.
-   * @returns A promise that resolves when the text has been appended.
+   * The text of the message.
    */
-  appendToChat: (chat: Chat, text: string) => Promise<void>;
+  text: string;
 
   /**
-   * Loads a chat's conversation from its file.
-   * @param chatName The name of the chat to load.
-   * @returns The chat's conversation, or undefined if the chat could not be found.
+   * The exact date the message was sent.
    */
-  loadConversation: (chatName: string) => string[] | undefined;
-
-  /**
-   * Gets the list of favorited chats.
-   * @returns The list of favorited chats.
-   */
-  favorites: () => Chat[];
-
-  /**
-   * Checks whether a chat currently exists (i.e. whether it has an associated file).
-   * @param chat The chat to check.
-   * @returns True if the chat exists, false otherwise.
-   */
-  checkExists: (chat: Chat) => boolean;
-
-  /**
-   * Updates the value of a single property in a chat's settings.
-   * @param chat The chat to update.
-   * @param property The name of the property to update.
-   * @param value The new value of the property.
-   * @returns A promise that resolves when the property has been updated.
-   */
-  setChatProperty: (chat: Chat, property: string, value: string | boolean) => Promise<void>;
-
-  /**
-   * Updates a chat's settings.
-   * @param name The name of the chat to update.
-   * @param chatData The new chat data.
-   * @returns A promise that resolves when the chat has been updated.
-   */
-  updateChat: (name: string, chatData: Chat) => Promise<void>;
-
-  /**
-   * Gets the contents of a chat's file.
-   * @param chat The chat to get the contents of.
-   * @returns The contents of the chat's file.
-   */
-  getChatContents: (chat: Chat) => string;
-
-  /**
-   * Calculates statistics for a chat.
-   * @param chatName The name of the chat to calculate statistics for.
-   * @returns The statistics for the chat.
-   */
-  calculateStats: (chatName: string) => ChatStatistics;
+  date: string;
 };
 
 /**
  * A PromptLab Chat instance.
  */
 export type Chat = {
+  /**
+   * The unique ID of the chat.
+   */
+  id: string;
+
   /**
    * The name of the chat.
    */
@@ -686,6 +658,11 @@ export type Chat = {
    * Whether the chat is favorited.
    */
   favorited: boolean;
+
+  /**
+   * The messages in the chat.
+   */
+  conversation: ChatMessage[];
 
   /**
    * Data to be used as context for the conversation.
@@ -990,8 +967,6 @@ export interface PersistentVariable {
   initialValue: string;
 }
 
-
-
 /************/
 /* Insights */
 /************/
@@ -1050,4 +1025,98 @@ export type Insight = {
    * The related insights, by ID.
    */
   relatedInsights: string[];
+};
+
+/*******************/
+/* Saved Responses */
+/*******************/
+
+/**
+ * Locations from which commands may be launched.
+ */
+export enum LaunchSource {
+  /**
+   * Locally stored commands.
+   */
+  LOCAL = "local",
+
+  /**
+   * Remotely stored commands, i.e. commands launched from the PromptLab store.
+   */
+  REMOTE = "remote",
+}
+
+/**
+ * A saved response, stored in the extension's support directory as a JSON file.
+ */
+export type SavedResponse = {
+  /**
+   * The name of the response.
+   */
+  name: string;
+
+  /**
+   * The base prompt that generated the response, before applying placeholders.
+   */
+  rawPrompt: string;
+
+  /**
+   * The prompt that generated the response, after applying placeholders.
+   */
+  prompt: string;
+
+  /**
+   * The full text of the response.
+   */
+  response: string;
+
+  /**
+   * The files that were selected when the response was generated.
+   */
+  files: string[];
+
+  /**
+   * The name of the command.
+   */
+  commandID: string;
+
+  /**
+   * The name of the command.
+   */
+  commandName: string;
+
+  /**
+   * The source of the command, one of @{@link LaunchSource}.
+   */
+  launchSource: string;
+
+  /**
+   * The options for the command.
+   */
+  options: CommandOptions;
+
+  /**
+   * The date the response was generated.
+   */
+  date: Date;
+
+  /**
+   * The unique ID of the response. This is used as the filename of the response.
+   */
+  id: string;
+
+  /**
+   * Whether the response is favorited.
+   */
+  favorited: boolean;
+
+  /**
+   * AI-generated keywords for the response.
+   */
+  keywords: string[];
+
+  /**
+   * User-defined tags for the response.
+   */
+  tags: string[];
 };

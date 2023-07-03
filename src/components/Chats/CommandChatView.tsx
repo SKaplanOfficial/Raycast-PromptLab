@@ -1,7 +1,15 @@
 import { Form, LocalStorage, Toast, getPreferenceValues, showToast } from "@raycast/api";
 import { useEffect, useState } from "react";
 import useModel from "../../hooks/useModel";
-import { Chat, CommandOptions, ExtensionPreferences } from "../../utils/types";
+import {
+  Chat,
+  ChatRef,
+  Command,
+  CommandOptions,
+  ExtensionPreferences,
+  MessageType,
+  StoreCommand,
+} from "../../utils/types";
 import { runActionScript, runReplacements } from "../../utils/command-utils";
 import { useChats } from "../../hooks/useChats";
 import { useFiles as useFileContents } from "../../hooks/useFiles";
@@ -10,8 +18,18 @@ import { ChatActionPanel } from "./actions/ChatActionPanel";
 import { checkForPlaceholders } from "../../utils/placeholders";
 import { useCachedState } from "@raycast/utils";
 import ChatDropdown from "./ChatDropdown";
-import { addContextForQuery, generateTitle } from "../../utils/chat-utils";
-import { addInsight } from "../../hooks/useInsights";
+import * as Insights from "../../utils/insights";
+import {
+  addContextForQuery,
+  addQuery,
+  addResponse,
+  addSystemMessage,
+  checkExists,
+  createChat,
+  deleteChat,
+  generateTitle,
+  loadChat,
+} from "../../utils/chat-utils";
 
 interface CommandPreferences {
   useSelectedFiles: boolean;
@@ -25,7 +43,7 @@ const defaultPromptInfo =
 
 export default function CommandChatView(props: {
   isLoading: boolean;
-  commandName: string;
+  command?: Command | StoreCommand;
   options: CommandOptions;
   prompt: string;
   response: string;
@@ -36,7 +54,7 @@ export default function CommandChatView(props: {
   useConversation?: boolean;
   autonomousFeatures?: boolean;
 }) {
-  const { isLoading, commandName, options, prompt, response, revalidate, cancel, initialQuery } = props;
+  const { isLoading, command, options, prompt, response, revalidate, cancel, initialQuery } = props;
   const [query, setQuery] = useState<string>(initialQuery || "");
   const [sentQuery, setSentQuery] = useState<string>("");
   const [currentResponse, setCurrentResponse] = useState<string>(response);
@@ -64,7 +82,7 @@ export default function CommandChatView(props: {
   const [previousPrompt] = useCachedState<string>("promptlab-previous-prompt", "");
 
   const { advancedSettings } = useAdvancedSettings();
-  const chats = useChats();
+  const { chatRefs, revalidate: revalidateChats } = useChats();
   const {
     selectedFiles,
     fileContents,
@@ -96,17 +114,15 @@ export default function CommandChatView(props: {
       allowAutonomy: autonomousFeatures,
     };
 
-    chats.createChat(newChatName, basePrompt, options).then((chat) => {
-      chats.revalidate().then(async () => {
-        setCurrentChat(chat);
-        if (chat) {
-          if (preferences.useChatStatistics) {
-            addInsight("Create Chat", `Created chat: ${newChatName}`, ["chats"], []);
-          }
-          chats.appendToChat(chat, `\n[USER_QUERY]:${userQuery}\n`);
-        }
-      });
-    });
+    const chat = await createChat(newChatName, basePrompt, options);
+    await revalidateChats();
+    setCurrentChat(chat);
+    if (chat) {
+      if (preferences.useChatStatistics) {
+        Insights.add("Create Chat", `Created chat: ${newChatName}`, ["chats"], []);
+      }
+      await addQuery(chat, userQuery);
+    }
   };
 
   /**
@@ -114,7 +130,7 @@ export default function CommandChatView(props: {
    * @param newQuery The query to submit.
    * @param sender The sender of the query, either "USER_QUERY" or "MODEL_RESPONSE".
    */
-  const submitQuery = async (newQuery: string, sender = "USER_QUERY") => {
+  const submitQuery = async (newQuery: string) => {
     if (newQuery.trim() == "" && query == undefined) {
       return;
     }
@@ -129,7 +145,6 @@ export default function CommandChatView(props: {
       const subbedQuery = await applyReplacements(newQuery);
       setSentQuery(subbedQuery);
       setEnableModel(true);
-      chats.appendToChat(currentChat, `\n[${sender}]:${newQuery}\n`);
     }
   };
 
@@ -148,7 +163,7 @@ export default function CommandChatView(props: {
       previousPrompt: previousPrompt,
     };
     // Apply placeholders to the query
-    const subbedQuery = await runReplacements(query, context, [commandName]);
+    const subbedQuery = await runReplacements(query, context, [command?.name || "PromptLab Chat"]);
 
     // Check for command placeholders
     const cmdMatch = data.match(/.*{{cmd:(.*?):(.*?)}}.*/);
@@ -161,16 +176,20 @@ export default function CommandChatView(props: {
     const files = await revalidateFiles();
 
     // Add context to the query
-    return await addContextForQuery(
+    const queryWithContext = await addContextForQuery(
       subbedQuery,
       currentChat,
-      chats,
       currentResponse,
       useFiles,
       useConversation,
       autonomousFeatures,
       files
     );
+
+    if (currentChat) {
+      await addQuery(currentChat, queryWithContext);
+    }
+    return queryWithContext;
   };
 
   useEffect(() => {
@@ -218,7 +237,7 @@ export default function CommandChatView(props: {
             return;
           }
           setRunningCommand(true);
-          chats.appendToChat(currentChat, `\n[MODEL_RESPONSE]:${data}\n`);
+          addResponse(currentChat, data);
           const commandInput = cmdMatch[2];
           setInput(commandInput);
           // Get the command prompt
@@ -232,7 +251,8 @@ export default function CommandChatView(props: {
               // Run the command
               const cmdPrompt = commandPrompts[nameIndex];
               setEnableModel(false);
-              submitQuery(cmdPrompt, "MODEL_RESPONSE");
+              addSystemMessage(currentChat, `Running command: ${cmdPrompt}`);
+              submitQuery(cmdPrompt);
             }
           });
         }
@@ -244,7 +264,7 @@ export default function CommandChatView(props: {
     if (!loadingData && data.includes(currentResponse) && dataTag?.includes(sentQuery)) {
       // Disable the model once the response is generated
       if (currentChat) {
-        chats.appendToChat(currentChat, `\n[MODEL_RESPONSE]:${currentResponse}\n`);
+        addResponse(currentChat, currentResponse);
       }
     }
 
@@ -262,7 +282,7 @@ export default function CommandChatView(props: {
       setEnableModel(false);
       setRunningCommand(false);
       if (currentChat) {
-        chats.appendToChat(currentChat, `\n[MODEL_RESPONSE]:${currentResponse}\n`);
+        addResponse(currentChat, currentResponse);
       }
       // Get the command prompt
       LocalStorage.allItems().then((commands) => {
@@ -304,45 +324,46 @@ export default function CommandChatView(props: {
       setQuery("");
       setCurrentResponse("Ready for your query.");
     } else if (currentChat != undefined) {
-      const convo = chats.loadConversation(currentChat.name) || [];
-      const lastQuery = convo.reverse().find((entry) => entry.startsWith("USER_QUERY"));
-      const lastResponse = convo.find((entry) => entry.startsWith("MODEL_RESPONSE"));
+      const convo = currentChat.conversation || [];
+      const lastQuery = convo.reverse().find((entry) => entry.type == MessageType.QUERY);
+      const lastResponse = convo.find((entry) => entry.type == MessageType.RESPONSE);
 
       if (lastQuery) {
-        setQuery(lastQuery.split(/(?:USER_QUERY):/g)[1].trim());
+        setQuery(lastQuery.text.trim());
       }
 
       if (lastResponse) {
-        setCurrentResponse(lastResponse.split(/(?:MODEL_RESPONSE):/g)[1].trim());
+        setCurrentResponse(lastResponse.text.trim());
       }
     }
   }, [currentChat]);
 
-  const activateChat = (chat: Chat | undefined) => {
-    chats.revalidate().then(() => {
-      setPreviousResponse("");
-      if (chat && !chats.checkExists(chat)) {
-        // If the chat file doesn't exist, delete it from the list and open a new chat
-        chats.deleteChat(chat.name);
-        setCurrentChat(undefined);
-        showToast({ title: "Chat Doesn't Exist", style: Toast.Style.Failure });
-        chats.revalidate();
-      } else {
-        // Otherwise, set the current chat
-        setCurrentChat(chat);
-        if (chat) {
-          if (preferences.useChatStatistics) {
-            addInsight("Switch Chat", `Switched to chat ${chat.name}`, ["chats"], []);
-          }
-          setBasePrompt(chat.basePrompt);
-          setUseFiles(chat.useSelectedFilesContext);
-          setUseConversation(chat.useConversationContext);
-          setAutonomousFeatures(chat.allowAutonomy);
-        } else {
-          setBasePrompt(prompt);
+  const activateChat = async (chat: ChatRef | undefined) => {
+    await revalidateChats();
+    setPreviousResponse("");
+    if (chat && !checkExists(chat)) {
+      // If the chat file doesn't exist, delete it from the list and open a new chat
+      deleteChat(chat);
+      setCurrentChat(undefined);
+      showToast({ title: "Chat Doesn't Exist", style: Toast.Style.Failure });
+      await revalidateChats();
+    } else {
+      // Otherwise, set the current chat
+      if (chat) {
+        const chatObj = await loadChat(chat);
+        setCurrentChat(chatObj);
+        if (preferences.useChatStatistics) {
+          Insights.add("Switch Chat", `Switched to chat ${chat.name}`, ["chats"], []);
         }
+        setBasePrompt(chatObj.basePrompt);
+        setUseFiles(chatObj.useSelectedFilesContext);
+        setUseConversation(chatObj.useConversationContext);
+        setAutonomousFeatures(chatObj.allowAutonomy);
+      } else {
+        setCurrentChat(undefined);
+        setBasePrompt(prompt);
       }
-    });
+    }
   };
 
   /**
@@ -368,7 +389,8 @@ export default function CommandChatView(props: {
           isLoading={isLoading || loadingData || runningCommand}
           settings={advancedSettings}
           chat={currentChat}
-          chats={chats}
+          chatRefs={chatRefs}
+          revalidateChats={revalidateChats}
           useFileContext={useFiles}
           useConversationContext={useConversation}
           useAutonomousFeatures={autonomousFeatures}
@@ -403,8 +425,8 @@ export default function CommandChatView(props: {
     >
       <ChatDropdown
         currentChat={currentChat}
-        chats={chats}
-        onChange={(value) => activateChat(chats.chats.find((chat) => chat.name == value))}
+        chatRefs={chatRefs}
+        onChange={(value) => activateChat(chatRefs.find((ref) => ref.name == value))}
       />
 
       <Form.TextArea

@@ -1,5 +1,7 @@
-import { Action, Icon } from "@raycast/api";
-import { Chat, ChatManager } from "../../../utils/types";
+import { Chat } from "../../../utils/types";
+import { updateChat } from "../../../utils/chat-utils";
+import ToggleFavoriteAction from "../../actions/ToggleFavoriteAction";
+import { defaultAdvancedSettings } from "../../../data/default-advanced-settings";
 
 /**
  * Action to toggle a chat's favorite status.
@@ -10,28 +12,26 @@ import { Chat, ChatManager } from "../../../utils/types";
  */
 export const ToggleChatFavoriteAction = (props: {
   chat: Chat | undefined;
-  chats: ChatManager;
+  revalidateChats: () => Promise<void>;
   setCurrentChat: (value: React.SetStateAction<Chat | undefined>) => void;
+  settings: typeof defaultAdvancedSettings;
 }) => {
-  const { chat, chats, setCurrentChat } = props;
+  const { chat, revalidateChats, setCurrentChat, settings } = props;
 
   if (!chat) {
     return null;
   }
 
   return (
-    <Action
-      title={chat.favorited ? "Remove From Favorites" : "Add To Favorites"}
-      icon={chat.favorited ? Icon.StarDisabled : Icon.Star}
-      shortcut={{ modifiers: ["cmd"], key: "f" }}
-      onAction={async () => {
-        if (chat) {
-          const newChatData = { ...chat, favorited: !chat.favorited };
-          chats.updateChat(chat.name, newChatData);
-          chats.revalidate();
-          setCurrentChat(newChatData);
-        }
+    <ToggleFavoriteAction
+      toggleMethod={async () => {
+        const newChatData = { ...chat, favorited: !chat.favorited };
+        updateChat(newChatData);
+        await revalidateChats();
+        setCurrentChat(newChatData);
       }}
+      currentStatus={chat.favorited}
+      settings={settings}
     />
   );
 };

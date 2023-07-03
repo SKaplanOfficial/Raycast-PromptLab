@@ -64,7 +64,7 @@ import {
   Placeholder,
   PlaceholderList,
 } from "./types";
-import { allInsights, getInsights } from "../hooks/useInsights";
+import * as Insights from "./insights";
 
 /**
  * Placeholder specification.
@@ -168,9 +168,9 @@ const placeholders: PlaceholderList = {
       const tag = str.match(/{{insights:(.*?)}}/)?.[1];
       let insights: Insight[] = [];
       if (tag) {
-        insights = await getInsights(50, tag);
+        insights = await Insights.get(50, tag);
       } else {
-        insights = await getInsights(50);
+        insights = await Insights.get(50);
       }
 
       if (insights.length == 0) {
@@ -1251,7 +1251,6 @@ const placeholders: PlaceholderList = {
       }
       return { result: newUUID, uuid: newUUID };
     },
-    result_keys: ["uuid" + crypto.randomUUID()],
     constant: false,
     fn: async () => (await Placeholders.allPlaceholders["{{uuid}}"].apply("{{uuid}}")).result,
     example: "{{copy:{{uuid}}}}",

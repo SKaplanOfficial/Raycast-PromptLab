@@ -1,7 +1,6 @@
-import { Action, Icon } from "@raycast/api";
 import { Model, ModelManager } from "../../../utils/types";
 import { defaultAdvancedSettings } from "../../../data/default-advanced-settings";
-import { isActionEnabled } from "../../../utils/action-utils";
+import ToggleFavoriteAction from "../../actions/ToggleFavoriteAction";
 
 /**
  * Action to toggle a model's favorite status.
@@ -16,19 +15,14 @@ export default function ToggleModelFavoriteAction(props: {
 }) {
   const { model, models, settings } = props;
 
-  if (!isActionEnabled("ToggleModelFavoriteAction", settings)) {
-    return null;
-  }
-
   return (
-    <Action
-      title={`${model.favorited ? "Remove From Favorites" : "Add To Favorites"}`}
-      icon={model.favorited ? Icon.StarDisabled : Icon.Star}
-      shortcut={{ modifiers: ["cmd"], key: "f" }}
-      onAction={async () => {
+    <ToggleFavoriteAction
+      toggleMethod={async () => {
         await models.updateModel(model, { ...model, favorited: !model.favorited });
         await models.revalidate();
       }}
+      currentStatus={model.favorited}
+      settings={settings}
     />
   );
 }

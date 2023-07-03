@@ -1,11 +1,11 @@
 import { Detail } from "@raycast/api";
 import ResponseActions from "./actions/ResponseActions";
-import { CommandOptions } from "../../utils/types";
+import { Command, CommandOptions, StoreCommand } from "../../utils/types";
 import { useSpeech } from "../../hooks/useSpeech";
 
 export default function CommandDetailView(props: {
   isLoading: boolean;
-  commandName: string;
+  command: Command | StoreCommand;
   options: CommandOptions;
   prompt: string;
   response: string;
@@ -13,7 +13,7 @@ export default function CommandDetailView(props: {
   cancel: () => void;
   selectedFiles: string[] | undefined;
 }) {
-  const { isLoading, commandName, options, prompt, response, revalidate, cancel, selectedFiles } = props;
+  const { isLoading, command, options, prompt, response, revalidate, cancel, selectedFiles } = props;
   const { speaking, stopSpeech, restartSpeech } = useSpeech(options, isLoading, response);
 
   const lines = [];
@@ -34,11 +34,11 @@ export default function CommandDetailView(props: {
   return (
     <Detail
       isLoading={isLoading}
-      markdown={`# ${commandName}\n${lines.join("\n")}`}
-      navigationTitle={commandName}
+      markdown={`# ${command.name}\n${lines.join("\n")}`}
+      navigationTitle={command.name}
       actions={
         <ResponseActions
-          commandName={commandName}
+          command={command}
           options={options}
           commandSummary="Response"
           responseText={response}

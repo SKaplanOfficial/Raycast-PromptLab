@@ -5,6 +5,7 @@ import path from "path";
 import * as fs from "fs";
 import { defaultAdvancedSettings } from "../../../data/default-advanced-settings";
 import { isActionEnabled } from "../../../utils/action-utils";
+import CopyIDAction from "../../actions/CopyIDAction";
 
 /**
  * Action panel section for actions related to copying command data to the clipboard.
@@ -21,7 +22,7 @@ export const CopyCommandActionsSection = (props: {
   if (
     !isActionEnabled("CopyCommandPromptAction", settings) &&
     !isActionEnabled("CopyCommandJSONAction", settings) &&
-    !isActionEnabled("CopyCommandIDAction", settings) &&
+    !isActionEnabled("CopyIDAction", settings) &&
     !isActionEnabled("ExportAllCommandsAction", settings)
   ) {
     return null;
@@ -43,13 +44,7 @@ export const CopyCommandActionsSection = (props: {
           shortcut={{ modifiers: ["cmd", "shift"], key: "j" }}
         />
       ) : null}
-      {isCommand(command) && isActionEnabled("CopyCommandIDAction", settings) ? (
-        <Action.CopyToClipboard
-          title="Copy Command ID"
-          content={command.id}
-          shortcut={{ modifiers: ["cmd", "shift"], key: "i" }}
-        />
-      ) : null}
+      {isCommand(command) ? <CopyIDAction id={command.id} objectType="Command" settings={settings} /> : null}
       {isCommand(command) && isActionEnabled("ExportAllCommandsAction", settings) ? <ExportAllCommandsAction /> : null}
     </ActionPanel.Section>
   );

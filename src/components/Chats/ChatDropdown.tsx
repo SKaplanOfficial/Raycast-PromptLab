@@ -1,12 +1,12 @@
 import { Color, Form, Icon } from "@raycast/api";
-import { Chat, ChatManager } from "../../utils/types";
+import { Chat, ChatRef } from "../../utils/types";
 
 export default function ChatDropdown(props: {
   currentChat: Chat | undefined;
-  chats: ChatManager;
+  chatRefs: ChatRef[];
   onChange: (value: string) => void;
 }) {
-  const { currentChat, chats, onChange } = props;
+  const { currentChat, chatRefs, onChange } = props;
   return (
     <Form.Dropdown
       title="Current Chat"
@@ -17,31 +17,33 @@ export default function ChatDropdown(props: {
       {currentChat ? <Form.Dropdown.Item title="New Chat" value="" /> : null}
       {!currentChat ? <Form.Dropdown.Item title="New Chat" value="new" /> : null}
 
-      {chats.favorites().length > 0 ? (
+      {chatRefs.filter((ref) => ref.favorited).length > 0 ? (
         <Form.Dropdown.Section title="Favorites">
-          {chats.favorites().map((chat) => (
-            <Form.Dropdown.Item
-              title={chat.name}
-              value={chat.name}
-              key={chat.name}
-              icon={
-                chat.favorited
-                  ? { source: Icon.StarCircle, tintColor: Color.Yellow }
-                  : { source: chat.icon, tintColor: chat.iconColor }
-              }
-            />
-          ))}
+          {chatRefs
+            .filter((ref) => ref.favorited)
+            .map((ref) => (
+              <Form.Dropdown.Item
+                title={ref.name}
+                value={ref.name}
+                key={ref.name}
+                icon={
+                  ref.favorited
+                    ? { source: Icon.StarCircle, tintColor: Color.Yellow }
+                    : { source: ref.icon, tintColor: ref.iconColor }
+                }
+              />
+            ))}
         </Form.Dropdown.Section>
       ) : null}
 
-      {chats.chats
-        .filter((chat) => !chat.favorited)
-        .map((chat) => (
+      {chatRefs
+        .filter((ref) => !ref.favorited)
+        .map((ref) => (
           <Form.Dropdown.Item
-            title={chat.name}
-            value={chat.name}
-            key={chat.name}
-            icon={{ source: chat.icon, tintColor: chat.iconColor }}
+            title={ref.name}
+            value={ref.name}
+            key={ref.name}
+            icon={{ source: ref.icon, tintColor: ref.iconColor }}
           />
         ))}
     </Form.Dropdown>

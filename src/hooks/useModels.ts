@@ -3,6 +3,7 @@ import { Model } from "../utils/types";
 import { Color, Icon, LocalStorage } from "@raycast/api";
 import { installDefaults } from "../utils/file-utils";
 import { useCachedState } from "@raycast/utils";
+import crypto from "crypto";
 
 export function useModels() {
   const [models, setModels] = useCachedState<Model[]>("--models", []);
@@ -56,7 +57,7 @@ export function useModels() {
       outputKeyPath: "",
       outputTiming: "sync",
       lengthLimit: "2500",
-      id: "",
+      id: `MO${crypto.randomUUID()}`,
       notes: "",
       isDefault: false,
       temperature: "1.0",
@@ -90,7 +91,7 @@ export function useModels() {
       outputKeyPath: newData.outputKeyPath || "",
       outputTiming: newData.outputTiming || "sync",
       lengthLimit: newData.lengthLimit || "2500",
-      id: "",
+      id: `MO${crypto.randomUUID()}`,
       notes: newData.notes || "",
       isDefault: newData.isDefault,
       temperature: newData.temperature || "1.0",

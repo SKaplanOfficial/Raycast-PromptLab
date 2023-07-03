@@ -4,6 +4,20 @@
 
 - Added `{{latitude}}` and ``{{longitude}}` placeholders for getting the latitude and longitude of the user's current location as determined by their IP address.
 - Added 'Create New Command' action in 'My PromptLab Commands' view.
+- Added 'Save Response' action + option to set it as the primary action for command outputs.
+- Added 'View Saved Responses' command.
+- Added ability to edit saved response settings.
+    - Added ability to set a saved response as a favorite.
+    - Added ability to customize tags for saved responses.
+- Added ability to delete saved responses individually or in bulk.
+- Added prefixes to each PromptLab object type's UUID:
+    - Commands: `CM`
+    - Models: `MO`
+    - Chats: `CH`
+    - Saved Responses: `SR`
+    - Insights: `IN`
+- Added saved response placeholders. Use the ID of a saved response to insert its output into a prompt.
+    - Can also use `{{SR:name}}` to insert the output of the saved response with the given name.
 
 ### 2023-06-30
 

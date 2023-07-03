@@ -1,9 +1,24 @@
 import { runAppleScript } from "run-applescript";
 import { objcImports, replaceAllHandler, rselectHandler, splitHandler, trimHandler } from "./scripts";
 import { exec } from "child_process";
-import { Command, CommandOptions, StoreCommand } from "./types";
-import { LocalStorage, AI, showToast, Toast, Clipboard } from "@raycast/api";
+import {
+  Command,
+  CommandOptions,
+  ExtensionPreferences,
+  LaunchSource,
+  Model,
+  SavedResponse,
+  StoreCommand,
+  isCommand,
+} from "./types";
+import { LocalStorage, AI, showToast, Toast, Clipboard, environment, getPreferenceValues, Color } from "@raycast/api";
 import { Placeholders } from "./placeholders";
+import * as fs from "fs";
+import crypto from "crypto";
+import path from "path";
+import runModel from "./runModel";
+import * as Insights from "./insights";
+import { loadChat } from "./chat-utils";
 
 /**
  * Runs the action script of a PromptLab command, providing the AI response as the `response` variable.
@@ -125,6 +140,58 @@ export const runReplacements = async (
 
   subbedPrompt = await Placeholders.bulkApply(subbedPrompt, context);
 
+  // Replace insight placeholders
+  if (subbedPrompt.match(/{{IN.*?}}/g)) {
+    const id = subbedPrompt.match(/{{(IN.*?)}}/)?.[1];
+    if (id != undefined) {
+      const insight = await Insights.read(id);
+      if (insight != undefined) {
+        subbedPrompt = subbedPrompt.replaceAll(`{{${id}}}`, `${insight.date}:${insight.description}`);
+      }
+    }
+  }
+
+  // Replace model placeholders
+  if (subbedPrompt.match(/{{MO.*?}}/g)) {
+    const id = subbedPrompt.match(/{{(MO.*?)}}/)?.[1];
+    if (id != undefined) {
+      const items = await LocalStorage.allItems();
+    const model: Model = Object.entries(items)
+      .filter(([key]) => key.startsWith("--model-"))
+      .map(([, value]) => JSON.parse(value))
+      .find((model) => model.id == id);
+      if (model != undefined) {
+        const modelName = model.name;
+        subbedPrompt = subbedPrompt.replaceAll(`{{${id}}}`, modelName);
+      }
+    }
+  }
+
+  // Replace chat placeholders
+  if (subbedPrompt.match(/{{CH.*?}}/g)) {
+    const id = subbedPrompt.match(/{{(CH.*?)}}/)?.[1];
+    if (id != undefined) {
+      const chat = await loadChat(id);
+      if (chat != undefined) {
+        const lastMessage = chat.conversation.at(-1)?.text || "";
+        subbedPrompt = subbedPrompt.replaceAll(`{{${id}}}`, lastMessage);
+      }
+    }
+  }
+
+  // Replace saved response placeholders
+  if (subbedPrompt.match(/{{SR.*?}}/g)) {
+    const savedResponses = await loadSavedResponses();
+    for (const response of savedResponses) {
+      const regexName = new RegExp(`{{SR:${response.name.trim()}}}`, "g");
+      const regexId = new RegExp(`{{${response.id}}}`, "g");
+      const responseMatches = subbedPrompt.match(regexName) || subbedPrompt.match(regexId) || [];
+      for (const m of responseMatches) {
+        subbedPrompt = subbedPrompt.replaceAll(m, response.response);
+      }
+    }
+  }
+
   // Replace command placeholders
   for (const cmdString of Object.values(await LocalStorage.allItems())) {
     const cmd = JSON.parse(cmdString) as Command;
@@ -174,4 +241,117 @@ export const updateCommand = async (
   if (setCommands != undefined) {
     setCommands([...commandDataFiltered?.map((data) => JSON.parse(data)), newCommandData]);
   }
+};
+
+/**
+ * Saves a response to the saved responses directory.
+ *
+ * @param command The command that was run.
+ * @param options The options that were used to run the command.
+ * @param promptText The text of the prompt.
+ * @param responseText The text of the response.
+ * @param files The files that were selected when running the command.
+ * @returns A promise resolving to true if response was saved successfully, false otherwise.
+ */
+export const saveResponse = async (
+  command: Command | StoreCommand,
+  options: CommandOptions,
+  promptText: string,
+  responseText: string,
+  files: string[]
+): Promise<{
+  /**
+   * True if the response was saved successfully, false otherwise.
+   */
+  status: boolean;
+
+  /**
+   * The path to the saved response, if it was saved successfully. Empty string otherwise.
+   */
+  outputPath: string;
+
+  /**
+   * The ID of the saved response, if it was saved successfully. Empty string otherwise.
+   */
+  id: string;
+}> => {
+  const preferences = getPreferenceValues<ExtensionPreferences>();
+  const savedResponsesDir = path.join(environment.supportPath, "saved-responses");
+
+  if (!fs.existsSync(savedResponsesDir)) {
+    await fs.promises.mkdir(savedResponsesDir);
+  }
+
+  const namePrompt = `Generate a title for the following response: \n\n${responseText}\n\nOutput only the title, nothing else. The title must be four words long or shorter.`;
+  const responseName = await runModel(namePrompt, namePrompt, "");
+
+  const keywordsPrompt = `Generate 5 keywords for the following response: \n\n${responseText}\n\nOutput only the keywords as a comma-separated list, nothing else.`;
+  const responseKeywords = await runModel(keywordsPrompt, keywordsPrompt, "");
+
+  const savedResponse: SavedResponse = {
+    name: responseName?.trim() || responseText.substring(0, 50).trim(),
+    commandID: isCommand(command) ? command.id : "N/A",
+    commandName: command.name,
+    launchSource: isCommand(command) ? LaunchSource.LOCAL : LaunchSource.REMOTE,
+    options: options,
+    rawPrompt: command.prompt,
+    prompt: promptText,
+    response: responseText,
+    files: files,
+    date: new Date(),
+    id: `SR${crypto.randomUUID()}`,
+    favorited: false,
+    keywords: responseKeywords?.split(",").map((tag) => tag.trim()) || [],
+    tags: [],
+  };
+
+  const savedResponsePath = path.join(savedResponsesDir, `${savedResponse.id}.json`);
+  try {
+    await fs.promises.writeFile(savedResponsePath, JSON.stringify(savedResponse));
+    if (preferences.useCommandStatistics) {
+      await Insights.add(
+        "Saved a Response",
+        `Saved a response for command ${command.name}`,
+        ["commands", "saved-responses"],
+        []
+      );
+    }
+  } catch (error) {
+    console.error(error);
+    return { status: false, outputPath: "", id: "" };
+  }
+  return { status: true, outputPath: savedResponsePath, id: savedResponse.id };
+};
+
+/**
+ * Loads all saved responses from the saved responses directory.
+ * @returns A promise resolving to an array of {@link SavedResponse} objects.
+ */
+export const loadSavedResponses = async (): Promise<SavedResponse[]> => {
+  const savedResponsesDir = path.join(environment.supportPath, "saved-responses");
+  const savedResponses: SavedResponse[] = [];
+  if (fs.existsSync(savedResponsesDir)) {
+    const savedResponsesFiles = await fs.promises.readdir(savedResponsesDir);
+    for (const savedResponseFile of savedResponsesFiles) {
+      if (savedResponseFile.startsWith(".")) {
+        continue;
+      }
+      const savedResponsePath = path.join(savedResponsesDir, savedResponseFile);
+      const savedResponse = JSON.parse(await fs.promises.readFile(savedResponsePath, "utf-8")) as SavedResponse;
+      savedResponses.push(savedResponse);
+    }
+  }
+  return savedResponses;
+};
+
+/**
+ * Maps a string to a Raycast color based on the tagname's ASCII sum.
+ * @param str The string to map to a color.
+ * @returns A Raycast color.
+ */
+export const mapStringToColor = (str: string) => {
+  const colorKeys = Object.keys(Color);
+  const asciiSum = str.split("").reduce((sum, char) => sum + char.charCodeAt(0), 0);
+  const index = asciiSum % colorKeys.length;
+  return Object.values(Color)[index];
 };

@@ -26,9 +26,9 @@ export function useCommands() {
     for (const command of commandObjs) {
       const newCommand = { ...command };
       if (!command.id || (command.id && command.id.trim().length == 0)) {
-        let newID = crypto.randomUUID();
+        let newID = `CM${crypto.randomUUID()}`;
         while (existingIDs.includes(newID)) {
-          newID = crypto.randomUUID();
+          newID = `CM${crypto.randomUUID()}`;
         }
         newCommand.id = newID;
         await LocalStorage.setItem(newCommand.name, JSON.stringify(newCommand));
@@ -66,7 +66,7 @@ export function useCommands() {
 
   const dummyCommand = (): Command => {
     return {
-      id: crypto.randomUUID(),
+      id: `CM${crypto.randomUUID()}`,
       name: "",
       description: "",
       icon: Icon.Gear,
@@ -118,7 +118,7 @@ export function useCommands() {
 
     // Create the command object
     const newCommand: Command = {
-      id: crypto.randomUUID(),
+      id: `CM${crypto.randomUUID()}`,
       name: newData.name,
       description: newData.description || "",
       icon: newData.icon || Icon.Gear,

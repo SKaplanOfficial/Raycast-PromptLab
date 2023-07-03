@@ -11,8 +11,8 @@ import { useEffect } from "react";
 import { Command } from "./utils/types";
 import { useCachedState } from "@raycast/utils";
 import { installDefaults } from "./utils/file-utils";
-import SuggestedCommandsSection from "./components/SuggestedCommandsSection";
-import { addInsight } from "./hooks/useInsights";
+import SuggestedCommandsSection from "./components/Commands/SuggestedCommandsSection";
+import * as Insights from "./utils/insights";
 
 interface CommandPreferences {
   showNewChatShortcut: boolean;
@@ -61,7 +61,7 @@ export default function PromptLabMenubar() {
         key={cmd.name}
         onAction={async (event) => {
           if (event.type == "left-click") {
-            await addInsight(
+            await Insights.add(
               `Command Execution`,
               `Executed command ${cmd.name} via the menubar`,
               ["commands", "menubar"],

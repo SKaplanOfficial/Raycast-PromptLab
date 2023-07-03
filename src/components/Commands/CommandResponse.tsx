@@ -8,7 +8,7 @@ import {
   useNavigation,
 } from "@raycast/api";
 import { useEffect, useState } from "react";
-import { Command, CommandOptions, ERRORTYPE, ExtensionPreferences } from "../../utils/types";
+import { Command, CommandOptions, ERRORTYPE, ExtensionPreferences, StoreCommand } from "../../utils/types";
 import { runActionScript, runReplacements } from "../../utils/command-utils";
 import useModel from "../../hooks/useModel";
 import CommandDetailView from "./CommandDetailView";
@@ -21,16 +21,16 @@ import CommandSetupForm from "./CommandSetupForm";
 import SpeechInputView from "./SpeechInputView";
 import { useFiles } from "../../hooks/useFiles";
 import runModel from "../../utils/runModel";
-import { addInsight, objectsByFrequency } from "../../hooks/useInsights";
+import * as Insights from "../../utils/insights";
 
 export default function CommandResponse(props: {
-  commandName: string;
+  command: Command | StoreCommand;
   prompt: string;
   input?: string;
   options: CommandOptions;
   setCommands?: React.Dispatch<React.SetStateAction<Command[]>>;
 }) {
-  const { commandName, prompt, input, setCommands } = props;
+  const { command, prompt, input, setCommands } = props;
   const [substitutedPrompt, setSubstitutedPrompt] = useState<string>(prompt);
   const [loadingData, setLoadingData] = useState<boolean>(true);
   const [shouldCancel, setShouldCancel] = useState<boolean>(false);
@@ -56,7 +56,7 @@ export default function CommandResponse(props: {
         .filter(([key]) => !key.startsWith("--") && !key.startsWith("id-"))
         .map(([, value]) => (JSON.parse(value) as Command).name);
 
-      objectsByFrequency("_executions", "name", 5).then((mostFrequentCommands) => {
+      Insights.objectsByFrequency("_executions", "name", 5).then((mostFrequentCommands) => {
         const modelInput = `I want you to recommend commands for me to use based on the following information. First, here are the commands that I most frequently use:\n\n${mostFrequentCommands.join(
           ", "
         )}\n\nNext, here are all of the other commands that I have installed:\n\n${commands
@@ -66,7 +66,7 @@ export default function CommandResponse(props: {
           )}\n\nFrom the second list, which commands are most complimentary to the ones that I use most frequently? Output the names of 3 complimentary commands, separated by commas. Do not output any other text.`;
 
         runModel(modelInput, modelInput, "").then((response) =>
-          addInsight(
+          Insights.add(
             "Command Suggestions",
             `Your most frequently used PromptLab commands are: ${mostFrequentCommands.join(
               ", "
@@ -101,7 +101,7 @@ export default function CommandResponse(props: {
       previousPrompt: previousPrompt,
     };
 
-    Promise.resolve(runReplacements(prompt, context, [commandName], options)).then((subbedPrompt) => {
+    Promise.resolve(runReplacements(prompt, context, [command.name], options)).then((subbedPrompt) => {
       if (options.outputKind == "list" && subbedPrompt.trim().length > 0) {
         subbedPrompt +=
           "<Format the output as a single list with each item separated by '~~~'. Do not provide any other commentary, headings, or data.>";
@@ -156,7 +156,7 @@ export default function CommandResponse(props: {
 
     // Update previous command placeholders
     if (!loadingData && !loading && !isLoading && data.length) {
-      setPreviousCommand(commandName);
+      setPreviousCommand(command.name);
       setPreviousResponse(text);
       setPreviousPrompt(fullPrompt);
     }
@@ -198,14 +198,19 @@ export default function CommandResponse(props: {
     !options.setupConfig.fields.every((field) => field.value != undefined && field.value.toString().length > 0)
   ) {
     return (
-      <CommandSetupForm commandName={commandName} options={options} setCommands={setCommands} setOptions={setOptions} />
+      <CommandSetupForm
+        commandName={command.name}
+        options={options}
+        setCommands={setCommands}
+        setOptions={setOptions}
+      />
     );
   }
 
   // Don't show the response if the user has disabled it
   if (options.showResponse == false || (!loadingData && substitutedPrompt == "")) {
     if (options.showResponse == false) {
-      Promise.resolve(showHUD(`Running '${commandName}'...`));
+      Promise.resolve(showHUD(`Running '${command.name}'...`));
     }
 
     if (!loadingData && !loading && !isLoading && data.length) {
@@ -230,7 +235,7 @@ export default function CommandResponse(props: {
           loadingData ||
           (options.minNumFiles != undefined && options.minNumFiles != 0 && fileContents?.contents.length == 0)
         }
-        commandName={commandName}
+        command={command}
         options={options}
         prompt={fullPrompt}
         response={text}
@@ -248,7 +253,7 @@ export default function CommandResponse(props: {
           loadingData ||
           (options.minNumFiles != undefined && options.minNumFiles != 0 && fileContents?.contents.length == 0)
         }
-        commandName={commandName}
+        command={command}
         options={options}
         prompt={fullPrompt}
         response={text}
@@ -266,7 +271,7 @@ export default function CommandResponse(props: {
           loadingData ||
           (options.minNumFiles != undefined && options.minNumFiles != 0 && fileContents?.contents.length == 0)
         }
-        commandName={commandName}
+        command={command}
         options={options}
         prompt={fullPrompt}
         response={text}
@@ -284,7 +289,7 @@ export default function CommandResponse(props: {
         loadingData ||
         (options.minNumFiles != undefined && options.minNumFiles != 0 && fileContents?.contents.length == 0)
       }
-      commandName={commandName}
+      command={command}
       options={options}
       prompt={fullPrompt}
       response={text}

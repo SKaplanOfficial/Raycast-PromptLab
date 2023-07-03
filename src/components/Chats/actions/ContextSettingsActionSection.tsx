@@ -1,5 +1,6 @@
 import { Action, ActionPanel, Color, Icon } from "@raycast/api";
-import { Chat, ChatManager } from "../../../utils/types";
+import { Chat } from "../../../utils/types";
+import { setChatProperty } from "../../../utils/chat-utils";
 
 /**
  * Actions section for enabling/disabling chat context settings.
@@ -7,7 +8,7 @@ import { Chat, ChatManager } from "../../../utils/types";
  */
 export default function ContextSettingsActionSection(props: {
   chat: Chat | undefined;
-  chats: ChatManager;
+  revalidateChats: () => Promise<void>;
   useFileContext: boolean;
   useConversationContext: boolean;
   useAutonomousFeatures: boolean;
@@ -17,7 +18,7 @@ export default function ContextSettingsActionSection(props: {
 }) {
   const {
     chat,
-    chats,
+    revalidateChats,
     useFileContext,
     useConversationContext,
     useAutonomousFeatures,
@@ -37,8 +38,8 @@ export default function ContextSettingsActionSection(props: {
         }
         onAction={async () => {
           if (chat) {
-            await chats.setChatProperty(chat, "useSelectedFilesContext", !useFileContext);
-            await chats.revalidate();
+            await setChatProperty(chat, "useSelectedFilesContext", !useFileContext);
+            await revalidateChats();
           }
           setUseFileContext(!useFileContext);
         }}
@@ -54,8 +55,8 @@ export default function ContextSettingsActionSection(props: {
         }
         onAction={async () => {
           if (chat) {
-            await chats.setChatProperty(chat, "useConversationContext", !useConversationContext);
-            await chats.revalidate();
+            await setChatProperty(chat, "useConversationContext", !useConversationContext);
+            await revalidateChats();
           }
           setUseConversationContext(!useConversationContext);
         }}
@@ -71,8 +72,8 @@ export default function ContextSettingsActionSection(props: {
         }
         onAction={async () => {
           if (chat) {
-            await chats.setChatProperty(chat, "allowAutonomy", !useAutonomousFeatures);
-            await chats.revalidate();
+            await setChatProperty(chat, "allowAutonomy", !useAutonomousFeatures);
+            await revalidateChats();
           }
           setUseAutonomousFeatures(!useAutonomousFeatures);
         }}

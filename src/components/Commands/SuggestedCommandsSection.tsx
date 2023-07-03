@@ -1,7 +1,6 @@
 import { useCachedState } from "@raycast/utils";
-import { Command, ExtensionPreferences } from "../utils/types";
+import { Command, ExtensionPreferences } from "../../utils/types";
 import { useEffect } from "react";
-import { objectsByFrequency } from "../hooks/useInsights";
 import {
   LaunchType,
   List,
@@ -11,8 +10,9 @@ import {
   getPreferenceValues,
   launchCommand,
 } from "@raycast/api";
-import CommandListItem from "./Commands/CommandListItem";
-import { defaultAdvancedSettings } from "../data/default-advanced-settings";
+import CommandListItem from "./CommandListItem";
+import { defaultAdvancedSettings } from "../../data/default-advanced-settings";
+import * as Insights from "../../utils/insights";
 
 interface CommandPreferences {
   showNewChatShortcut: boolean;
@@ -56,7 +56,7 @@ export default function SuggestedCommandsSection(props: {
       const menubarCommands = allCommands.filter((cmd) => cmd.showInMenuBar);
       if (environment.commandName == "menubar-item") {
         // Set up for menubar view
-        objectsByFrequency("_executions", "name", 3, menubarCommands).then((mostFrequentCommands) => {
+        Insights.objectsByFrequency("_executions", "name", 3, menubarCommands).then((mostFrequentCommands) => {
           setFrequentlyUsedCommands(
             mostFrequentCommands.map((c) => allCommands.find((cmd) => cmd.name == c) as Command)
           );
@@ -64,7 +64,7 @@ export default function SuggestedCommandsSection(props: {
       } else {
         // Set up for list view
         const favorites = allCommands.filter((cmd) => cmd.favorited);
-        objectsByFrequency("_executions", "name", 3, [...favorites, ...menubarCommands]).then(
+        Insights.objectsByFrequency("_executions", "name", 3, [...favorites, ...menubarCommands]).then(
           (mostFrequentCommands) => {
             setFrequentlyUsedCommands(
               mostFrequentCommands.map((c) => allCommands.find((cmd) => cmd.name == c) as Command)
@@ -75,38 +75,40 @@ export default function SuggestedCommandsSection(props: {
     });
   }, []);
 
-  const listItems = preferences.useCommandStatistics ? frequentlyUsedCommands.map((cmd) =>
-    environment.commandName == "menubar-item" ? (
-      <MenuBarExtra.Item
-        title={cmd.name}
-        icon={
-          preferences.displayIcons
-            ? { source: cmd.icon, tintColor: preferences.displayColors ? cmd.iconColor : undefined }
-            : undefined
-        }
-        tooltip={cmd.description}
-        key={cmd.name}
-        onAction={async (event) => {
-          if (event.type == "left-click") {
-            await launchCommand({
-              name: "search-commands",
-              type: LaunchType.UserInitiated,
-              arguments: { commandName: cmd.name },
-            });
-          }
-        }}
-      />
-    ) : (
-      <CommandListItem
-        command={cmd}
-        previousCommand={previousCommand || ""}
-        commands={commands || []}
-        setCommands={setCommands || (() => null)}
-        settings={settings || defaultAdvancedSettings}
-        key={cmd.id}
-      />
-    )
-  ) : [];
+  const listItems = preferences.useCommandStatistics
+    ? frequentlyUsedCommands.map((cmd) =>
+        environment.commandName == "menubar-item" ? (
+          <MenuBarExtra.Item
+            title={cmd.name}
+            icon={
+              preferences.displayIcons
+                ? { source: cmd.icon, tintColor: preferences.displayColors ? cmd.iconColor : undefined }
+                : undefined
+            }
+            tooltip={cmd.description}
+            key={cmd.name}
+            onAction={async (event) => {
+              if (event.type == "left-click") {
+                await launchCommand({
+                  name: "search-commands",
+                  type: LaunchType.UserInitiated,
+                  arguments: { commandName: cmd.name },
+                });
+              }
+            }}
+          />
+        ) : (
+          <CommandListItem
+            command={cmd}
+            previousCommand={previousCommand || ""}
+            commands={commands || []}
+            setCommands={setCommands || (() => null)}
+            settings={settings || defaultAdvancedSettings}
+            key={cmd.id}
+          />
+        )
+      )
+    : [];
 
   return !preferences.displaySuggestions || listItems.length == 0 ? null : environment.commandName == "menubar-item" ? (
     <MenuBarExtra.Section title="Suggested Commands">{listItems}</MenuBarExtra.Section>

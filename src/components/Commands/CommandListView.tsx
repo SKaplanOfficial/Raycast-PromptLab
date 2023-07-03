@@ -1,11 +1,11 @@
 import { List } from "@raycast/api";
 import ResponseActions from "./actions/ResponseActions";
-import { CommandOptions } from "../../utils/types";
+import { Command, CommandOptions, StoreCommand } from "../../utils/types";
 import { useSpeech } from "../../hooks/useSpeech";
 
 export default function CommandListView(props: {
   isLoading: boolean;
-  commandName: string;
+  command: Command | StoreCommand;
   options: CommandOptions;
   prompt: string;
   response: string;
@@ -13,15 +13,15 @@ export default function CommandListView(props: {
   cancel: () => void;
   selectedFiles: string[] | undefined;
 }) {
-  const { isLoading, commandName, options, prompt, response, revalidate, cancel, selectedFiles } = props;
+  const { isLoading, command, options, prompt, response, revalidate, cancel, selectedFiles } = props;
   const { speaking, stopSpeech, restartSpeech } = useSpeech(options, isLoading, response);
   return (
     <List
       isLoading={isLoading}
-      navigationTitle={commandName}
+      navigationTitle={command.name}
       actions={
         <ResponseActions
-          commandName={commandName}
+          command={command}
           options={options}
           commandSummary="Response"
           responseText={response}
@@ -46,7 +46,7 @@ export default function CommandListView(props: {
             key={`item${index}`}
             actions={
               <ResponseActions
-                commandName={commandName}
+                command={command}
                 options={options}
                 commandSummary="Response"
                 responseText={response}

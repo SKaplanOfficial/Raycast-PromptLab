@@ -35,7 +35,7 @@ import { ADVANCED_SETTINGS_FILENAME, commandCategories } from "../../utils/const
 import { useAdvancedSettings } from "../../hooks/useAdvancedSettings";
 import { isActionEnabled } from "../../utils/action-utils";
 import runModel from "../../utils/runModel";
-import { addInsight, objectsByFrequency } from "../../hooks/useInsights";
+import * as Insights from "../../utils/insights";
 
 interface CommandFormValues {
   name: string;
@@ -161,7 +161,9 @@ export default function CommandForm(props: {
       return;
     }
 
-    const placeholders = Object.values(Placeholders.allPlaceholders).filter((p) => p.name.includes(":") ? Math.random() < 0.05 : true);
+    const placeholders = Object.values(Placeholders.allPlaceholders).filter((p) =>
+      p.name.includes(":") ? Math.random() < 0.05 : true
+    );
 
     // Shuffle the array (to avoid bias)
     for (let i = placeholders.length - 1; i > 0; i--) {
@@ -171,8 +173,10 @@ export default function CommandForm(props: {
       placeholders[j] = temp;
     }
 
-    objectsByFrequency("_count", "name", 5).then((mostFrequentPlaceholders) => {
-      const modelInput = `I want you to recommend placeholders for me to use based on the following information. First, here are the placeholders that I most frequently use:\n\n${mostFrequentPlaceholders.join("\n")}\n\nNext, here are all of the other placeholders that I know about:\n\n${placeholders
+    Insights.objectsByFrequency("_count", "name", 5).then((mostFrequentPlaceholders) => {
+      const modelInput = `I want you to recommend placeholders for me to use based on the following information. First, here are the placeholders that I most frequently use:\n\n${mostFrequentPlaceholders.join(
+        "\n"
+      )}\n\nNext, here are all of the other placeholders that I know about:\n\n${placeholders
         .filter((p) => !mostFrequentPlaceholders.includes(p.name))
         .map((p) => p.name)
         .join(
@@ -191,7 +195,7 @@ export default function CommandForm(props: {
           : "";
         setInsightMessage(message);
         if (message) {
-          addInsight(
+          Insights.add(
             "Placeholder Suggestions",
             `Your most frequently used placeholders in PromptLab prompts are: ${mostFrequentPlaceholders}. \n\nBased on those, consider using these placeholders: ${response}`,
             ["placeholders"],

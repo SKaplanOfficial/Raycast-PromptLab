@@ -109,6 +109,7 @@ A few examples of placeholders are:
 | `{{imageText}}` | Text extracted from the image(s) you have selected |
 | `{{lastNote}}`| The HTML of the most recently modified note in the Notes app |
 | `{{date format="d MMMM, yyyy"}}` | The current date, optionally specifying a format |
+| `{{prompt:...}}` | The result of running the specified prompt |
 | `{{todayEvents}}` | The events scheduled for today, including their start and end times |
 | `{{youtube:[search term]}}` | The transcription of the first YouTube video result for the specified search term |
 | `{{url:[url]}}` | The visible text at the specified URL |
@@ -249,7 +250,7 @@ Contributions are welcome! Please see the [contributing guidelines](./CONTRIBUTI
 
 #### Planned
 
-- [ ] Saved Responses 
+- [x] Saved Responses 
 - [ ] WordNet Integration
 - [ ] Command Templates
 - [ ] Improved Local Processing

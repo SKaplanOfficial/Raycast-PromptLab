@@ -1,10 +1,13 @@
-import { Action, ActionPanel, Alert, Icon, LocalStorage, Toast, confirmAlert, showToast } from "@raycast/api";
+import { Action, ActionPanel, Icon, LocalStorage, Toast, showToast } from "@raycast/api";
 import { Command, StoreCommand, isCommand, isStoreCommand, isTrueStr } from "../../../utils/types";
 import CommandForm from "../CommandForm";
 import { QUICKLINK_URL_BASE } from "../../../utils/constants";
 import { updateCommand } from "../../../utils/command-utils";
 import { defaultAdvancedSettings } from "../../../data/default-advanced-settings";
 import { anyActionsEnabled } from "../../../utils/action-utils";
+import DeleteAllAction from "../../actions/DeleteAllAction";
+import DeleteAction from "../../actions/DeleteAction";
+import ToggleFavoriteAction from "../../actions/ToggleFavoriteAction";
 
 /**
  * Section for actions related to modifying commands (editing, deleting, etc.).
@@ -44,12 +47,20 @@ export const CommandControlsActionsSection = (props: {
     <ActionPanel.Section title="Command Controls">
       {isCommand(command) ? (
         <>
-          <ToggleFavoriteAction command={command} setCommands={setCommands} />
+          <ToggleFavoriteAction
+            toggleMethod={async () => {
+              const newCmdData = { ...command, favorited: command.favorited == true ? false : true };
+              await updateCommand(command, newCmdData, setCommands);
+            }}
+            currentStatus={command.favorited || false}
+            settings={settings}
+          />
+
           <CreateQuickLinkAction command={command} />
           <EditCommandAction command={command} setCommands={setCommands} />
           <CreateDerivativeAction command={command} setCommands={setCommands} />
-          <DeleteCommandAction command={command} commands={commands} setCommands={setCommands} />
-          <DeleteAllCommandsAction commands={commands} setCommands={setCommands} />
+          <DeleteCommandAction command={command} commands={commands} setCommands={setCommands} settings={settings} />
+          <DeleteAllCommandsAction commands={commands} setCommands={setCommands} settings={settings} />
         </>
       ) : null}
       {isStoreCommand(command) ? (
@@ -63,34 +74,6 @@ export const CommandControlsActionsSection = (props: {
         </>
       ) : null}
     </ActionPanel.Section>
-  );
-};
-
-/**
- * Action to toggle a command's favorited status.
- * @param props.command The command whose favorited status to toggle
- * @param props.setCommands The function to update the list of installed commands
- * @returns An Action component
- */
-export const ToggleFavoriteAction = (props: {
-  command: Command;
-  setCommands: React.Dispatch<React.SetStateAction<Command[]>>;
-}) => {
-  const { command, setCommands } = props;
-  return (
-    <Action
-      title={command.favorited ? `Remove From Favorites` : `Add To Favorites`}
-      icon={Icon.Star}
-      shortcut={{ modifiers: ["cmd", "shift"], key: "f" }}
-      onAction={async () => {
-        const newCmdData = { ...command, favorited: command.favorited == true ? false : true };
-        await updateCommand(command, newCmdData, setCommands);
-        await showToast({
-          title: command.favorited ? `Removed From Favorites` : `Added To Favorites`,
-          style: Toast.Style.Success,
-        });
-      }}
-    />
   );
 };
 
@@ -180,33 +163,24 @@ export const EditCommandAction = (props: {
  * @param props.command The command to delete
  * @param props.commands The list of installed commands
  * @param props.setCommands The function to update the list of installed commands
+ * @param props.settings The advanced settings
  * @returns An Action component
  */
 export const DeleteCommandAction = (props: {
   command: Command;
   commands: Command[];
   setCommands: React.Dispatch<React.SetStateAction<Command[]>>;
+  settings: typeof defaultAdvancedSettings;
 }) => {
-  const { command, commands, setCommands } = props;
   return (
-    <Action
-      title="Delete Command"
-      onAction={async () => {
-        if (
-          await confirmAlert({
-            title: "Delete Command",
-            message: "Are you sure?",
-            primaryAction: { title: "Delete", style: Alert.ActionStyle.Destructive },
-          })
-        ) {
-          const newCommands = commands.filter((cmd) => cmd.name != command.name);
-          await LocalStorage.removeItem(command.name);
-          setCommands(newCommands);
-        }
+    <DeleteAction
+      deleteMethod={async () => {
+        const newCommands = props.commands.filter((cmd) => cmd.name != props.command.name);
+        await LocalStorage.removeItem(props.command.name);
+        props.setCommands(newCommands);
       }}
-      icon={Icon.Trash}
-      style={Action.Style.Destructive}
-      shortcut={{ modifiers: ["cmd"], key: "d" }}
+      objectType="Command"
+      settings={props.settings}
     />
   );
 };
@@ -215,31 +189,24 @@ export const DeleteCommandAction = (props: {
  * Action to delete all commands.
  * @param props.commands The list of installed commands
  * @param props.setCommands The function to update the list of installed commands
+ * @param props.settings The advanced settings
  * @returns An Action component
  */
 export const DeleteAllCommandsAction = (props: {
   commands: Command[];
   setCommands: React.Dispatch<React.SetStateAction<Command[]>>;
+  settings: typeof defaultAdvancedSettings;
 }) => {
-  const { commands, setCommands } = props;
   return (
-    <Action
-      title="Delete All Commands"
-      onAction={async () => {
-        if (
-          await confirmAlert({
-            title: "Delete All Commands",
-            message: "Are you sure?",
-            primaryAction: { title: "Delete All", style: Alert.ActionStyle.Destructive },
-          })
-        ) {
-          commands.forEach(async (cmd) => await LocalStorage.removeItem(cmd.name));
-          setCommands([]);
+    <DeleteAllAction
+      deleteMethod={async () => {
+        for (const cmd of props.commands) {
+          await LocalStorage.removeItem(cmd.name);
         }
+        props.setCommands([]);
       }}
-      icon={Icon.Trash}
-      style={Action.Style.Destructive}
-      shortcut={{ modifiers: ["cmd", "opt", "shift"], key: "d" }}
+      objectType="Commands"
+      settings={props.settings}
     />
   );
 };

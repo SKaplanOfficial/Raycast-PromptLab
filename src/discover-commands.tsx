@@ -50,7 +50,7 @@ export default function Discover() {
               setCommands={setMyCommands}
               settings={advancedSettings}
             />
-            {command.setupConfig?.length ? null : <RunCommandAction command={command} settings={advancedSettings} />}
+            {command.setupConfig?.length && command.setupConfig != "None" ? null : <RunCommandAction command={command} settings={advancedSettings} />}
             <CopyCommandActionsSection command={command} settings={advancedSettings} />
             <CommandControlsActionsSection
               command={command}

@@ -1,9 +1,22 @@
-import { Action, ActionPanel, Icon, Keyboard, getPreferenceValues } from "@raycast/api";
+import {
+  Action,
+  ActionPanel,
+  Color,
+  Icon,
+  Keyboard,
+  LaunchType,
+  Toast,
+  getPreferenceValues,
+  launchCommand,
+  open,
+  showToast,
+} from "@raycast/api";
 import CommandChatView from "../../Chats/CommandChatView";
-import { CommandOptions, ExtensionPreferences } from "../../../utils/types";
+import { Command, CommandOptions, ExtensionPreferences, StoreCommand } from "../../../utils/types";
 import { getMenubarOwningApplication } from "../../../utils/context-utils";
 import { useEffect, useState } from "react";
 import { logDebug } from "../../../utils/dev-utils";
+import { saveResponse } from "../../../utils/command-utils";
 
 /**
  * A command action that pastes the provided text into the current application.
@@ -49,10 +62,44 @@ function PasteAction(props: { content: string; commandSummary: string }) {
   );
 }
 
-export default function ResponseActions(props: {
-  commandName: string;
+function SaveResponseAction(props: {
+  command: Command | StoreCommand;
   options: CommandOptions;
+  responseText: string;
+  promptText: string;
+  files: string[];
+}) {
+  const { command, options, responseText, promptText, files } = props;
+  return (
+    <Action
+      title="Save Response"
+      icon={Icon.SaveDocument}
+      shortcut={{ modifiers: ["cmd"], key: "s" }}
+      onAction={async () => {
+        const toast = await showToast({ title: "Saving Response...", style: Toast.Style.Animated });
+        const { status, outputPath, id } = await saveResponse(command, options, promptText, responseText, files);
+        if (status) {
+          toast.title = "Response Saved";
+          toast.message = `The response was saved to: ${outputPath}`;
+          toast.primaryAction = {
+            title: "View Saved Response",
+            onAction: () =>
+              launchCommand({ name: "saved-responses", type: LaunchType.UserInitiated, fallbackText: id }),
+          };
+          toast.style = Toast.Style.Success;
+        } else {
+          toast.title = "Failed to Save Response";
+          toast.style = Toast.Style.Failure;
+        }
+      }}
+    />
+  );
+}
+
+export default function ResponseActions(props: {
+  command: Command | StoreCommand;
   commandSummary: string;
+  options: CommandOptions;
   responseText: string;
   promptText: string;
   reattempt: () => void;
@@ -64,7 +111,7 @@ export default function ResponseActions(props: {
   restartSpeech?: () => void;
 }) {
   const {
-    commandName,
+    command,
     commandSummary,
     options,
     responseText,
@@ -85,6 +132,7 @@ export default function ResponseActions(props: {
     "copy-prompt-to-clipboard",
     "open-chat",
     "regenerate",
+    "save-response",
   ];
 
   actions.splice(actions.indexOf(preferences.primaryAction), 1);
@@ -130,7 +178,7 @@ export default function ResponseActions(props: {
             target={
               <CommandChatView
                 isLoading={false}
-                commandName={commandName}
+                command={command}
                 options={options}
                 prompt={promptText}
                 response={responseText}
@@ -141,6 +189,17 @@ export default function ResponseActions(props: {
             }
             icon={Icon.Message}
             shortcut={{ modifiers: ["cmd", "opt"], key: "c" }}
+          />
+        );
+      case "save-response":
+        return (
+          <SaveResponseAction
+            key="save-response"
+            command={command}
+            options={options}
+            responseText={responseText}
+            promptText={promptText}
+            files={files || []}
           />
         );
     }

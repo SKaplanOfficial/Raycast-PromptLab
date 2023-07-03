@@ -4,7 +4,7 @@ import CommandResponse from "../CommandResponse";
 import { defaultAdvancedSettings } from "../../../data/default-advanced-settings";
 import { isActionEnabled } from "../../../utils/action-utils";
 import { getPersistentVariable, setPersistentVariable } from "../../../utils/placeholders";
-import { addInsight } from "../../../hooks/useInsights";
+import * as Insights from "../../../utils/insights";
 
 /**
  * Action to run a command.
@@ -29,7 +29,12 @@ export default function RunCommandAction(props: {
     <Action
       title="Run PromptLab Command"
       onAction={async () => {
-        await addInsight(`Command Execution`, `Executed command ${command.name} via Raycast window`, ["commands"], []);
+        await Insights.add(
+          `Command Execution`,
+          `Executed command ${command.name} via Raycast window`,
+          ["commands"],
+          []
+        );
 
         if (preferences.useCommandStatistics) {
           const currentCountString = await getPersistentVariable(`${command.name}_executions`);
@@ -39,7 +44,7 @@ export default function RunCommandAction(props: {
 
         push(
           <CommandResponse
-            commandName={command.name}
+            command={command}
             prompt={command.prompt}
             options={{
               minNumFiles: parseInt(command.minNumFiles as string),

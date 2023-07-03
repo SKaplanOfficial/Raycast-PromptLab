@@ -10,6 +10,7 @@ import { AdvancedActionSubmenu } from "../../actions/AdvancedActionSubmenu";
 import { defaultAdvancedSettings } from "../../../data/default-advanced-settings";
 import { anyActionsEnabled } from "../../../utils/action-utils";
 import { Model, ModelManager } from "../../../utils/types";
+import CopyIDAction from "../../actions/CopyIDAction";
 
 export default function ManageModelsActionPanel(props: {
   model: Model;
@@ -26,6 +27,7 @@ export default function ManageModelsActionPanel(props: {
           "EditModelAction",
           "ToggleModelFavoriteAction",
           "ToggleModelDefaultAction",
+          "CopyIDAction",
           "CopyModelJSONAction",
           "CopyAllModelsJSONAction",
           "CreateModelDerivativeAction",
@@ -39,6 +41,7 @@ export default function ManageModelsActionPanel(props: {
           <ToggleModelFavoriteAction model={model} models={models} settings={settings} />
           <ToggleModelDefaultAction model={model} models={models} settings={settings} />
 
+          <CopyIDAction id={model.id} objectType="Model" settings={settings} />
           <CopyModelJSONAction model={model} settings={settings} />
           <CopyAllModelsJSONAction models={models} settings={settings} />
 

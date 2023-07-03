@@ -66,6 +66,10 @@
         {
           "title": "Regenerate",
           "value": "regenerate"
+        },
+        {
+          "title": "Save Response",
+          "value": "save-response"
         }
       ]
     },
@@ -414,6 +418,12 @@
           "required": false
         }
       ]
+    },
+    {
+      "name": "saved-responses",
+      "title": "View Saved Responses",
+      "description": "View and manage your saved responses.",
+      "mode": "view"
     }
   ],
   "dependencies": {

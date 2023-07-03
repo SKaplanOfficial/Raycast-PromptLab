@@ -8,7 +8,7 @@ import { useAdvancedSettings } from "./hooks/useAdvancedSettings";
 import { useCachedState } from "@raycast/utils";
 import { commandCategories } from "./utils/constants";
 import CommandListItem from "./components/Commands/CommandListItem";
-import SuggestedCommandsSection from "./components/SuggestedCommandsSection";
+import SuggestedCommandsSection from "./components/Commands/SuggestedCommandsSection";
 import NewCommandAction from "./components/Commands/actions/NewCommandAction";
 
 export default function SearchCommand(props: { arguments: { commandName: string; queryInput: string } }) {
@@ -38,7 +38,7 @@ export default function SearchCommand(props: { arguments: { commandName: string;
     }
     return (
       <CommandResponse
-        commandName={command.name}
+        command={command}
         prompt={command.prompt}
         input={queryInput}
         options={{

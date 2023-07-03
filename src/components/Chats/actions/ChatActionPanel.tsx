@@ -8,7 +8,7 @@ import { CopyChatActionsSection } from "./CopyChatActions";
 import { anyActionsEnabled, isActionEnabled } from "../../../utils/action-utils";
 import { AdvancedActionSubmenu } from "../../actions/AdvancedActionSubmenu";
 import ContextSettingsActionSection from "./ContextSettingsActionSection";
-import { Chat, ChatManager } from "../../../utils/types";
+import { Chat, ChatRef } from "../../../utils/types";
 
 /**
  * Actions panel for the Chat command.
@@ -16,7 +16,8 @@ import { Chat, ChatManager } from "../../../utils/types";
 export const ChatActionPanel = (props: {
   isLoading: boolean;
   chat: Chat | undefined;
-  chats: ChatManager;
+  chatRefs: ChatRef[];
+  revalidateChats: () => Promise<void>;
   useFileContext: boolean;
   useConversationContext: boolean;
   useAutonomousFeatures: boolean;
@@ -38,7 +39,8 @@ export const ChatActionPanel = (props: {
     isLoading,
     settings,
     chat,
-    chats,
+    chatRefs,
+    revalidateChats,
     useFileContext,
     useConversationContext,
     useAutonomousFeatures,
@@ -65,7 +67,7 @@ export const ChatActionPanel = (props: {
 
       <ContextSettingsActionSection
         chat={chat}
-        chats={chats}
+        revalidateChats={revalidateChats}
         useFileContext={useFileContext}
         useConversationContext={useConversationContext}
         useAutonomousFeatures={useAutonomousFeatures}
@@ -90,25 +92,41 @@ export const ChatActionPanel = (props: {
               title="Edit Chat Settings..."
               icon={Icon.Gear}
               target={
-                <ChatSettingsForm oldData={chat} chats={chats} setCurrentChat={setCurrentChat} settings={settings} />
+                <ChatSettingsForm
+                  oldData={chat}
+                  revalidateChats={revalidateChats}
+                  setCurrentChat={setCurrentChat}
+                  settings={settings}
+                />
               }
               shortcut={{ modifiers: ["cmd", "shift"], key: "," }}
             />
           ) : null}
 
-          {isActionEnabled("ToggleChatFavoriteAction", settings) ? (
-            <ToggleChatFavoriteAction chat={chat} chats={chats} setCurrentChat={setCurrentChat} />
-          ) : null}
+          <ToggleChatFavoriteAction
+            chat={chat}
+            revalidateChats={revalidateChats}
+            setCurrentChat={setCurrentChat}
+            settings={settings}
+          />
 
-          {chat && isActionEnabled("ExportChatAction", settings) ? (
-            <ExportChatAction chat={chat} chats={chats} />
-          ) : null}
+          {chat && isActionEnabled("ExportChatAction", settings) ? <ExportChatAction chat={chat} /> : null}
 
-          {chat && isActionEnabled("DeleteChatAction", settings) ? (
-            <DeleteChatAction chat={chat} chats={chats} setCurrentChat={setCurrentChat} />
+          {chat ? (
+            <DeleteChatAction
+              chat={chat}
+              revalidateChats={revalidateChats}
+              setCurrentChat={setCurrentChat}
+              settings={settings}
+            />
           ) : null}
-          {chats.chats.length > 0 && isActionEnabled("DeleteAllChatsAction", settings) ? (
-            <DeleteAllChatsAction chats={chats} setCurrentChat={setCurrentChat} />
+          {chatRefs.length > 0 ? (
+            <DeleteAllChatsAction
+              chatRefs={chatRefs}
+              revalidateChats={revalidateChats}
+              setCurrentChat={setCurrentChat}
+              settings={settings}
+            />
           ) : null}
         </ActionPanel.Section>
       ) : null}
@@ -122,7 +140,13 @@ export const ChatActionPanel = (props: {
         />
       ) : null}
 
-      <CopyChatActionsSection response={response} query={query} basePrompt={basePrompt} settings={settings} />
+      <CopyChatActionsSection
+        chatId={chat?.id || ""}
+        response={response}
+        query={query}
+        basePrompt={basePrompt}
+        settings={settings}
+      />
 
       <AdvancedActionSubmenu settings={settings} />
     </ActionPanel>
