@@ -160,8 +160,8 @@ export default function CommandForm(props: {
     if (!preferences.usePlaceholderStatistics) {
       return;
     }
-    
-    const placeholders = Object.values(Placeholders.allPlaceholders).filter((p) => p.name.includes(":") ? Math.random() < 0.25 : true);
+
+    const placeholders = Object.values(Placeholders.allPlaceholders).filter((p) => p.name.includes(":") ? Math.random() < 0.05 : true);
 
     // Shuffle the array (to avoid bias)
     for (let i = placeholders.length - 1; i > 0; i--) {

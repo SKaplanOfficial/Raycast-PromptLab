@@ -133,9 +133,17 @@ In addition to the above, you can use any supported file extension as a directiv
 | Placeholder | Replaced With |
 | ----- | ----- |
 | `{{currentTrack}}` or <br /> `{{currentSong}}` | The name of the currently playing track in Music.app. |
+| `{{currentTVTrack}}` | The name of the currently playing track in TV.app. |
 | `{{installedApps}}` or <br /> `{{installedApplications}}` or <br /> `{{apps}}` or <br /> `{{applications}}` | The names of all installed applications as a comma-separated list. |
 | `{{lastEmail}}` | The text content of the last email received in Mail.app. |
 | `{{lastNote}}` | The HTML text content of the last modified note in Notes.app. |
+| `{{tvDirectors}}` | A comma-separated list of unique director names in TV.app. |
+| `{{tvPlaylists}}` | A comma-separated list of the names of each playlist in TV.app. |
+| `{{tvShows}}` | A comma-separated list of unique show names in TV.app. |
+| `{{tvTracks}}` | A comma-separated list of the names of each track in TV.app. |
+| `{{musicAlbums}}` | A comma-separated list of unique album names in Music.app. |
+| `{{musicArtists}}` | A comma-separated list of unique artist names in Music.app. |
+| `{{musicPlaylists}}` | A comma-separated list of the names of each playlist in Music.app. |
 | `{{musicTracks}}` | A comma-separated list of the names of each track in Music.app. |
 | `{{safariBookmarks}}` | The title and URL of each bookmark in Safari as a comma-separated list. |
 | `{{safariTopSites}}` | The title and URL of each top site in Safari as a comma-separated list. |
@@ -176,7 +184,9 @@ In addition to the above, you can use any supported file extension as a directiv
 | `{{elementHTML:...}}` or <br /> `{{element:...}}` or <br /> `{{HTMLOfElement:...}}` | The raw HTML source of an HTML element in the active tab of a supported browser. The first matching element will be used. Specify a browser using `{{elementHTML browser="..."}}`. |
 | `{{elementText:...}}` or <br /> `{{textOfElement:...}}` | The text content of the specified HTML element, e.g. `{{elementText:#myElement}}`, `{{elementText:.myClass}}`, or `{{elementText:<body>}}`. The first matching element will be used. Specify a browser using `{{elementText browser="..."}}`. |
 | `{{focusedElement}}` or <br /> `{{activeElement}}` or <br /> `{{selectedElement}}` or <br /> `{{focusedElementText}}` or <br /> `{{activeElementText}}` or <br /> `{{selectedElementText}}` | The text content of the currently focused element in the active tab of a supported browser. Specify a browser using `{{focusedElement browser="..."}}`. |
-| `{{location}}` | The user's current location in the format `city, region, country`. Obtained using [geojs.io](https://get.geojs.io).
+| `{{latitude}}` | The user's current latitude. Obtained using [geojs.io](https://get.geojs.io). |
+| `{{longitude}}` | The user's current longitude. Obtained using [geojs.io](https://get.geojs.io). |
+| `{{location}}` or <br /> `{{currentLocation}}` | The user's current location in the format `city, region, country`. Obtained using [geojs.io](https://get.geojs.io).
 | `{{nearbyLocations:...}}` | A comma-separated list of nearby locations matching the provided query, e.g. `{{nearbyLocations:food}}`. |
 | `{{todayWeather}}` | 24-hour weather forecast data at the user's current location, in JSON format. Obtained using [open-meteo.com](https://open-meteo.com).
 | `{{url:...}}` or <br /> `{{URL:...}}` or <br /> `{{...}}` | The visible text content at the specified URL, e.g. `{{url:https://google.com}}` or `{{https://google.com}}`. Note: Only the HTTP(S) protocol is supported at this time. Use `{{url raw=true:https://google.com}}` to get the raw HTML of the page instead of the visible text. |

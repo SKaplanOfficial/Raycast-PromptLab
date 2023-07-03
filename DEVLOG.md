@@ -1,5 +1,10 @@
 # PromptLab DevLog - A More Detailed ChangeLog
 
+### 2023-07-01
+
+- Added `{{latitude}}` and ``{{longitude}}` placeholders for getting the latitude and longitude of the user's current location as determined by their IP address.
+- Added 'Create New Command' action in 'My PromptLab Commands' view.
+
 ### 2023-06-30
 
 - Added support for `target` parameter to `{{js:...}}` placeholders.
@@ -12,6 +17,8 @@
         - Added `{{insights:tag}}` placeholder - returns a summary of recent insights, optionally filtered by tag.
 - Added `{{elementText:...}}`, `{{elementHTML:...}}`, and `{{focusedElement}}` for getting the text/html of HTML elements in the active tab of a browser.
     - Doesn't work in iCab.
+- Added `{{musicAlbums}}`, `{{musicArtists}}`, and `{{musicPlaylists}}` placeholders.
+- Added `{{tvDirectors}}`, `{{tvPlaylists}}`, `{{tvShows}}`, and `{{tvTracks}}` placeholders.
 
 ### 2023-06-27
 

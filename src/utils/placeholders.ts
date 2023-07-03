@@ -12,19 +12,23 @@ import {
 import { Clipboard } from "@raycast/api";
 import { runAppleScript } from "run-applescript";
 import {
-  SupportedBrowsers,
   filterString,
+  getAlbumNames,
+  getArtistNames,
   getComputerName,
   getCurrentTrack,
   getCurrentURL,
+  getDirectorNames,
   getInstalledApplications,
   getJSONResponse,
   getLastEmail,
   getLastNote,
   getMatchingYouTubeVideoID,
+  getPlaylistNames,
   getSafariBookmarks,
   getSafariTabText,
   getSafariTopSites,
+  getShowNames,
   getTextOfWebpage,
   getTrackNames,
   getURLHTML,
@@ -133,6 +137,9 @@ const placeholders: PlaceholderList = {
     hintRepresentation: "{{delete x}",
   },
 
+  /**
+   * Placeholder for a comma-separated list of all persistent variable names.
+   */
   "{{vars}}": {
     name: "vars",
     apply: async (str: string, context?: { [key: string]: string }) => {
@@ -152,6 +159,9 @@ const placeholders: PlaceholderList = {
     hintRepresentation: "{{vars}}",
   },
 
+  /**
+   * Placeholder for the text of the last 50 insights.
+   */
   "{{insights(:(.*?))?}}": {
     name: "insights",
     apply: async (str: string, context?: { [key: string]: string }) => {
@@ -168,11 +178,19 @@ const placeholders: PlaceholderList = {
       }
 
       const recentInsights = insights.slice(0, 50);
-      const recentInsightData = recentInsights.map((insight) => `${insight.title} on ${insight.date}, description: '${insight.description}' tags: ${insight.tags.join(", ")}`).join("\n");
+      const recentInsightData = recentInsights
+        .map(
+          (insight) =>
+            `${insight.title} on ${insight.date}, description: '${insight.description}' tags: ${insight.tags.join(
+              ", "
+            )}`
+        )
+        .join("\n");
       return { result: filterString(recentInsightData) };
     },
     constant: false,
-    fn: async (tag?: string) => (await Placeholders.allPlaceholders["{{insights(:(.*?))?}}"].apply(`{{insights${tag ? `:${tag}` : ''}}}`)).result,
+    fn: async (tag?: string) =>
+      (await Placeholders.allPlaceholders["{{insights(:(.*?))?}}"].apply(`{{insights${tag ? `:${tag}` : ""}}}`)).result,
     example: "Summarize these data entries: {{insights}}",
     description:
       "Replaced with local data entries, one per line. If a tag is specified, only data entries with that tag will be included.",
@@ -850,6 +868,69 @@ const placeholders: PlaceholderList = {
   },
 
   /**
+   * Placeholder for the comma-separated list of unique album names in Music.app.
+   */
+  "{{musicAlbums}}": {
+    name: "musicAlbums",
+    apply: async (str: string, context?: { [key: string]: string }) => {
+      if (context && "musicAlbums" in context) {
+        return { result: context["musicAlbums"], musicAlbums: context["musicAlbums"] };
+      }
+
+      const albums = filterString((await getAlbumNames()).join(", "));
+      return { result: albums, musicAlbums: albums };
+    },
+    result_keys: ["musicAlbums"],
+    constant: true,
+    fn: async () => (await Placeholders.allPlaceholders["{{musicAlbums}}"].apply("{{musicAlbums}}")).result,
+    example: "Recommend some new albums based on the themes of these albums: {{musicAlbums}}",
+    description: "Replaced with a comma-separated list of unique album names in Music.app.",
+    hintRepresentation: "{{musicAlbums}}",
+  },
+
+  /**
+   * Placeholder for the comma-separated list of unique artist names in Music.app.
+   */
+  "{{musicArtists}}": {
+    name: "musicArtists",
+    apply: async (str: string, context?: { [key: string]: string }) => {
+      if (context && "musicArtists" in context) {
+        return { result: context["musicArtists"], musicArtists: context["musicArtists"] };
+      }
+
+      const artists = filterString((await getArtistNames()).join(", "));
+      return { result: artists, musicArtists: artists };
+    },
+    result_keys: ["musicArtists"],
+    constant: true,
+    fn: async () => (await Placeholders.allPlaceholders["{{musicArtists}}"].apply("{{musicArtists}}")).result,
+    example: "Recommend some new artists based on the styles of these artists: {{musicArtists}}",
+    description: "Replaced with a comma-separated list of unique artist names in Music.app.",
+    hintRepresentation: "{{musicArtists}}",
+  },
+
+  /**
+   * Placeholder for the comma-separated list of unique playlist names in Music.app.
+   */
+  "{{musicPlaylists}}": {
+    name: "musicPlaylists",
+    apply: async (str: string, context?: { [key: string]: string }) => {
+      if (context && "musicPlaylists" in context) {
+        return { result: context["musicPlaylists"], musicPlaylists: context["musicPlaylists"] };
+      }
+
+      const playlists = filterString((await getPlaylistNames()).join(", "));
+      return { result: playlists, musicPlaylists: playlists };
+    },
+    result_keys: ["musicPlaylists"],
+    constant: true,
+    fn: async () => (await Placeholders.allPlaceholders["{{musicPlaylists}}"].apply("{{musicPlaylists}}")).result,
+    example: "Recommend some new playlists based on the styles of these playlists: {{musicPlaylists}}",
+    description: "Replaced with a comma-separated list of unique playlist names in Music.app.",
+    hintRepresentation: "{{musicPlaylists}}",
+  },
+
+  /**
    * Placeholder for the comma-separated list of track names in Music.app.
    */
   "{{musicTracks}}": {
@@ -868,6 +949,90 @@ const placeholders: PlaceholderList = {
     example: "Recommend some new songs based on the themes of these songs: {{musicTracks}}",
     description: "Replaced with a comma-separated list of track names in Music.app.",
     hintRepresentation: "{{musicTracks}}",
+  },
+
+  /**
+   * Placeholder for the comma-separated list of director names in TV.app.
+   */
+  "{{tvDirectors}}": {
+    name: "tvDirectors",
+    apply: async (str: string, context?: { [key: string]: string }) => {
+      if (context && "tvDirectors" in context) {
+        return { result: context["tvDirectors"], tvDirectors: context["tvDirectors"] };
+      }
+
+      const directors = filterString((await getDirectorNames()).join(", "));
+      return { result: directors, tvDirectors: directors };
+    },
+    result_keys: ["tvDirectors"],
+    constant: true,
+    fn: async () => (await Placeholders.allPlaceholders["{{tvDirectors}}"].apply("{{tvDirectors}}")).result,
+    example: "Recommend some TV/movie directors who make similar content to these directors: {{tvDirectors}}",
+    description: "Replaced with a comma-separated list of director names in TV.app.",
+    hintRepresentation: "{{tvDirectors}}",
+  },
+
+  /**
+   * Placeholder for the comma-separated list of track names in TV.app.
+   */
+  "{{tvTracks}}": {
+    name: "tvTracks",
+    apply: async (str: string, context?: { [key: string]: string }) => {
+      if (context && "tvTracks" in context) {
+        return { result: context["tvTracks"], tvTracks: context["tvTracks"] };
+      }
+
+      const tracks = filterString(await getTrackNames("TV"));
+      return { result: tracks, tvTracks: tracks };
+    },
+    result_keys: ["tvTracks"],
+    constant: true,
+    fn: async () => (await Placeholders.allPlaceholders["{{tvTracks}}"].apply("{{tvTracks}}")).result,
+    example: "Recommend some new shows and movies based on the themes of these: {{tvTracks}}",
+    description: "Replaced with a comma-separated list of track names in TV.app.",
+    hintRepresentation: "{{tvTracks}}",
+  },
+
+  /**
+   * Placeholder for the comma-separated list of unique playlist names in TV.app.
+   */
+  "{{tvPlaylists}}": {
+    name: "tvPlaylists",
+    apply: async (str: string, context?: { [key: string]: string }) => {
+      if (context && "tvPlaylists" in context) {
+        return { result: context["tvPlaylists"], tvPlaylists: context["tvPlaylists"] };
+      }
+
+      const playlists = filterString((await getPlaylistNames("TV")).join(", "));
+      return { result: playlists, tvPlaylists: playlists };
+    },
+    result_keys: ["tvPlaylists"],
+    constant: true,
+    fn: async () => (await Placeholders.allPlaceholders["{{tvPlaylists}}"].apply("{{tvPlaylists}}")).result,
+    example: "Recommend some new playlists based on the styles of these playlists: {{tvPlaylists}}",
+    description: "Replaced with a comma-separated list of unique playlist names in TV.app.",
+    hintRepresentation: "{{tvPlaylists}}",
+  },
+
+  /**
+   * Placeholder for the comma-separated list of show names in TV.app.
+   */
+  "{{tvShows}}": {
+    name: "tvShows",
+    apply: async (str: string, context?: { [key: string]: string }) => {
+      if (context && "tvShows" in context) {
+        return { result: context["tvShows"], tvShows: context["tvShows"] };
+      }
+
+      const shows = filterString((await getShowNames()).join(", "));
+      return { result: shows, tvShows: shows };
+    },
+    result_keys: ["tvShows"],
+    constant: true,
+    fn: async () => (await Placeholders.allPlaceholders["{{tvShows}}"].apply("{{tvShows}}")).result,
+    example: "Recommend some new shows based on the themes of these shows: {{tvShows}}",
+    description: "Replaced with a comma-separated list of show names in TV.app.",
+    hintRepresentation: "{{tvShows}}",
   },
 
   /**
@@ -890,6 +1055,28 @@ const placeholders: PlaceholderList = {
     example: "What's the history behind {{currentTrack}}?",
     description: "Replaced with the name of the currently playing track in Music.app.",
     hintRepresentation: "{{currentTrack}}",
+  },
+
+  /**
+   * Placeholder for the name of the currently playing track in TV.app.
+   */
+  "{{currentTVTrack}}": {
+    name: "currentTVTrack",
+    aliases: ["{{currentSong}}"],
+    apply: async (str: string, context?: { [key: string]: string }) => {
+      if (context && "currentTVTrack" in context) {
+        return { result: context["currentTVTrack"], currentTVTrack: context["currentTVTrack"] };
+      }
+
+      const track = filterString(await getCurrentTrack("TV"));
+      return { result: track, currentTVTrack: track };
+    },
+    result_keys: ["currentTVTrack"],
+    constant: true,
+    fn: async () => (await Placeholders.allPlaceholders["{{currentTVTrack}}"].apply("{{currentTVTrack}}")).result,
+    example: "Suggest similar TV shows and movies to {{currentTVTrack}}?",
+    description: "Replaced with the name of the currently playing track in TV.app.",
+    hintRepresentation: "{{currentTVTrack}}",
   },
 
   /**
@@ -1094,11 +1281,56 @@ const placeholders: PlaceholderList = {
   },
 
   /**
+   * Placeholder for the user's current latitude as determined by the their IP address.
+   */
+  "{{latitude}}": {
+    name: "latitude",
+    apply: async (str: string, context?: { [key: string]: string }) => {
+      if (context && "latitude" in context) {
+        return { result: context["latitude"], latitude: context["latitude"] };
+      }
+
+      const jsonObj = await getJSONResponse("https://get.geojs.io/v1/ip/geo.json");
+      const latitude = jsonObj["latitude"] as string;
+      return { result: latitude, latitude: latitude };
+    },
+    result_keys: ["latitude"],
+    constant: true,
+    fn: async () => (await Placeholders.allPlaceholders["{{latitude}}"].apply("{{latitude}}")).result,
+    example: "Tell me the history of {{latitude}}.",
+    description: 'Replaced with the user\'s current latitude in the format "city, region, country".',
+    hintRepresentation: "{{latitude}}",
+  },
+
+  /**
+   * Placeholder for the user's current longitude as determined by the their IP address.
+   */
+  "{{longitude}}": {
+    name: "longitude",
+    apply: async (str: string, context?: { [key: string]: string }) => {
+      if (context && "longitude" in context) {
+        return { result: context["longitude"], longitude: context["longitude"] };
+      }
+
+      const jsonObj = await getJSONResponse("https://get.geojs.io/v1/ip/geo.json");
+      const longitude = jsonObj["longitude"] as string;
+      return { result: longitude, longitude: longitude };
+    },
+    result_keys: ["longitude"],
+    constant: true,
+    fn: async () => (await Placeholders.allPlaceholders["{{longitude}}"].apply("{{longitude}}")).result,
+    example: "Tell me the history of {{longitude}}.",
+    description: 'Replaced with the user\'s current longitude in the format "city, region, country".',
+    hintRepresentation: "{{longitude}}",
+  },
+
+  /**
    * Placeholder for the user's current location in the format "city, region, country".
    * The location is determined by the user's IP address.
    */
   "{{location}}": {
     name: "location",
+    aliases: ["{{currentLocation}}"],
     apply: async (str: string, context?: { [key: string]: string }) => {
       if (context && "location" in context) {
         return { result: context["location"], location: context["location"] };
@@ -1114,9 +1346,9 @@ const placeholders: PlaceholderList = {
     result_keys: ["location"],
     constant: true,
     fn: async () => (await Placeholders.allPlaceholders["{{location}}"].apply("{{location}}")).result,
-    example: "Tell me the history of {{location}}.",
+    example: "Tell me the history of {{currentLocation}}.",
     description: 'Replaced with the user\'s current location in the format "city, region, country".',
-    hintRepresentation: "{{location}}",
+    hintRepresentation: "{{currentLocation}}",
   },
 
   /**
@@ -1748,25 +1980,26 @@ const placeholders: PlaceholderList = {
    */
   "{{(url|URL)( raw=(true|false))?:.*?}}": {
     name: "url",
-    aliases: ["{{https?:\\/?\\/?[\\s\\S]*?}}"],
+    aliases: ["{{https?:([\\s\\S]*?)}}"],
     apply: async (str: string, context?: { [key: string]: string }) => {
       try {
         const URL =
           str.match(/(url|URL)( raw=(true|false))?:(([^{]|{(?!{)|{{[\s\S]*?}})*?)}}/)?.[4] ||
-          str.match(/https?:[\s\S]*?(?=}})/)?.[0] ||
+          str.match(/{{(https?:[\s\S]*?)}}/)?.[1] ||
           "";
         const raw = str.match(/(url|URL)( raw=(true|false))?:(([^{]|{(?!{)|{{[\s\S]*?}})*?)}}/)?.[3] === "true";
-        if (!URL) return { result: "", url: "" };
-        
+        if (!URL) return { result: "" };
+
         const urlText = raw ? await getURLHTML(URL) : await getTextOfWebpage(URL);
-        return { result: filterString(urlText), url: filterString(urlText) };
+        return { result: filterString(urlText) };
       } catch (e) {
-        return { result: "", url: "" };
+        return { result: "" };
       }
     },
     constant: false,
     fn: async (url: string) => {
-      return (await Placeholders.allPlaceholders["{{(url|URL)( raw=(true|false))?:.*?}}"].apply(`{{url:${url}}}`)).result;
+      return (await Placeholders.allPlaceholders["{{(url|URL)( raw=(true|false))?:.*?}}"].apply(`{{url:${url}}}`))
+        .result;
     },
     example: "{{url:https://www.google.com}}",
     description:
@@ -1873,9 +2106,15 @@ const placeholders: PlaceholderList = {
     },
     dependencies: ["currentAppName"],
     constant: false,
-    fn: async (browser: string) => (await Placeholders.allPlaceholders['{{focusedElement( browser="(.*?)")?}}'].apply(`{{focusedElement browser="${browser}"}}`)).result,
-    example: "Summarize this: {{focusedElement browser=\"Safari\"}}",
-    description: "Replaced with the text content of the currently focused HTML element in the active tab of the given browser. If no browser is specified, the frontmost browser is used.",
+    fn: async (browser: string) =>
+      (
+        await Placeholders.allPlaceholders['{{focusedElement( browser="(.*?)")?}}'].apply(
+          `{{focusedElement browser="${browser}"}}`
+        )
+      ).result,
+    example: 'Summarize this: {{focusedElement browser="Safari"}}',
+    description:
+      "Replaced with the text content of the currently focused HTML element in the active tab of the given browser. If no browser is specified, the frontmost browser is used.",
     hintRepresentation: "{{focusedElement}}",
   },
 
@@ -1884,15 +2123,13 @@ const placeholders: PlaceholderList = {
    */
   '{{textOfElement( browser="(.*)")?:(([^{]|{(?!{)|{{[\\s\\S]*?}})*?)}}': {
     name: "elementText",
-    aliases: [
-      '{{elementText( browser="(.*)")?:(([^{]|{(?!{)|{{[\\s\\S]*?}})*?)}}',
-    ],
+    aliases: ['{{elementText( browser="(.*)")?:(([^{]|{(?!{)|{{[\\s\\S]*?}})*?)}}'],
     apply: async (str: string, context?: { [key: string]: string }) => {
       try {
         const specifier = str.match(
           /{{(textOfElement|elementText)( browser="(.*)")?:(([^{]|{(?!{)|{{[\s\S]*?}})*?)}}/
         )?.[4];
-        if (!specifier) return { result: ""};
+        if (!specifier) return { result: "" };
 
         const browser = str.match(
           /{{(textOfElement|elementText)( browser="(.*)"):(([^{]|{(?!{)|{{[\s\S]*?}})*?)}}/
@@ -1923,7 +2160,12 @@ const placeholders: PlaceholderList = {
     },
     dependencies: ["currentAppName"],
     constant: false,
-    fn: async (specifier: string, browser?: string) => (await Placeholders.allPlaceholders['{{textOfElement( browser="(.*)")?:(([^{]|{(?!{)|{{[\\s\\S]*?}})*?)}}'].apply(`{{elementText${browser ? ` browser="${browser}"` : ``}:${specifier}}}`)).result,
+    fn: async (specifier: string, browser?: string) =>
+      (
+        await Placeholders.allPlaceholders[
+          '{{textOfElement( browser="(.*)")?:(([^{]|{(?!{)|{{[\\s\\S]*?}})*?)}}'
+        ].apply(`{{elementText${browser ? ` browser="${browser}"` : ``}:${specifier}}}`)
+      ).result,
     example: "Summarize this: {{elementText:#article}}",
     description: "Replaced with the text content of an HTML element in the active tab of any supported browser.",
     hintRepresentation: "{{elementText}}",
@@ -1943,8 +2185,7 @@ const placeholders: PlaceholderList = {
         const specifier = str.match(
           /{{(HTMLOfElement|element|elementHTML)( browser="(.*)")?:(([^{]|{(?!{)|{{[\s\S]*?}})*?)}}/
         )?.[4];
-        if (!specifier) return { result: ""};
-        
+        if (!specifier) return { result: "" };
 
         const browser = str.match(
           /{{(HTMLOfElement|element|elementHTML)( browser="(.*)"):(([^{]|{(?!{)|{{[\s\S]*?}})*?)}}/
@@ -1974,7 +2215,12 @@ const placeholders: PlaceholderList = {
     },
     dependencies: ["currentAppName"],
     constant: false,
-    fn: async (specifier: string, browser?: string) => (await Placeholders.allPlaceholders['{{HTMLOfElement( browser="(.*)")?:(([^{]|{(?!{)|{{[\\s\\S]*?}})*?)}}'].apply(`{{element${browser ? ` browser="${browser}"` : ``}:${specifier}}}`)).result,
+    fn: async (specifier: string, browser?: string) =>
+      (
+        await Placeholders.allPlaceholders[
+          '{{HTMLOfElement( browser="(.*)")?:(([^{]|{(?!{)|{{[\\s\\S]*?}})*?)}}'
+        ].apply(`{{element${browser ? ` browser="${browser}"` : ``}:${specifier}}}`)
+      ).result,
     example: "Summarize this: {{elementHTML:#article}}",
     description: "Replaced with the raw HTML source of an HTML element in the active tab of any supported browser.",
     hintRepresentation: "{{elementHTML}}",
@@ -2309,7 +2555,7 @@ const placeholders: PlaceholderList = {
   /**
    * Placeholder for output of a JavaScript script. If the script fails, this placeholder will be replaced with an empty string. The script is run in a sandboxed environment.
    */
-  "{{(js|JS)( target=\"(.*?)\")?:(([^{]|{(?!{)|{{[\\s\\S]*?}})*?)}}": {
+  '{{(js|JS)( target="(.*?)")?:(([^{]|{(?!{)|{{[\\s\\S]*?}})*?)}}': {
     name: "js",
     apply: async (str: string, context?: { [key: string]: string }) => {
       try {
@@ -2340,8 +2586,11 @@ const placeholders: PlaceholderList = {
     },
     constant: false,
     fn: async (script: string) =>
-      (await Placeholders.allPlaceholders["{{(js|JS)( target=\"(.*?)\")?:(([^{]|{(?!{)|{{[\\s\\S]*?}})*?)}}"].apply(`{{js:${script}}}`))
-        .result,
+      (
+        await Placeholders.allPlaceholders['{{(js|JS)( target="(.*?)")?:(([^{]|{(?!{)|{{[\\s\\S]*?}})*?)}}'].apply(
+          `{{js:${script}}}`
+        )
+      ).result,
     example: '{{js:log("Hello World")}}',
     description:
       "Placeholder for output of a JavaScript script. If the script fails, this placeholder will be replaced with an empty string. The script is run in a sandboxed environment.",
@@ -2612,7 +2861,7 @@ const bulkApply = async (str: string, context?: { [key: string]: string }): Prom
     if (keyHolder && !(contextKey == "input" && context[contextKey] == "")) {
       if (subbedStr.match(new RegExp(keyHolder[0] + "(?=(}}|[\\s\\S]|$))", "g"))) {
         subbedStr = subbedStr.replace(new RegExp(keyHolder[0] + "(?=(}}|[\\s\\S]|$))", "g"), context[contextKey]);
-        
+
         if (preferences.usePlaceholderStatistics) {
           const currentCountString = await getPersistentVariable(`${contextKey}_count`);
           const currentCount = currentCountString.length ? parseInt(currentCountString) : 0;

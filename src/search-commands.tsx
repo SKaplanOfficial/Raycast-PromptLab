@@ -1,4 +1,4 @@
-import { getPreferenceValues, List } from "@raycast/api";
+import { ActionPanel, getPreferenceValues, List } from "@raycast/api";
 import { useEffect, useState } from "react";
 import CommandResponse from "./components/Commands/CommandResponse";
 import { Command, ExtensionPreferences, searchPreferences } from "./utils/types";
@@ -9,6 +9,7 @@ import { useCachedState } from "@raycast/utils";
 import { commandCategories } from "./utils/constants";
 import CommandListItem from "./components/Commands/CommandListItem";
 import SuggestedCommandsSection from "./components/SuggestedCommandsSection";
+import NewCommandAction from "./components/Commands/actions/NewCommandAction";
 
 export default function SearchCommand(props: { arguments: { commandName: string; queryInput: string } }) {
   const { commandName, queryInput } = props.arguments;
@@ -116,6 +117,11 @@ export default function SearchCommand(props: { arguments: { commandName: string;
           : `${shownCommands.length} command${shownCommands.length > 1 ? "s" : ""}...`
       }`}
       searchBarAccessory={loadingCommands ? null : <CategoryDropdown onSelection={setTargetCategory} />}
+      actions={
+        <ActionPanel>
+          <NewCommandAction setCommands={setCommands} />
+        </ActionPanel>
+      }
     >
       <List.EmptyView title="No Custom Commands" />
       {favorites.length && !preferences.groupByCategory ? (

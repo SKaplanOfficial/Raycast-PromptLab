@@ -157,6 +157,11 @@ export const updateCommand = async (
   newCommandData: Command,
   setCommands?: React.Dispatch<React.SetStateAction<Command[]>>
 ) => {
+  if (oldCommandData != undefined && oldCommandData.name != newCommandData.name) {
+    await LocalStorage.removeItem(oldCommandData.name);
+  }
+  await LocalStorage.setItem(newCommandData.name, JSON.stringify(newCommandData));
+
   const commandData = await LocalStorage.allItems();
   const commandDataFiltered = Object.values(commandData).filter((cmd, index) => {
     return (
@@ -169,9 +174,4 @@ export const updateCommand = async (
   if (setCommands != undefined) {
     setCommands([...commandDataFiltered?.map((data) => JSON.parse(data)), newCommandData]);
   }
-
-  if (oldCommandData != undefined && oldCommandData.name != newCommandData.name) {
-    await LocalStorage.removeItem(oldCommandData.name);
-  }
-  await LocalStorage.setItem(newCommandData.name, JSON.stringify(newCommandData));
 };

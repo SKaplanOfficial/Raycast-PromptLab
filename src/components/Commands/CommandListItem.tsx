@@ -7,6 +7,7 @@ import { CommandControlsActionsSection } from "./actions/CommandControlActions";
 import { AdvancedActionSubmenu } from "../actions/AdvancedActionSubmenu";
 import { Command } from "../../utils/types";
 import { defaultAdvancedSettings } from "../../data/default-advanced-settings";
+import NewCommandAction from "./actions/NewCommandAction";
 
 export default function CommandListItem(props: {
   command: Command;
@@ -42,6 +43,7 @@ export default function CommandListItem(props: {
       actions={
         <ActionPanel>
           <RunCommandAction command={command} setCommands={setCommands} settings={settings} />
+          <NewCommandAction setCommands={setCommands} />
           <ShareCommandAction command={command} settings={settings} />
 
           <ActionPanel.Submenu

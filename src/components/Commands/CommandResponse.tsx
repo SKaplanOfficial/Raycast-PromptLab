@@ -1,4 +1,12 @@
-import { closeMainWindow, getPreferenceValues, LocalStorage, showHUD, showToast, Toast, useNavigation } from "@raycast/api";
+import {
+  closeMainWindow,
+  getPreferenceValues,
+  LocalStorage,
+  showHUD,
+  showToast,
+  Toast,
+  useNavigation,
+} from "@raycast/api";
 import { useEffect, useState } from "react";
 import { Command, CommandOptions, ERRORTYPE, ExtensionPreferences } from "../../utils/types";
 import { runActionScript, runReplacements } from "../../utils/command-utils";
@@ -57,14 +65,15 @@ export default function CommandResponse(props: {
             "\n"
           )}\n\nFrom the second list, which commands are most complimentary to the ones that I use most frequently? Output the names of 3 complimentary commands, separated by commas. Do not output any other text.`;
 
-        runModel(modelInput, modelInput, "").then((response) => addInsight(
+        runModel(modelInput, modelInput, "").then((response) =>
+          addInsight(
             "Command Suggestions",
             `Your most frequently used PromptLab commands are: ${mostFrequentCommands.join(
               ", "
             )}.\n\nBased on those, consider using these commands, too: ${response}`,
             ["commands"],
             []
-          ).then(() => addInsight(`Command Execution`, `Executed command ${commandName}`, ["commands"], []))
+          )
         );
       });
     });

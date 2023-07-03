@@ -87,8 +87,7 @@ export const addContextForQuery = async (
   // Add file contents if necessary and if any files are selected
   if (
     ((chat && chat.useSelectedFilesContext) ||
-      useFilesOverride ||
-      (chat == undefined && useFilesOverride == undefined)) &&
+      useFilesOverride) &&
     files.selectedFiles?.paths?.length
   ) {
     subbedQuery += `\n\nYou will also consider these files: ###${files.fileContents?.contents || ""}###`;
@@ -97,8 +96,7 @@ export const addContextForQuery = async (
   // Add conversation history if necessary and if any exists
   if (
     ((chat && chat.useConversationContext) ||
-      useConversationOverride ||
-      (chat == undefined && useConversationOverride == undefined)) &&
+      useConversationOverride) &&
     conversation.length
   ) {
     const conversationData = conversation
@@ -115,8 +113,7 @@ export const addContextForQuery = async (
   // Add command-calling instructions if necessary
   if (
     (chat && chat.allowAutonomy) ||
-    allowAutonomyOverride ||
-    (chat == undefined && allowAutonomyOverride == undefined)
+    allowAutonomyOverride
   ) {
     const commandDescriptionsStr = commandDescriptions.join(", ");
     subbedQuery += `\n\nTry to answer my next query, but only if it simple enough for an LLM with limited knowledge to answer. If you cannot fulfill the query, if the query requires new information, or if the query invokes an action such as searching, choose the command from the following list that is most likely to carry out the goal expressed in the query, then respond with the number of the command to run in the format {{cmd:commandNumber:input}}. Replace 'input' with a short string according to my query. For example, if I say 'search google for AI', the input would be 'AI'. Here are the commands: ###${commandDescriptionsStr}###\n\nTry to answer without using a command, unless the query asks for new information (e.g. latest news) or invokes an action (e.g. searching, opening apps). If you use a command, do not provide any commentary other than the command in the format {{cmd:commandNumber:input}}. Make sure the command is relevant to the current query.`;

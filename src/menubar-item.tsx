@@ -12,6 +12,7 @@ import { Command } from "./utils/types";
 import { useCachedState } from "@raycast/utils";
 import { installDefaults } from "./utils/file-utils";
 import SuggestedCommandsSection from "./components/SuggestedCommandsSection";
+import { addInsight } from "./hooks/useInsights";
 
 interface CommandPreferences {
   showNewChatShortcut: boolean;
@@ -60,6 +61,12 @@ export default function PromptLabMenubar() {
         key={cmd.name}
         onAction={async (event) => {
           if (event.type == "left-click") {
+            await addInsight(
+              `Command Execution`,
+              `Executed command ${cmd.name} via the menubar`,
+              ["commands", "menubar"],
+              []
+            );
             await launchCommand({
               name: "search-commands",
               type: LaunchType.UserInitiated,
