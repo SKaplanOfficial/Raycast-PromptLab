@@ -116,95 +116,6 @@
       "required": false
     },
     {
-      "name": "modelEndpoint",
-      "title": "Model Endpoint",
-      "type": "textfield",
-      "required": false,
-      "default": "Raycast AI",
-      "description": "The API endpoint of the model used to generate PromptLab command output. Set to 'Raycast AI' to use the Raycast AI API."
-    },
-    {
-      "name": "authType",
-      "title": "API Authorization Type",
-      "type": "dropdown",
-      "required": false,
-      "default": "bearer",
-      "description": "The authorization type for the model endpoint, e.g. API Key or Bearer. This is only used if the model source is set to something other than Raycast AI.",
-      "data": [
-        {
-          "title": "API Key",
-          "value": "apiKey"
-        },
-        {
-          "title": "Bearer Token",
-          "value": "bearerToken"
-        },
-        {
-          "title": "X-API-Key",
-          "value": "x-api-key"
-        }
-      ]
-    },
-    {
-      "name": "apiKey",
-      "title": "API Key",
-      "type": "password",
-      "required": false,
-      "default": "",
-      "description": "The API key for the model source. This is only used if the model source is set to something other than Raycast AI."
-    },
-    {
-      "name": "inputSchema",
-      "title": "Input Schema",
-      "type": "textfield",
-      "required": false,
-      "default": "N/A",
-      "description": "The JSON schema of the endpoint used to generate PromptLab command output. This is only used if the model source is set to something other than Raycast AI. Use {prompt} to represent PromptLab's entire input to the model.",
-      "placeholder": "{ \"prompt\": \"{input}\" }"
-    },
-    {
-      "name": "includeTemperature",
-      "label": "Include Creativity Parameter",
-      "type": "checkbox",
-      "default": true,
-      "description": "If checked, PromptLab will include a temperature (creativity) parameter in the model input, using the value specified during command creation. You may need to disable this if the model does not support temperature. Disabling this will also disable the 'Creativity' textfield in the command creation view.",
-      "required": false
-    },
-    {
-      "name": "outputKeyPath",
-      "title": "Output Key Path",
-      "type": "textfield",
-      "required": false,
-      "default": "N/A",
-      "description": "The key path to the text output in the JSON response from the model endpoint. For example, choices[0].message.content, for the OpenAI API. This is only used if the model source is set to something other than Raycast AI."
-    },
-    {
-      "name": "outputTiming",
-      "title": "Output Timing",
-      "type": "dropdown",
-      "required": false,
-      "default": "sync",
-      "description": "Whether output from the model endpoint should be processed synchronously or asynchronously. Often, this is also an option on the model API. This is only used if the model source is set to something other than Raycast AI.",
-      "data": [
-        {
-          "title": "Synchronous",
-          "value": "sync"
-        },
-        {
-          "title": "Asynchronous",
-          "value": "async"
-        }
-      ]
-    },
-    {
-      "name": "lengthLimit",
-      "title": "Prompt Length Limit",
-      "type": "textfield",
-      "required": false,
-      "default": "2500",
-      "description": "The maximum length of the prompt that will be sent to the model endpoint, beyond which it will be truncated. Larger values will support more content, but may result in token count errors. Adjust this value according to the model's token limit (but leave some space, e.g. 1000 characters, for additional input and placeholders)."
-    },
-    {
       "title": "Insights Settings",
       "name": "usePlaceholderStatistics",
       "label": "Placeholder Insights",
@@ -429,14 +340,18 @@
   "dependencies": {
     "@raycast/api": "^1.51.0",
     "@raycast/utils": "^1.6.1",
-    "run-applescript": "^6.1.0",
     "exifr": "^7.1.3",
-    "node-fetch": "^3.3.1"
+    "mammoth": "^1.6.0",
+    "node-fetch": "^3.3.1",
+    "pptx-text-parser": "^1.1.1",
+    "run-applescript": "^6.1.0",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@raycast/eslint-config": "1.0.5",
     "@types/node": "18.8.3",
     "@types/react": "18.0.9",
+    "@types/textract": "^2.4.2",
     "eslint": "^7.32.0",
     "prettier": "^2.5.1",
     "typescript": "^4.4.3"

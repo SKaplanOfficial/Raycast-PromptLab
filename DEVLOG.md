@@ -1,5 +1,15 @@
 # PromptLab DevLog - A More Detailed ChangeLog
 
+### 2023-07-03
+
+- Added command templates
+    - Created using the 'Save As Template' action in the command creation view
+    - To delete: Create a command with the same name as the template, then delete the command
+- Added `{{photoAlbums}}` placeholder for getting a comma-separated list of the names of all photo albums.
+- Added horizon detection and corresponding command setting.
+    - Added `{{imageHorizon}}` placeholder.
+- Added support for parsing MS Office and Apple Numbers documents.
+
 ### 2023-07-01
 
 - Added `{{latitude}}` and ``{{longitude}}` placeholders for getting the latitude and longitude of the user's current location as determined by their IP address.

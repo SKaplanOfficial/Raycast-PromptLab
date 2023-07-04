@@ -19,22 +19,22 @@ export const filterString = (str: string, cutoff?: number): string => {
     return str
       .replaceAll(/[^A-Za-z0-9,.?!\-'()/[\]{}@: \n\r<>]/g, "")
       .replaceAll('"', "'")
-      .substring(0, cutoff || parseInt(preferences.lengthLimit) + 500 || 3000);
+      .substring(0, cutoff || str.length);
   } else if (preferences.condenseAmount == "medium") {
     // Remove uncommon characters
     return str
       .replaceAll(/[^A-Za-z0-9,.?!\-'()/[\]{}@: \n\r<>+*&|]/g, "")
       .replaceAll('"', "'")
-      .substring(0, cutoff || parseInt(preferences.lengthLimit) + 500 || 3000);
+      .substring(0, cutoff || str.length);
   } else if (preferences.condenseAmount == "low") {
     // Remove all characters except for letters, numbers, and punctuation
     return str
       .replaceAll(/[^A-Za-z0-9,.?!\-'()/[\]{}@:; \n\r\t<>%^$~+*_&|]/g, "")
       .replaceAll('"', "'")
-      .substring(0, cutoff || parseInt(preferences.lengthLimit) + 500 || 3000);
+      .substring(0, cutoff || str.length);
   } else {
     // Just remove quotes and cut off at the limit
-    return str.replaceAll('"', "'").substring(0, cutoff || parseInt(preferences.lengthLimit) + 500 || 3000);
+    return str.replaceAll('"', "'").substring(0, cutoff || str.length);
   }
 };
 
@@ -275,7 +275,7 @@ export const runJSInActiveTab = async (script: string, browserName: string): Pro
               '';
             }"
           end tell
-        end tell`)
+        end tell`);
       break;
     case "Google Chrome":
     case "Microsoft Edge":
@@ -292,7 +292,7 @@ export const runJSInActiveTab = async (script: string, browserName: string): Pro
                       '';
                     }"
           end tell
-        end tell`)
+        end tell`);
       break;
     case "Arc":
       return runAppleScript(`tell application "Arc"
@@ -306,7 +306,7 @@ export const runJSInActiveTab = async (script: string, browserName: string): Pro
           tell front window's active tab
             return execute javascript js
           end tell
-        end tell`)
+        end tell`);
       break;
     case "iCab":
       // iCab doesn't return the result of the script, so we have to get the text of the webpage instead. :(
@@ -319,7 +319,7 @@ export const runJSInActiveTab = async (script: string, browserName: string): Pro
                     } catch {
                       '';
                     }" in theTab
-        end tell`)
+        end tell`);
       break;
   }
   return "";
@@ -434,7 +434,7 @@ export const getCurrentTrack = async (app = "Music"): Promise<string> => {
 
 /**
  * Gets the list of track names in Music.app.
- * 
+ *
  * @param app The name of the application to get the track names from.
  * @returns A promise resolving to the list of track names as a string.
  */
@@ -447,106 +447,47 @@ export const getTrackNames = async (app = "Music"): Promise<string> => {
 };
 
 /**
- * Gets the list of unique album names in Music.app.
- * 
- * @param app The name of the application to get the album names from.
+ * Base function for getting the list of unique values of object properties via AppleScript.
+ *
+ * @param app The name of the application to get the values from.
+ * @param objects The name of the objects to get the values of, e.g. "tracks".
+ * @param property The name of the property to get the values of, e.g. "album".
  * @returns A promise resolving to the list of album names as a string.
  */
-export const getAlbumNames = async (app = "Music"): Promise<string[]> => {
-  return (await runAppleScript(`use framework "Foundation"
+export const getUniqueNames = async (app: string, objects: string, property: string): Promise<string[]> => {
+  return (
+    await runAppleScript(`use framework "Foundation"
     try
       tell application "${app}"
         set oldDelims to AppleScript's text item delimiters
         set AppleScript's text item delimiters to "#|~|#"
-        set allAlbums to album of tracks
-        set albumsSet to (current application's NSSet's setWithArray:allAlbums)'s allObjects()
-        set theAlbums to (albumsSet as list) as text
+        set valueSet to (current application's NSSet's setWithArray:(${property} of ${objects}))'s allObjects()
+        set theValues to (valueSet as list) as text
+        set AppleScript's text item delimiters to oldDelims
+        return theValues
+      end tell
+    end try`)
+  ).split("#|~|#");
+};
+
+/**
+ * Gets the list of album names in Photos.app.
+ *
+ * @returns A promise resolving to the list of album names.
+ */
+export const getPhotoAlbums = async (): Promise<string[]> => {
+  return (
+    await runAppleScript(`try
+      tell application "Photos"
+        set oldDelims to AppleScript's text item delimiters
+        set AppleScript's text item delimiters to "#|~|#"
+        set theAlbums to (name of containers) as text
         set AppleScript's text item delimiters to oldDelims
         return theAlbums
       end tell
-    end try`)).split("#|~|#");
-}
-
-/**
- * Gets the list of unique artist names in Music.app.
- * 
- * @param app The name of the application to get the artist names from.
- * @returns A promise resolving to the list of artist names as a string.
- */
-export const getArtistNames = async (app = "Music"): Promise<string[]> => {
-  return (await runAppleScript(`use framework "Foundation"
-    try
-      tell application "${app}"
-        set oldDelims to AppleScript's text item delimiters
-        set AppleScript's text item delimiters to "#|~|#"
-        set allArtists to artist of tracks
-        set artistsSet to (current application's NSSet's setWithArray:allArtists)'s allObjects()
-        set theArtists to (artistsSet as list) as text
-        set AppleScript's text item delimiters to oldDelims
-        return theArtists
-      end tell
-    end try`)).split("#|~|#");
-}
-
-/**
- * Gets the list of unique playlist names in Music.app.
- * 
- * @param app The name of the application to get the playlist names from.
- * @returns A promise resolving to the list of playlist names as a string.
- */
-export const getPlaylistNames = async (app = "Music"): Promise<string[]> => {
-  return (await runAppleScript(`use framework "Foundation"
-    try
-      tell application "${app}"
-        set oldDelims to AppleScript's text item delimiters
-        set AppleScript's text item delimiters to "#|~|#"
-        set playlistSet to (current application's NSSet's setWithArray:(name of playlists))'s allObjects()
-        set thePlaylists to (playlistSet as list) as text
-        set AppleScript's text item delimiters to oldDelims
-        return thePlaylists
-      end tell
-    end try`)).split("#|~|#");
-}
-
-/**
- * Gets the list of unique director names in TV.app.
- * 
- * @param app The name of the application to get the director names from.
- * @returns A promise resolving to the list of director names as a string.
- */
-export const getDirectorNames = async (): Promise<string[]> => {
-  return (await runAppleScript(`use framework "Foundation"
-    try
-      tell application "TV"
-        set oldDelims to AppleScript's text item delimiters
-        set AppleScript's text item delimiters to "#|~|#"
-        set directorSet to (current application's NSSet's setWithArray:(director of tracks))'s allObjects()
-        set theDirectors to (directorSet as list) as text
-        set AppleScript's text item delimiters to oldDelims
-        return theDirectors
-      end tell
-    end try`)).split("#|~|#");
-}
-
-/**
- * Gets the list of unique show names in TV.app.
- * 
- * @param app The name of the application to get the show names from.
- * @returns A promise resolving to the list of show names as a string.
- */
-export const getShowNames = async (): Promise<string[]> => {
-  return (await runAppleScript(`use framework "Foundation"
-    try
-      tell application "TV"
-        set oldDelims to AppleScript's text item delimiters
-        set AppleScript's text item delimiters to "#|~|#"
-        set showSet to (current application's NSSet's setWithArray:(show of tracks))'s allObjects()
-        set theShows to (showSet as list) as text
-        set AppleScript's text item delimiters to oldDelims
-        return theShows
-      end tell
-    end try`)).split("#|~|#");
-}
+    end try`)
+  ).split("#|~|#");
+};
 
 /**
  * Gets the plaintext of the most recently edited note.

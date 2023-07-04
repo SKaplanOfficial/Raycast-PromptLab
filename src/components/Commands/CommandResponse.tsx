@@ -54,7 +54,9 @@ export default function CommandResponse(props: {
     LocalStorage.allItems().then((items) => {
       const commands = Object.entries(items)
         .filter(([key]) => !key.startsWith("--") && !key.startsWith("id-"))
-        .map(([, value]) => (JSON.parse(value) as Command).name);
+        .map(([, value]) => JSON.parse(value) as Command)
+        .filter((cmd) => !cmd.template)
+        .map((cmd) => cmd.name);
 
       Insights.objectsByFrequency("_executions", "name", 5).then((mostFrequentCommands) => {
         const modelInput = `I want you to recommend commands for me to use based on the following information. First, here are the commands that I most frequently use:\n\n${mostFrequentCommands.join(

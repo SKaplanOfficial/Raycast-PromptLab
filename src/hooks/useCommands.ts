@@ -7,6 +7,7 @@ import { useCachedState } from "@raycast/utils";
 
 export function useCommands() {
   const [commands, setCommands] = useCachedState<Command[]>("--commands", []);
+  const [templates, setTemplates] = useCachedState<Command[]>("--command-templates", []);
   const [commandNames, setCommandNames] = useCachedState<string[]>("--command-names", []);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>();
@@ -23,6 +24,7 @@ export function useCommands() {
 
     // Ensure that all commands have a unique ID
     const newCommands: Command[] = [];
+    const newTemplates: Command[] = [];
     for (const command of commandObjs) {
       const newCommand = { ...command };
       if (!command.id || (command.id && command.id.trim().length == 0)) {
@@ -33,12 +35,17 @@ export function useCommands() {
         newCommand.id = newID;
         await LocalStorage.setItem(newCommand.name, JSON.stringify(newCommand));
       }
-      newCommands.push(newCommand);
+      if (command.template) {
+        newTemplates.push(newCommand);
+      } else {
+        newCommands.push(newCommand);
+      }
     }
     setCommands(newCommands);
+    setTemplates(newTemplates);
 
     // Get the command names
-    const commandNames = Object.keys(items).filter((key) => !key.startsWith("--") && !key.startsWith("id-"));
+    const commandNames = newCommands.map((command) => command.name);
     setCommandNames(commandNames);
     setIsLoading(false);
   };
@@ -50,7 +57,7 @@ export function useCommands() {
   }, []);
 
   const revalidate = async () => {
-    return loadCommands();
+    return await loadCommands();
   };
 
   const updateCommand = async (command: Command, newData: Command) => {
@@ -100,6 +107,7 @@ export function useCommands() {
       website: "",
       version: "1.0.0",
       requirements: "",
+      template: false,
     };
   };
 
@@ -152,6 +160,7 @@ export function useCommands() {
       website: newData.website || "",
       version: newData.version || "1.0.0",
       requirements: newData.requirements || "",
+      template: newData.template || false,
     };
 
     // Save the command
@@ -165,7 +174,9 @@ export function useCommands() {
 
   return {
     commands: commands,
+    templates: templates,
     setCommands: setCommands,
+    setTemplates: setTemplates,
     commandNames: commandNames,
     isLoading: isLoading,
     error: error,

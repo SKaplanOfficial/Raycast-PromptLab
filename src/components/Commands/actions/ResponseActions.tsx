@@ -1,19 +1,17 @@
 import {
   Action,
   ActionPanel,
-  Color,
   Icon,
   Keyboard,
   LaunchType,
   Toast,
   getPreferenceValues,
   launchCommand,
-  open,
   showToast,
 } from "@raycast/api";
 import CommandChatView from "../../Chats/CommandChatView";
 import { Command, CommandOptions, ExtensionPreferences, StoreCommand } from "../../../utils/types";
-import { getMenubarOwningApplication } from "../../../utils/context-utils";
+import { getMenubarOwningApplication } from "../../../utils/context";
 import { useEffect, useState } from "react";
 import { logDebug } from "../../../utils/dev-utils";
 import { saveResponse } from "../../../utils/command-utils";

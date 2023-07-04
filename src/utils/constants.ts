@@ -151,7 +151,7 @@ export const commandCategories = [
   {
     name: "Utilities",
     icon: Icon.Calculator,
-    color: Color.Blue,
+    color: Color.Green,
   },
   {
     name: "Weather",

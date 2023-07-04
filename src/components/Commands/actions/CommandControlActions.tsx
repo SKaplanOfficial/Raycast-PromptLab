@@ -8,6 +8,7 @@ import { anyActionsEnabled } from "../../../utils/action-utils";
 import DeleteAllAction from "../../actions/DeleteAllAction";
 import DeleteAction from "../../actions/DeleteAction";
 import ToggleFavoriteAction from "../../actions/ToggleFavoriteAction";
+import crypto from "crypto";
 
 /**
  * Section for actions related to modifying commands (editing, deleting, etc.).
@@ -22,9 +23,10 @@ export const CommandControlsActionsSection = (props: {
   availableCommands?: StoreCommand[];
   commands: Command[];
   setCommands: React.Dispatch<React.SetStateAction<Command[]>>;
+  setTemplates: React.Dispatch<React.SetStateAction<Command[]>>;
   settings: typeof defaultAdvancedSettings;
 }) => {
-  const { command, availableCommands, commands, setCommands, settings } = props;
+  const { command, availableCommands, commands, setCommands, setTemplates, settings } = props;
 
   if (
     !anyActionsEnabled(
@@ -57,8 +59,8 @@ export const CommandControlsActionsSection = (props: {
           />
 
           <CreateQuickLinkAction command={command} />
-          <EditCommandAction command={command} setCommands={setCommands} />
-          <CreateDerivativeAction command={command} setCommands={setCommands} />
+          <EditCommandAction command={command} setCommands={setCommands} setTemplates={setTemplates} />
+          <CreateDerivativeAction command={command} setCommands={setCommands} setTemplates={setTemplates} />
           <DeleteCommandAction command={command} commands={commands} setCommands={setCommands} settings={settings} />
           <DeleteAllCommandsAction commands={commands} setCommands={setCommands} settings={settings} />
         </>
@@ -70,7 +72,7 @@ export const CommandControlsActionsSection = (props: {
             commands={commands}
             setCommands={setCommands}
           />
-          <CreateDerivativeAction command={command} setCommands={setCommands} />
+          <CreateDerivativeAction command={command} setCommands={setCommands} setTemplates={setTemplates} />
         </>
       ) : null}
     </ActionPanel.Section>
@@ -106,8 +108,9 @@ export const CreateQuickLinkAction = (props: { command: Command }) => {
 export const EditCommandAction = (props: {
   command: Command;
   setCommands: React.Dispatch<React.SetStateAction<Command[]>>;
+  setTemplates: React.Dispatch<React.SetStateAction<Command[]>>;
 }) => {
-  const { command, setCommands } = props;
+  const { command, setCommands, setTemplates } = props;
   return (
     <Action.Push
       title="Edit Command"
@@ -128,6 +131,7 @@ export const EditCommandAction = (props: {
             useRectangleDetection: command.useRectangleDetection,
             useBarcodeDetection: command.useBarcodeDetection,
             useFaceDetection: command.useFaceDetection,
+            useHorizonDetection: command.useHorizonDetection,
             outputKind: command.outputKind,
             actionScript: command.actionScript,
             showResponse: command.showResponse,
@@ -150,6 +154,7 @@ export const EditCommandAction = (props: {
             showInMenuBar: command.showInMenuBar,
           }}
           setCommands={setCommands}
+          setTemplates={setTemplates}
         />
       }
       icon={Icon.Pencil}
@@ -220,8 +225,9 @@ export const DeleteAllCommandsAction = (props: {
 export const CreateDerivativeAction = (props: {
   command: Command | StoreCommand;
   setCommands: React.Dispatch<React.SetStateAction<Command[]>>;
+  setTemplates: React.Dispatch<React.SetStateAction<Command[]>>;
 }) => {
-  const { command, setCommands } = props;
+  const { command, setCommands, setTemplates } = props;
   return (
     <Action.Push
       title="Create Derivative"
@@ -242,6 +248,7 @@ export const CreateDerivativeAction = (props: {
             useRectangleDetection: isTrueStr(command.useRectangleDetection),
             useBarcodeDetection: isTrueStr(command.useBarcodeDetection),
             useFaceDetection: isTrueStr(command.useFaceDetection),
+            useHorizonDetection: isTrueStr(command.useHorizonDetection),
             outputKind: command.outputKind,
             actionScript: command.actionScript,
             showResponse: isTrueStr(command.showResponse),
@@ -271,11 +278,97 @@ export const CreateDerivativeAction = (props: {
           }}
           setCommands={setCommands}
           duplicate={true}
+          setTemplates={setTemplates}
         />
       }
       icon={Icon.EyeDropper}
       shortcut={{ modifiers: ["ctrl"], key: "c" }}
     />
+  );
+};
+
+/**
+ * Action submenu & actions to create a command from a template.
+ * @param props.setCommands The function to update the list of installed commands
+ * @returns An Action component
+ */
+export const CreateFromTemplateMenu = (props: {
+  commands: Command[];
+  templates: Command[];
+  setCommands: React.Dispatch<React.SetStateAction<Command[]>>;
+  setTemplates: React.Dispatch<React.SetStateAction<Command[]>>;
+}) => {
+  const { commands, templates, setCommands, setTemplates } = props;
+
+  if (!templates || templates.length == 0) {
+    return null;
+  }
+
+  return (
+    <ActionPanel.Submenu
+      title="Create Command From Template..."
+      icon={Icon.Center}
+      shortcut={{ modifiers: ["cmd"], key: "t" }}
+    >
+      {templates.map((template) => {
+        let id = crypto.randomUUID();
+        while (commands.some((cmd) => cmd.id == id) || templates.some((cmd) => cmd.id == id)) {
+          id = crypto.randomUUID();
+        }
+        return (
+          <Action.Push
+            title={template.name}
+            target={
+              <CommandForm
+                oldData={{
+                  id: id,
+                  name: "",
+                  prompt: template.prompt,
+                  icon: template.icon,
+                  iconColor: template.iconColor,
+                  minNumFiles: template.minNumFiles?.toString(),
+                  acceptedFileExtensions:
+                    template.acceptedFileExtensions == "None" ? "" : template.acceptedFileExtensions,
+                  useMetadata: isTrueStr(template.useMetadata),
+                  useAudioDetails: isTrueStr(template.useAudioDetails),
+                  useSoundClassification: isTrueStr(template.useSoundClassification),
+                  useSubjectClassification: isTrueStr(template.useSubjectClassification),
+                  useRectangleDetection: isTrueStr(template.useRectangleDetection),
+                  useBarcodeDetection: isTrueStr(template.useBarcodeDetection),
+                  useFaceDetection: isTrueStr(template.useFaceDetection),
+                  useHorizonDetection: isTrueStr(template.useHorizonDetection),
+                  outputKind: template.outputKind,
+                  actionScript: template.actionScript,
+                  showResponse: isTrueStr(template.showResponse),
+                  description: template.description,
+                  useSaliencyAnalysis: isTrueStr(template.useSaliencyAnalysis),
+                  author: template.author,
+                  website: template.website,
+                  version: template.version,
+                  requirements: template.requirements,
+                  scriptKind: template.scriptKind,
+                  categories: template.categories || [],
+                  temperature:
+                    template.temperature == undefined || template.temperature == "" ? "1.0" : template.temperature,
+                  favorited: template.favorited,
+                  setupConfig: template.setupConfig,
+                  installedFromStore: false,
+                  setupLocked: template.setupLocked,
+                  useSpeech: isTrueStr(template.useSpeech),
+                  speakResponse: isTrueStr(template.speakResponse),
+                  showInMenuBar: template.showInMenuBar,
+                  model: template.model,
+                }}
+                setCommands={setCommands}
+                setTemplates={setTemplates}
+                duplicate={true}
+              />
+            }
+            icon={{ source: Icon.Center, tintColor: template.iconColor }}
+          />
+        );
+      })}
+    </ActionPanel.Submenu>
   );
 };
 
@@ -329,6 +422,7 @@ export const InstallAllCommandsAction = (props: {
             useRectangleDetection: command.useRectangleDetection == "TRUE" ? true : false,
             useBarcodeDetection: command.useBarcodeDetection == "TRUE" ? true : false,
             useFaceDetection: command.useFaceDetection == "TRUE" ? true : false,
+            useHorizonDetection: command.useHorizonDetection == "TRUE" ? true : false,
             outputKind: command.outputKind,
             actionScript: command.actionScript,
             showResponse: command.showResponse == "TRUE" ? true : false,

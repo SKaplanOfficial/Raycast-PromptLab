@@ -5,6 +5,7 @@ function run(argv) {
   const useSubjectClassification = argv[4]
   const useFaceDetection = argv[5]
   const useRectangleDetection = argv[6]
+  const useHorizonDetection = argv[7]
 
   ObjC.import("objc");
   ObjC.import("CoreMedia");
@@ -57,6 +58,7 @@ function run(argv) {
   const animals = [];
   let faces = 0;
   const rects = [];
+  let horizon = [];
   for (let i = 0; i < samples.length; i++) {
     const sample = samples[i];
     const presentationTime = $.CMSampleBufferGetPresentationTimeStamp(sample);
@@ -78,6 +80,7 @@ function run(argv) {
     const animalRequest = $.VNRecognizeAnimalsRequest.alloc.init;
     const faceRequest = $.VNDetectFaceRectanglesRequest.alloc.init;
     const rectRequest = $.VNDetectRectanglesRequest.alloc.init;
+	const horizonRequest = $.VNDetectHorizonRequest.alloc.init
     rectRequest.maximumObservations = 0;
 
     requestHandler.performRequestsError(
@@ -87,6 +90,7 @@ function run(argv) {
         animalRequest,
         faceRequest,
         rectRequest,
+		horizonRequest,
       ]),
       null
     );
@@ -95,6 +99,7 @@ function run(argv) {
     const animalResults = animalRequest.results;
     const faceResults = faceRequest.results;
     const rectResults = rectRequest.results;
+	const horizonResults = horizonRequest.results;
 
     const sampleTexts = [];
     for (let i = 0; i < textResults.count; i++) {
@@ -147,11 +152,19 @@ function run(argv) {
         )} and height of ${Math.round(size.height * imgHeight)}.>`
       );
     }
+
+	if (horizonResults.count > 0) {
+		const horizonAngle = horizonResults.firstObject.angle * 180 / Math.PI
+		if (horizonAngle != undefined) {
+			const theAngle = horizonAngle.toFixed(2)
+			horizon.push(theAngle)
+		}
+	}
   }
 
   if (texts.length > 0) {
     instructions.push(
-      '<This text appears in the first few seconds: """' +
+      '<Transcribed text of the first few frames: """' +
         texts.join(", ") +
         '""">'
     );
@@ -159,7 +172,7 @@ function run(argv) {
 
   if (useSubjectClassification == "true" && classifications.length > 0) {
     instructions.push(
-      "<These labels might describe some objects appearing in the first few seconds: `" +
+      "<Possible subject labels: `" +
         classifications.join(", ") +
         "`.>"
     );
@@ -167,20 +180,22 @@ function run(argv) {
 
   if (useSubjectClassification == "true" && animals.length > 0) {
     instructions.push(
-      "<These animals appear in the first few seconds: `" +
-        animals.join(", ") +
-        "`.>"
+      `<Animals represented: ${animals.join(", ")}.>`
     );
   }
 
   if (useFaceDetection == "true" && faces > 0) {
     instructions.push(
-      `<Faces of ${faces} people are shown in the first few seconds.>`
+      `<Number of faces: ${faces}.>`
     );
   }
 
   if (useRectangleDetection == "true" && rects.length > 0) {
     instructions.push(...rects);
+  }
+
+  if (useHorizonDetection == "true" && horizon.length > 0) {
+  	instructions.push(`<Angles (degrees) of the horizon over ${samples.length} frames: ${horizon.join(", ")}>`)
   }
 
   return instructions.join(`

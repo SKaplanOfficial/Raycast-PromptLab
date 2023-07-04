@@ -42,37 +42,14 @@ export default async function runModel(basePrompt: string, prompt: string, input
     isDefault: false,
   };
 
-  const preferenceModel: Model = {
-    endpoint: preferences.modelEndpoint,
-    authType: preferences.authType,
-    apiKey: preferences.apiKey,
-    inputSchema: preferences.inputSchema,
-    outputKeyPath: preferences.outputKeyPath,
-    outputTiming: preferences.outputTiming,
-    lengthLimit: preferences.lengthLimit,
-    temperature: "1.0",
-    name: "",
-    description: "",
-    favorited: false,
-    id: "",
-    icon: "",
-    iconColor: "",
-    notes: "",
-    isDefault: false,
-  };
-
   return Promise.resolve(LocalStorage.allItems()).then(async (items) => {
     const models: Model[] = Object.entries(items)
       .filter(([key]) => key.startsWith("--model-"))
       .map(([, value]) => JSON.parse(value));
 
     const defaultModel = models.find((model) => model.isDefault);
-    const targetModel = defaultModel || (preferenceModel.endpoint == "" ? fallbackModel : preferenceModel);
-    const raycastModel =
-      validRaycastAIReps.includes(targetModel.endpoint.toLowerCase()) ||
-      targetModel.endpoint == "" ||
-      preferenceModel.endpoint == "";
-
+    const targetModel = defaultModel || fallbackModel;
+    const raycastModel = validRaycastAIReps.includes(targetModel.endpoint.toLowerCase()) || targetModel.endpoint == "";
     // Get the value at the specified key path
     const get = (obj: JSONObject | string | string[] | JSONObject[], pathString: string, def?: string) => {
       const path: string[] = [];

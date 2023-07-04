@@ -13,7 +13,7 @@ import NewCommandAction from "./components/Commands/actions/NewCommandAction";
 
 export default function SearchCommand(props: { arguments: { commandName: string; queryInput: string } }) {
   const { commandName, queryInput } = props.arguments;
-  const { commands, setCommands, commandNames, isLoading: loadingCommands } = useCommands();
+  const { commands, templates, setCommands, commandNames, isLoading: loadingCommands, setTemplates } = useCommands();
   const [previousCommand] = useCachedState<string>("promptlab-previous-command", "");
   const [targetCategory, setTargetCategory] = useState<string>("All");
   const [searchText, setSearchText] = useState<string | undefined>(
@@ -21,7 +21,7 @@ export default function SearchCommand(props: { arguments: { commandName: string;
   );
   const { advancedSettings } = useAdvancedSettings();
   const preferences = getPreferenceValues<searchPreferences & ExtensionPreferences>();
-
+  
   useEffect(() => {
     /* Add default commands if necessary, then get all commands */
     if (!loadingCommands) {
@@ -63,9 +63,11 @@ export default function SearchCommand(props: { arguments: { commandName: string;
           command={command}
           previousCommand={previousCommand}
           commands={commands}
+          templates={templates}
           setCommands={setCommands}
           settings={advancedSettings}
           key={command.id}
+          setTemplates={setTemplates}
         />
       )) || [];
 
@@ -132,11 +134,13 @@ export default function SearchCommand(props: { arguments: { commandName: string;
 
       <SuggestedCommandsSection
         commands={commands}
+        templates={templates}
         setCommands={setCommands}
+        setTemplates={setTemplates}
         previousCommand={previousCommand}
         settings={advancedSettings}
       />
-      
+
       {otherCommands.length && !preferences.groupByCategory ? (
         <List.Section title={favorites.length ? `Other Commands` : `All Commands`}>
           {listItems.filter((item) => otherCommands.map((command) => command.name).includes(item.props.command.name))}

@@ -1,5 +1,4 @@
 export const textFileExtensions = [
-  "rtf",
   "1",
   "1in",
   "1m",
@@ -347,3 +346,7 @@ export const audioFileExtensions = [
   "snd",
   "wav",
 ];
+
+export const officeFileExtensions = ["docx", "pptx"];
+
+export const spreadsheetFileExtensions = ["xls", "xlsx", "xlsm", "xlsb", "ods", "numbers"];

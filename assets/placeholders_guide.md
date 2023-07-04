@@ -121,6 +121,7 @@ In addition to the above, you can use any supported file extension as a directiv
 | `{{imageAnimals}}` | A comma-separated list of names for animals detected in currently selected image(s) in Finder. |
 | `{{imageBarcodes}}` | The text contents of barcodes detected in currently selected image(s) in Finder. |
 | `{{imageFaces}}` | The number of faces detected in currently selected image(s) in Finder. |
+| `{{imageHorizon}}` | The angle of the horizon detected in currently selected image(s) in Finder. |
 | `{{imagePOI}}` | A comma-separated list of points of interest detected in currently selected image(s) in Finder. The points are normalized to a 1x1 coordinate space. |
 | `{{imageRectangles}}` | A newline-separated list of rectangles detected in currently selected image(s) in Finder. Each rectangle is represented in the format `Rectangle #1: Midpoint=(x,y) Dimensions=wxh` |
 | `{{imageSubjects}}` | A comma-separated list of names for objects detected in currently selected image(s) in Finder. |
@@ -145,6 +146,7 @@ In addition to the above, you can use any supported file extension as a directiv
 | `{{musicArtists}}` | A comma-separated list of unique artist names in Music.app. |
 | `{{musicPlaylists}}` | A comma-separated list of the names of each playlist in Music.app. |
 | `{{musicTracks}}` | A comma-separated list of the names of each track in Music.app. |
+| `{{photoAlbums}}` | A comma-separated list of the names of each album in Photos.app. |
 | `{{safariBookmarks}}` | The title and URL of each bookmark in Safari as a comma-separated list. |
 | `{{safariTopSites}}` | The title and URL of each top site in Safari as a comma-separated list. |
 | `{{shortcuts}}` | The comma-separated list of Siri Shortcuts installed on the system. |

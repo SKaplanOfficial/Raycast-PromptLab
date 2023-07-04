@@ -64,6 +64,7 @@ export default function ShareCommandAction(props: {
                 useRectangleDetection: command.useRectangleDetection ? "TRUE" : "FALSE",
                 useBarcodeDetection: command.useBarcodeDetection ? "TRUE" : "FALSE",
                 useFaceDetection: command.useFaceDetection ? "TRUE" : "FALSE",
+                useHorizonDetection: command.useHorizonDetection ? "TRUE" : "FALSE",
                 outputKind: command.outputKind || "Detaiil",
                 actionScript: command.actionScript || "None",
                 showResponse: command.showResponse ? "TRUE" : "FALSE",

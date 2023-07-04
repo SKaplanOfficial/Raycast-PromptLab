@@ -251,12 +251,13 @@ Contributions are welcome! Please see the [contributing guidelines](./CONTRIBUTI
 #### Planned
 
 - [x] Saved Responses 
+- [x] Command, Chat, and Placeholder Insights
 - [ ] WordNet Integration
-- [ ] Command Templates
+- [x] Command Templates
 - [ ] Improved Local Processing
-    - [ ] DOCX Parsing
+    - [x] DOCX Parsing
     - [ ] Keynote/PowerPoint Parsing
-    - [ ] Spreadsheet Parsing
+    - [x] Spreadsheet Parsing
     - [ ] XML Parsing
     - [ ] Live Audio Classification
 - [ ] WeatherKit Integration
@@ -264,7 +265,6 @@ Contributions are welcome! Please see the [contributing guidelines](./CONTRIBUTI
 #### Possible
 
 - [ ] Run Automator Actions
-- [ ] Global Statistics
 - [ ] TF-IDF
 - [ ] Autonomous Web Search
 - [ ] LangChain Integration

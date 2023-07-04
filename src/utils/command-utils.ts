@@ -156,10 +156,10 @@ export const runReplacements = async (
     const id = subbedPrompt.match(/{{(MO.*?)}}/)?.[1];
     if (id != undefined) {
       const items = await LocalStorage.allItems();
-    const model: Model = Object.entries(items)
-      .filter(([key]) => key.startsWith("--model-"))
-      .map(([, value]) => JSON.parse(value))
-      .find((model) => model.id == id);
+      const model: Model = Object.entries(items)
+        .filter(([key]) => key.startsWith("--model-"))
+        .map(([, value]) => JSON.parse(value))
+        .find((model) => model.id == id);
       if (model != undefined) {
         const modelName = model.name;
         subbedPrompt = subbedPrompt.replaceAll(`{{${id}}}`, modelName);
@@ -222,24 +222,30 @@ export const runReplacements = async (
 export const updateCommand = async (
   oldCommandData: Command | undefined,
   newCommandData: Command,
-  setCommands?: React.Dispatch<React.SetStateAction<Command[]>>
+  setCommands?: React.Dispatch<React.SetStateAction<Command[]>>,
+  setTemplates?: React.Dispatch<React.SetStateAction<Command[]>>
 ) => {
-  if (oldCommandData != undefined && oldCommandData.name != newCommandData.name) {
+  if (
+    oldCommandData != undefined &&
+    oldCommandData.id == newCommandData.id &&
+    oldCommandData.name != newCommandData.name
+  ) {
     await LocalStorage.removeItem(oldCommandData.name);
   }
+
   await LocalStorage.setItem(newCommandData.name, JSON.stringify(newCommandData));
 
   const commandData = await LocalStorage.allItems();
   const commandDataFiltered = Object.values(commandData).filter((cmd, index) => {
-    return (
-      !Object.keys(commandData)[index].startsWith("--") &&
-      !Object.keys(commandData)[index].startsWith("id-") &&
-      (oldCommandData == undefined || JSON.parse(cmd).name != oldCommandData.name)
-    );
+    return !Object.keys(commandData)[index].startsWith("--") && !Object.keys(commandData)[index].startsWith("id-");
   });
 
   if (setCommands != undefined) {
-    setCommands([...commandDataFiltered?.map((data) => JSON.parse(data)), newCommandData]);
+    setCommands([...commandDataFiltered?.map((data) => JSON.parse(data)).filter((cmd) => !cmd.template)]);
+  }
+
+  if (setTemplates != undefined) {
+    setTemplates([...commandDataFiltered?.map((data) => JSON.parse(data)).filter((cmd) => cmd.template)]);
   }
 };
 

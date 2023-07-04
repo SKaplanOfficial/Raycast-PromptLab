@@ -3,7 +3,7 @@ import CommandListDetail from "./CommandListDetail";
 import RunCommandAction from "./actions/RunCommandAction";
 import ShareCommandAction from "./actions/ShareCommandAction";
 import { CopyCommandActionsSection } from "./actions/CopyCommandActions";
-import { CommandControlsActionsSection } from "./actions/CommandControlActions";
+import { CommandControlsActionsSection, CreateFromTemplateMenu } from "./actions/CommandControlActions";
 import { AdvancedActionSubmenu } from "../actions/AdvancedActionSubmenu";
 import { Command } from "../../utils/types";
 import { defaultAdvancedSettings } from "../../data/default-advanced-settings";
@@ -13,10 +13,12 @@ export default function CommandListItem(props: {
   command: Command;
   previousCommand: string;
   commands: Command[];
+  templates: Command[];
   setCommands: React.Dispatch<React.SetStateAction<Command[]>>;
+  setTemplates: React.Dispatch<React.SetStateAction<Command[]>>;
   settings: typeof defaultAdvancedSettings;
 }) {
-  const { command, previousCommand, commands, setCommands, settings } = props;
+  const { command, previousCommand, commands, setCommands, setTemplates, templates, settings } = props;
   return (
     <List.Item
       title={command.name}
@@ -43,7 +45,13 @@ export default function CommandListItem(props: {
       actions={
         <ActionPanel>
           <RunCommandAction command={command} setCommands={setCommands} settings={settings} />
-          <NewCommandAction setCommands={setCommands} />
+          <NewCommandAction setCommands={setCommands} setTemplates={setTemplates} />
+          <CreateFromTemplateMenu
+            commands={commands}
+            setCommands={setCommands}
+            templates={templates}
+            setTemplates={setTemplates}
+          />
           <ShareCommandAction command={command} settings={settings} />
 
           <ActionPanel.Submenu
@@ -58,6 +66,7 @@ export default function CommandListItem(props: {
             command={command}
             commands={commands}
             setCommands={setCommands}
+            setTemplates={setTemplates}
             settings={settings}
           />
 

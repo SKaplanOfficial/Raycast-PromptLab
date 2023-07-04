@@ -28,11 +28,13 @@ interface CommandPreferences {
 
 export default function SuggestedCommandsSection(props: {
   commands?: Command[];
+  templates?: Command[];
   previousCommand?: string;
   setCommands?: React.Dispatch<React.SetStateAction<Command[]>>;
+  setTemplates?: React.Dispatch<React.SetStateAction<Command[]>>;
   settings?: typeof defaultAdvancedSettings;
 }) {
-  const { commands, previousCommand, setCommands, settings } = props;
+  const { commands, templates, previousCommand, setCommands, setTemplates, settings } = props;
   const [frequentlyUsedCommands, setFrequentlyUsedCommands] = useCachedState<Command[]>(
     "--frequently-used-commands",
     []
@@ -105,6 +107,8 @@ export default function SuggestedCommandsSection(props: {
             setCommands={setCommands || (() => null)}
             settings={settings || defaultAdvancedSettings}
             key={cmd.id}
+            templates={templates || []}
+            setTemplates={setTemplates || (() => null)}
           />
         )
       )

@@ -8,48 +8,6 @@ export type ExtensionPreferences = {
   pdfOCR: boolean;
 
   /**
-   * The endpoint for a custom model.
-   * @deprecated Create a model using 'Manage Models' instead.
-   */
-  modelEndpoint: string;
-
-  /**
-   * The API key for a custom model.
-   * @deprecated Create a model using 'Manage Models' instead.
-   */
-  authType: string;
-
-  /**
-   * The API key for a custom model.
-   * @deprecated Create a model using 'Manage Models' instead.
-   */
-  apiKey: string;
-
-  /**
-   * The API key for a custom model.
-   * @deprecated Create a model using 'Manage Models' instead.
-   */
-  inputSchema: string;
-
-  /**
-   * The JSON object key path to the output key for a custom model.
-   * @deprecated Create a model using 'Manage Models' instead.
-   */
-  outputKeyPath: string;
-
-  /**
-   * The timing of the output for a custom model, either 'async' or 'sync'.
-   * @deprecated Create a model using 'Manage Models' instead.
-   */
-  outputTiming: string;
-
-  /**
-   * The maximum length for input to models, based on the model's context window size.
-   * @deprecated Create a model using 'Manage Models' instead.
-   */
-  lengthLimit: string;
-
-  /**
    * The directory to save any exported files to.
    */
   exportLocation: string;
@@ -120,6 +78,7 @@ export type CommandOptions = {
   useRectangleDetection?: boolean;
   useBarcodeDetection?: boolean;
   useFaceDetection?: boolean;
+  useHorizonDetection?: boolean;
   outputKind?: string;
   actionScript?: string;
   showResponse?: boolean;
@@ -248,6 +207,11 @@ export type Command = {
   useFaceDetection?: boolean;
 
   /**
+   * Whether to include horizon detection information for selected images/videos in the data sent to the model.
+   */
+  useHorizonDetection?: boolean;
+
+  /**
    * The response view for the command.
    */
   outputKind?: string;
@@ -346,6 +310,11 @@ export type Command = {
    * Whether to show the command in PromptLab's menu bar extra.
    */
   showInMenuBar?: boolean;
+
+  /**
+   * Whether the command is a template (i.e. can only be used as a template for other commands, not directly run).
+   */
+  template?: boolean;
 };
 
 /**
@@ -374,6 +343,7 @@ export type StoreCommand = {
   useRectangleDetection?: string;
   useBarcodeDetection?: string;
   useFaceDetection?: string;
+  useHorizonDetection?: string;
   outputKind?: string;
   actionScript?: string;
   showResponse?: string;

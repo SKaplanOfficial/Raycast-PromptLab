@@ -36,6 +36,7 @@ import { useAdvancedSettings } from "../../hooks/useAdvancedSettings";
 import { isActionEnabled } from "../../utils/action-utils";
 import runModel from "../../utils/runModel";
 import * as Insights from "../../utils/insights";
+import { defaultAdvancedSettings } from "../../data/default-advanced-settings";
 
 interface CommandFormValues {
   name: string;
@@ -51,6 +52,7 @@ interface CommandFormValues {
   useRectangleDetection?: boolean;
   useBarcodeDetection?: boolean;
   useFaceDetection?: boolean;
+  useHorizonDetection?: boolean;
   outputKind?: string;
   actionScript?: string;
   showResponse?: boolean;
@@ -68,14 +70,16 @@ interface CommandFormValues {
   useSpeech?: boolean;
   speakResponse?: boolean;
   showInMenuBar?: boolean;
+  template?: boolean;
 }
 
 export default function CommandForm(props: {
   oldData?: Command;
   setCommands?: React.Dispatch<React.SetStateAction<Command[]>>;
+  setTemplates?: React.Dispatch<React.SetStateAction<Command[]>>;
   duplicate?: boolean;
 }) {
-  const { oldData, setCommands, duplicate } = props;
+  const { oldData, setCommands, setTemplates, duplicate } = props;
   const { advancedSettings } = useAdvancedSettings();
   const [promptInfo, setPromptInfo] = useState<string>("");
   const [scriptInfo, setScriptInfo] = useState<string>("");
@@ -123,37 +127,8 @@ export default function CommandForm(props: {
       }
     } catch (error) {
       console.error(error);
+      return defaultAdvancedSettings.commandDefaults;
     }
-
-    return {
-      iconColor: Color.Red,
-      minNumFiles: "0",
-      useMetadata: false,
-      acceptedFileExtensions: "",
-      useAudioDetails: false,
-      useSoundClassification: true,
-      useSubjectClassification: true,
-      useRectangleDetection: false,
-      useBarcodeDetection: true,
-      useFaceDetection: false,
-      outputKind: "detail",
-      actionScript: "",
-      showResponse: true,
-      description: "",
-      useSaliencyAnalysis: true,
-      author: "",
-      website: "",
-      version: "1.0.0",
-      requirements: "",
-      scriptKind: "applescript",
-      categories: ["Other"],
-      temperature: "1.0",
-      favorited: false,
-      model: "",
-      useSpeech: false,
-      speakResponse: false,
-      showInMenuBar: true,
-    };
   };
 
   useEffect(() => {
@@ -352,7 +327,7 @@ export default function CommandForm(props: {
       if (minNumFiles == "0") {
         if (
           values.prompt.match(
-            /{{(imageText|imageFaces|imageAnimals|imageSubjects|imageSaliency|imageBarcodes|imageRectangles|pdfRawText|pdfOCRText|contents)}}/g
+            /{{(imageText|imageFaces|imageAnimals|imageHorizon|imageSubjects|imageSaliency|imageBarcodes|imageRectangles|pdfRawText|pdfOCRText|contents)}}/g
           ) != null
         ) {
           minNumFiles = "1";
@@ -379,6 +354,7 @@ export default function CommandForm(props: {
         showResponse: values.showResponse,
         description: values.description,
         useSaliencyAnalysis: values.useSaliencyAnalysis,
+        useHorizonDetection: values.useHorizonDetection,
         author: values.author,
         website: values.website,
         version: values.version,
@@ -392,6 +368,7 @@ export default function CommandForm(props: {
         speakResponse: values.speakResponse,
         showInMenuBar: values.showInMenuBar,
         favorited: values.favorited,
+        template: values.template,
       };
 
       if (setupFields.length > 0) {
@@ -475,11 +452,15 @@ export default function CommandForm(props: {
         commandObj.setupConfig = commandConfig;
       }
 
-      await updateCommand(oldData, commandObj, setCommands);
-      if (oldData && !duplicate) {
-        await showToast({ title: "Command Saved" });
+      await updateCommand(oldData, commandObj, setCommands, setTemplates);
+      if (values.template) {
+        await showToast({ title: "Template Saved" });
       } else {
-        await showToast({ title: "Added PromptLab Command" });
+        if (oldData && !duplicate) {
+          await showToast({ title: "Command Saved" });
+        } else {
+          await showToast({ title: "Added PromptLab Command" });
+        }
       }
       pop();
     },
@@ -510,7 +491,16 @@ export default function CommandForm(props: {
         <ActionPanel>
           <Action.SubmitForm
             title={oldData && !duplicate ? "Save Command" : "Create Command"}
+            icon={Icon.PlusSquare}
             onSubmit={handleSubmit}
+          />
+          <Action.SubmitForm
+            title="Save As Template"
+            onSubmit={async (values) => {
+              values.template = true;
+              await handleSubmit(values as CommandFormValues);
+            }}
+            icon={Icon.Center}
           />
           <OpenPlaceholdersGuideAction settings={advancedSettings} />
           <EditCustomPlaceholdersAction settings={advancedSettings} />
@@ -987,6 +977,12 @@ export default function CommandForm(props: {
         label="Use Face Detection"
         {...itemProps.useFaceDetection}
         info="If checked, the number of faces in image files will be included in the text provided to the AI."
+      />
+
+      <Form.Checkbox
+        label="Use Horizon Detection"
+        {...itemProps.useHorizonDetection}
+        info="If checked, the angle of the horizon in image files will be included in the text provided to the AI."
       />
 
       <Form.Checkbox

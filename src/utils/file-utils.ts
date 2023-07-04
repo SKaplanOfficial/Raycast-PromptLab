@@ -3,13 +3,12 @@ import * as fs from "fs";
 import { defaultCommands } from "../data/default-commands";
 import { CommandOptions, Extension, ExtensionCommand } from "./types";
 import { defaultModels } from "../data/default-models";
-import { randomUUID } from "crypto";
 import path from "path";
 import { ADVANCED_SETTINGS_FILENAME, CUSTOM_PLACEHOLDERS_FILENAME } from "./constants";
 import { defaultCustomPlaceholders } from "../data/default-custom-placeholders";
 import { ScriptRunner } from "./scripts";
 import exifr from "exifr";
-import { filterString } from "./context-utils";
+import { filterString } from "./context";
 import { defaultAdvancedSettings } from "../data/default-advanced-settings";
 
 /**
@@ -93,6 +92,7 @@ export const getImageDetails = async (
   imageSubjects: string;
   imageFaces: string;
   imageEXIFData: string;
+  imageHorizon: string;
 }> => {
   const imageDetails = await ScriptRunner.ImageFeatureExtractor(
     filePath,
@@ -100,7 +100,8 @@ export const getImageDetails = async (
     options.useBarcodeDetection || false,
     options.useFaceDetection || false,
     options.useRectangleDetection || false,
-    options.useSaliencyAnalysis || false
+    options.useSaliencyAnalysis || false,
+    options.useHorizonDetection || false,
   );
   const imageVisionInstructions = filterString(imageDetails.output);
   const exifData =

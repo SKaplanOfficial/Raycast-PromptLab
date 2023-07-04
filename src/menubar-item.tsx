@@ -1,7 +1,7 @@
 import {
+  Color,
   Icon,
   LaunchType,
-  LocalStorage,
   MenuBarExtra,
   getPreferenceValues,
   launchCommand,
@@ -10,9 +10,10 @@ import {
 import { useEffect } from "react";
 import { Command } from "./utils/types";
 import { useCachedState } from "@raycast/utils";
-import { installDefaults } from "./utils/file-utils";
 import SuggestedCommandsSection from "./components/Commands/SuggestedCommandsSection";
 import * as Insights from "./utils/insights";
+import { useCommands } from "./hooks/useCommands";
+import { commandCategories } from "./utils/constants";
 
 interface CommandPreferences {
   showNewChatShortcut: boolean;
@@ -27,26 +28,19 @@ interface CommandPreferences {
 }
 
 export default function PromptLabMenubar() {
+  const { commands: allCommands } = useCommands();
   const [commands, setCommands] = useCachedState<Command[]>("--menubar-commands", []);
 
   const preferences = getPreferenceValues<CommandPreferences>();
 
   useEffect(() => {
-    /* Add default commands if necessary, then get all commands */
-    Promise.resolve(installDefaults()).then(() => {
-      Promise.resolve(LocalStorage.allItems()).then((commandData) => {
-        const allCommands = Object.values(commandData)
-          .filter(
-            (cmd, index) =>
-              !Object.keys(commandData)[index].startsWith("--") && !Object.keys(commandData)[index].startsWith("id-")
-          )
-          .map((cmd) => JSON.parse(cmd) as Command)
-          .sort((a, b) => a.name.localeCompare(b.name));
-        const menubarCommands = allCommands.filter((cmd) => cmd.showInMenuBar);
-        setCommands(menubarCommands);
-      });
-    });
-  }, []);
+    if (allCommands.length > 0) {
+      return;
+    }
+
+    const menubarCommands = allCommands.filter((cmd) => cmd.showInMenuBar).sort((a, b) => a.name.localeCompare(b.name));
+    setCommands(menubarCommands);
+  }, [allCommands]);
 
   const commandsToItems = (commands: Command[]) =>
     commands.map((cmd) => (
@@ -78,9 +72,7 @@ export default function PromptLabMenubar() {
     ));
 
   const menuItems = commandsToItems(commands.filter((cmd) => (preferences.displayFavorites ? !cmd.favorited : true)));
-
   const favorites = preferences.displayFavorites ? commandsToItems(commands?.filter((cmd) => cmd.favorited)) : [];
-
   const hasOtherCategory = commands?.some(
     (cmd) =>
       !cmd.favorited && (!cmd.categories?.length || (cmd.categories?.length == 1 && cmd.categories[0] == "Other"))
@@ -101,37 +93,20 @@ export default function PromptLabMenubar() {
           },
           hasOtherCategory ? (["Other"] as string[]) : []
         )
-        .map((category) => (
-          <MenuBarExtra.Submenu title={category} icon={preferences.displayIcons ? Icon.Tag : undefined} key={category}>
-            {commands
-              .filter(
+        .map((category) => {
+          const cmdCategory = commandCategories.find((cmdCategory) => cmdCategory.name == category) || commandCategories[0]
+
+          return (
+          <MenuBarExtra.Submenu title={category} icon={preferences.displayIcons ? { source: cmdCategory.icon, tintColor: preferences.displayColors ? cmdCategory.color : undefined } : undefined} key={category}>
+            {commandsToItems(
+              commands.filter(
                 (cmd) =>
                   !cmd.favorited &&
                   (cmd.categories?.includes(category) || (category == "Other" && !cmd.categories?.length))
               )
-              .map((cmd) => (
-                <MenuBarExtra.Item
-                  title={cmd.name}
-                  icon={
-                    preferences.displayIcons
-                      ? { source: cmd.icon, tintColor: preferences.displayColors ? cmd.iconColor : undefined }
-                      : undefined
-                  }
-                  tooltip={cmd.description}
-                  key={cmd.name}
-                  onAction={async (event) => {
-                    if (event.type == "left-click") {
-                      await launchCommand({
-                        name: "search-commands",
-                        type: LaunchType.UserInitiated,
-                        arguments: { commandName: cmd.name },
-                      });
-                    }
-                  }}
-                />
-              ))}
+            )}
           </MenuBarExtra.Submenu>
-        ))
+        )})
     : [];
 
   return (

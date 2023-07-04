@@ -5,7 +5,7 @@ import { DebugStyle, logDebug } from "./dev-utils";
 import { CalendarDuration, EventType, ReturnType } from "./types";
 import { environment } from "@raycast/api";
 import path from "path";
-import { filterString } from "./context-utils";
+import { filterString } from "./context";
 
 /**
  * Executes an OSA script using the `osascript` command.
@@ -274,6 +274,7 @@ export const ScriptRunner = {
     useFaceDetection: boolean,
     useRectangleDetection: boolean,
     useSaliencyAnalysis: boolean,
+    useHorizonDetection: boolean,
     confidenceThreshold = 0.7
   ) =>
     runScript(
@@ -286,6 +287,7 @@ export const ScriptRunner = {
       useFaceDetection,
       useRectangleDetection,
       useSaliencyAnalysis,
+      useHorizonDetection,
       confidenceThreshold
     ) as Promise<{
       output: string;
@@ -296,6 +298,7 @@ export const ScriptRunner = {
       imageRectangles: string;
       imageSubjects: string;
       imageFaces: string;
+      imageHorizon: string;
     }>,
 
   /**

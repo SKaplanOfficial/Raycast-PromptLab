@@ -4,7 +4,7 @@ import { ExtensionPreferences, Model, JSONObject } from "../utils/types";
 import { useEffect, useRef, useState } from "react";
 import fetch, { Response } from "node-fetch";
 import { useModels } from "./useModels";
-import { filterString } from "../utils/context-utils";
+import { filterString } from "../utils/context";
 
 /**
  * Gets the text response from the model endpoint.
@@ -41,6 +41,7 @@ export default function useModel(
     "raycast 4",
     "raycast ai 4",
   ];
+  
   const fallbackModel: Model = {
     endpoint: "Raycast AI",
     authType: "",
@@ -59,31 +60,10 @@ export default function useModel(
     notes: "",
     isDefault: false,
   };
-  const preferenceModel: Model = {
-    endpoint: preferences.modelEndpoint,
-    authType: preferences.authType,
-    apiKey: preferences.apiKey,
-    inputSchema: preferences.inputSchema,
-    outputKeyPath: preferences.outputKeyPath,
-    outputTiming: preferences.outputTiming,
-    lengthLimit: preferences.lengthLimit,
-    temperature: "1.0",
-    name: "",
-    description: "",
-    favorited: false,
-    id: "",
-    icon: "",
-    iconColor: "",
-    notes: "",
-    isDefault: false,
-  };
+
   const defaultModel = models.models.find((model) => model.isDefault);
-  const targetModel =
-    modelOverride || defaultModel || (preferenceModel.endpoint == "" ? fallbackModel : preferenceModel);
-  const raycastModel =
-    validRaycastAIReps.includes(targetModel.endpoint.toLowerCase()) ||
-    targetModel.endpoint == "" ||
-    (models.isLoading && !modelOverride && preferenceModel.endpoint == "");
+  const targetModel = modelOverride || defaultModel || fallbackModel;
+  const raycastModel = validRaycastAIReps.includes(targetModel.endpoint.toLowerCase()) || targetModel.endpoint == "";
 
   const temp = modelOverride
     ? parseFloat(targetModel.temperature)

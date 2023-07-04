@@ -13,7 +13,7 @@ import InstallCommandAction from "./components/Commands/actions/InstallCommandAc
 import { useAdvancedSettings } from "./hooks/useAdvancedSettings";
 
 export default function Discover() {
-  const { commands: myCommands, setCommands: setMyCommands, isLoading: loadingMyCommands } = useCommands();
+  const { commands: myCommands, setCommands: setMyCommands, setTemplates, isLoading: loadingMyCommands } = useCommands();
   const [availableCommands, setAvailableCommands] = useCachedState<StoreCommand[]>("--available-commands", []);
   const [targetCategory, setTargetCategory] = useState<string>("All");
   const { advancedSettings } = useAdvancedSettings();
@@ -58,6 +58,7 @@ export default function Discover() {
               commands={myCommands}
               setCommands={setMyCommands}
               settings={advancedSettings}
+              setTemplates={setTemplates}
             />
           </ActionPanel>
         }
