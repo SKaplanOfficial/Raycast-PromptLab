@@ -10,6 +10,8 @@ import { ScriptRunner } from "./scripts";
 import exifr from "exifr";
 import { filterString } from "./context";
 import { defaultAdvancedSettings } from "../data/default-advanced-settings";
+import * as os from "os";
+import { exec } from "child_process";
 
 /**
  * Installs the default prompts if they haven't been installed yet and the user hasn't input their own command set.
@@ -101,7 +103,7 @@ export const getImageDetails = async (
     options.useFaceDetection || false,
     options.useRectangleDetection || false,
     options.useSaliencyAnalysis || false,
-    options.useHorizonDetection || false,
+    options.useHorizonDetection || false
   );
   const imageVisionInstructions = filterString(imageDetails.output);
   const exifData =
@@ -219,4 +221,36 @@ export const getExtensions = async (): Promise<Extension[]> => {
       resolve(extensions);
     });
   });
+};
+
+/**
+ * Unzips a compressed file to a temporary directory.
+ * @param zipPath The path of the compressed file.
+ * @returns The path of the temporary directory.
+ */
+export const unzipToTemp = async (zipPath: string) => {
+  const dirPath = path.join(os.tmpdir(), `${path.basename(zipPath, ".zip")}`);
+  try {
+    // Unzip the file
+    await new Promise((resolve) => {
+      exec(`unzip "${zipPath}" -d "${dirPath}"`, (err) => {
+        if (err) console.error(err);
+      }).on("exit", async () => {
+        resolve(true);
+      });
+    });
+
+    // Remove the zip file
+    await new Promise((resolve) => {
+      exec(`rm "${zipPath}"`, (err) => {
+        if (err) console.error(err);
+      }).on("exit", async () => {
+        resolve(true);
+      });
+    });
+    return dirPath;
+  } catch (e) {
+    console.error(e);
+    return null;
+  }
 };

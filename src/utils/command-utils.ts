@@ -2,6 +2,7 @@ import { runAppleScript } from "run-applescript";
 import { objcImports, replaceAllHandler, rselectHandler, splitHandler, trimHandler } from "./scripts";
 import { exec } from "child_process";
 import {
+  Chat,
   Command,
   CommandOptions,
   ExtensionPreferences,
@@ -101,10 +102,18 @@ export const runActionScript = async (
  * @param command The command to get the JSON representation of.
  * @returns The JSON string representation of the command.
  */
-export const getCommandJSON = (command: Command | StoreCommand) => {
-  const cmdObj: { [key: string]: Command | StoreCommand } = {};
-  cmdObj[command.name] = command;
-  return JSON.stringify(cmdObj).replaceAll(/\\([^"])/g, "\\\\$1");
+export const getObjectJSON = (obj: Command | StoreCommand | Model | SavedResponse | Chat) => {
+  const entry: { [key: string]: Command | StoreCommand | Model | SavedResponse | Chat } = {};
+  if ("id" in obj && obj.id.startsWith("MO")) {
+    entry[`--model-${obj.id}`] = obj;
+  } else if ("id" in obj && obj.id.startsWith("SR")) {
+    entry[`--saved-response-${obj.id}`] = obj;
+  } else if ("id" in obj && obj.id.startsWith("CH")) {
+    entry[`--chat-${obj.id}`] = obj;
+  } else {
+    entry[obj.name] = obj;
+  }
+  return JSON.stringify(entry);
 };
 
 const camelize = (str: string) => {

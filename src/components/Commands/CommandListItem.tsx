@@ -1,13 +1,8 @@
-import { ActionPanel, Color, Icon, List } from "@raycast/api";
+import { Color, Icon, List } from "@raycast/api";
 import CommandListDetail from "./CommandListDetail";
-import RunCommandAction from "./actions/RunCommandAction";
-import ShareCommandAction from "./actions/ShareCommandAction";
-import { CopyCommandActionsSection } from "./actions/CopyCommandActions";
-import { CommandControlsActionsSection, CreateFromTemplateMenu } from "./actions/CommandControlActions";
-import { AdvancedActionSubmenu } from "../actions/AdvancedActionSubmenu";
 import { Command } from "../../utils/types";
 import { defaultAdvancedSettings } from "../../data/default-advanced-settings";
-import NewCommandAction from "./actions/NewCommandAction";
+import CommandActionPanel from "./actions/CommandActionPanel";
 
 export default function CommandListItem(props: {
   command: Command;
@@ -43,35 +38,14 @@ export default function CommandListItem(props: {
       ]}
       detail={<CommandListDetail command={command} />}
       actions={
-        <ActionPanel>
-          <RunCommandAction command={command} setCommands={setCommands} settings={settings} />
-          <NewCommandAction setCommands={setCommands} setTemplates={setTemplates} />
-          <CreateFromTemplateMenu
-            commands={commands}
-            setCommands={setCommands}
-            templates={templates}
-            setTemplates={setTemplates}
-          />
-          <ShareCommandAction command={command} settings={settings} />
-
-          <ActionPanel.Submenu
-            title="Copy Command Data..."
-            icon={Icon.Clipboard}
-            shortcut={{ modifiers: ["cmd", "shift"], key: "c" }}
-          >
-            <CopyCommandActionsSection command={command} showTitle={false} settings={settings} />
-          </ActionPanel.Submenu>
-
-          <CommandControlsActionsSection
-            command={command}
-            commands={commands}
-            setCommands={setCommands}
-            setTemplates={setTemplates}
-            settings={settings}
-          />
-
-          <AdvancedActionSubmenu settings={settings} />
-        </ActionPanel>
+        <CommandActionPanel
+          command={command}
+          commands={commands}
+          setCommands={setCommands}
+          templates={templates}
+          setTemplates={setTemplates}
+          settings={settings}
+        />
       }
     />
   );

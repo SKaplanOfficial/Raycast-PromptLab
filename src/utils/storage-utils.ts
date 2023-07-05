@@ -29,13 +29,21 @@ export const getStorage = async (key: string) => {
  * @returns The advanced settings object.
  */
 export const loadAdvancedSettingsSync = () => {
-  try {
-    const advancedSettingsValues = JSON.parse(
-      fs.readFileSync(path.join(environment.supportPath, ADVANCED_SETTINGS_FILENAME), "utf-8")
-    ) as typeof defaultAdvancedSettings;
-    return advancedSettingsValues;
-  } catch (error) {
-    console.error(error);
+  const advancedSettingsPath = path.join(environment.supportPath, ADVANCED_SETTINGS_FILENAME);
+  if (!fs.existsSync(advancedSettingsPath)) {
+    try {
+      fs.writeFileSync(advancedSettingsPath, JSON.stringify(defaultAdvancedSettings, null, 2));
+    } catch (error) {
+      console.log(error);
+      return defaultAdvancedSettings;
+    }
   }
-  return defaultAdvancedSettings;
+
+  try {
+    const currentSettings = JSON.parse(fs.readFileSync(advancedSettingsPath, "utf-8"));
+    return currentSettings as typeof defaultAdvancedSettings;
+  } catch (error) {
+    console.log(error);
+    return defaultAdvancedSettings;
+  }
 };

@@ -992,6 +992,38 @@ const placeholders: PlaceholderList = {
     hintRepresentation: "{{installedApps}}",
   },
 
+  "{{screenContent}}": {
+    name: "screenContent",
+    apply: async (str: string, context?: { [key: string]: string }) => {
+      const currentApp = await Context.getMenubarOwningApplication();
+      const content = await ScriptRunner.ScreenCapture()
+      const overview = Context.filterString(`<Current application: ${currentApp}>\n${content.replaceAll('{{screenContent}}', '')}`, 3000)
+      return { result: overview, screenContent: overview };
+    },
+    result_keys: ["screenContent"],
+    constant: true,
+    fn: async () => (await Placeholders.allPlaceholders["{{screenContent}}"].apply("{{screenContent}}")).result,
+    example: "Based on the following screenshot info, what am I looking at? {{screenContent}}",
+    description: "Replaced with image vision information extracted from a screen capture of your entire display.",
+    hintRepresentation: "{{screenContent}}",
+  },
+
+  "{{windowContent}}": {
+    name: "windowContent",
+    apply: async (str: string, context?: { [key: string]: string }) => {
+      const currentApp = await Context.getMenubarOwningApplication();
+      const content = await ScriptRunner.ScreenCapture(true)
+      const overview = Context.filterString(`<Current application: ${currentApp}>\n${content.replaceAll('{{windowContent}}', '')}`, 3000)
+      return { result: overview, windowContent: overview };
+    },
+    result_keys: ["windowContent"],
+    constant: true,
+    fn: async () => (await Placeholders.allPlaceholders["{{windowContent}}"].apply("{{windowContent}}")).result,
+    example: "Based on the following screenshot info, what am I looking at? {{windowContent}}",
+    description: "Replaced with image vision information extracted from a screen capture of the active window.",
+    hintRepresentation: "{{windowContent}}",
+  },
+
   "{{commands}}": {
     name: "commands",
     apply: async (str: string, context?: { [key: string]: string }) => {

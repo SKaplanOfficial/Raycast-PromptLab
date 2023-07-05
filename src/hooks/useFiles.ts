@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { LocalStorage, environment, getPreferenceValues } from "@raycast/api";
 import path from "path";
 import * as fs from "fs";
+import * as os from "os";
 import {
   audioFileExtensions,
   imageFileExtensions,
@@ -13,12 +14,16 @@ import {
   videoFileExtensions,
 } from "../data/file-extensions";
 import { ScriptRunner, execScript } from "../utils/scripts";
-import { getAudioDetails, getImageDetails } from "../utils/file-utils";
+import { getAudioDetails, getImageDetails, unzipToTemp } from "../utils/file-utils";
 import { filterString } from "../utils/context";
 import mammoth from "mammoth";
 import pptxTextParser from "pptx-text-parser";
 import xlsx from "xlsx";
 import { useModels } from "./useModels";
+import { useAdvancedSettings } from "./useAdvancedSettings";
+import { defaultAdvancedSettings } from "../data/default-advanced-settings";
+import { exec, execSync } from "child_process";
+import { loadAdvancedSettingsSync } from "../utils/storage-utils";
 
 const isTrueDirectory = (filepath: string) => {
   try {
@@ -88,6 +93,7 @@ export async function getFileContent(filePath: string, options?: CommandOptions)
   if (!model) model = modelObjs.find((m) => m.isDefault) || modelObjs[0];
   const maxCharacters = model ? parseInt(model.lengthLimit) : 3000;
 
+  const settings = loadAdvancedSettingsSync();
   const currentData = { contents: `{File ${path.basename(filePath)}}:\n` };
 
   const filepath = filePath.toLowerCase();
@@ -96,11 +102,13 @@ export async function getFileContent(filePath: string, options?: CommandOptions)
   if (isTrueDirectory(filepath)) addDirectoryDetails(filepath, currentData);
   else if (isApp(filepath)) await addAppDetails(filepath, currentData, options_);
   else if (isPDF(filepath)) await addPDFDetails(filepath, currentData, options_);
-  else if (isVideoFile(filepath)) await addVideoDetails(filepath, currentData, options_);
+  else if (isVideoFile(filepath)) await addVideoDetails(filepath, currentData, options_, settings);
   else if (isAudioFile(filepath)) await addAudioDetails(filepath, currentData, options_);
   else if (isImageFile(filepath)) await addImageDetails(filepath, currentData, options_);
   else if (isOfficeFile(filepath)) await addOfficeDetails(filepath, currentData);
   else if (isSpreadsheet(filepath)) await addSpreadsheetDetails(filepath, currentData);
+  else if (filepath.endsWith(".pages")) await addPagesDetails(filepath, currentData);
+  else if (filepath.endsWith(".key")) await addKeynoteDetails(filepath, currentData, settings);
   else if (!isTextFile(filepath)) attemptAddRawText(filepath, currentData);
 
   if (options_.useMetadata) addMetadataDetails(filepath, currentData);
@@ -111,6 +119,7 @@ export async function getFileContent(filePath: string, options?: CommandOptions)
 export const useFiles = (options: CommandOptions) => {
   const [selectedFiles, setSelectedFiles] = useState<{ paths: string[]; csv: string }>();
   const [fileContents, setFileContents] = useState<{ [key: string]: string; contents: string }>();
+  const { advancedSettings, revalidateAdvancedSettings } = useAdvancedSettings();
   const { models } = useModels();
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<number>();
@@ -152,6 +161,8 @@ export const useFiles = (options: CommandOptions) => {
       return;
     }
 
+    await revalidateAdvancedSettings();
+
     let model = options.model ? models.find((m) => m.name == options.model) : undefined;
     if (!model) model = models.find((m) => m.isDefault) || models[0];
     const maxCharacters = model ? parseInt(model.lengthLimit) : 3000;
@@ -167,6 +178,10 @@ export const useFiles = (options: CommandOptions) => {
       try {
         if (
           fs.lstatSync(filepath).size > 10000000 &&
+          !filepath.endsWith(".key") &&
+          !filepath.endsWith(".pages") &&
+          !officeFileExtensions.includes(path.extname(filepath).slice(1).toLowerCase()) &&
+          !spreadsheetFileExtensions.includes(path.extname(filepath).slice(1).toLowerCase()) &&
           !videoFileExtensions.includes(path.extname(filepath).slice(1).toLowerCase())
         ) {
           addMetadataDetails(filepath, currentData);
@@ -180,11 +195,13 @@ export const useFiles = (options: CommandOptions) => {
         if (isTrueDirectory(filepath)) addDirectoryDetails(filepath, currentData);
         else if (isApp(filepath)) await addAppDetails(filepath, currentData, options);
         else if (isPDF(filepath)) await addPDFDetails(filepath, currentData, options);
-        else if (isVideoFile(filepath)) await addVideoDetails(filepath, currentData, options);
+        else if (isVideoFile(filepath)) await addVideoDetails(filepath, currentData, options, advancedSettings);
         else if (isAudioFile(filepath)) await addAudioDetails(filepath, currentData, options);
         else if (isImageFile(filepath)) await addImageDetails(filepath, currentData, options);
         else if (isOfficeFile(filepath)) await addOfficeDetails(filepath, currentData);
         else if (isSpreadsheet(filepath)) await addSpreadsheetDetails(filepath, currentData);
+        else if (filepath.endsWith(".pages")) await addPagesDetails(filepath, currentData);
+        else if (filepath.endsWith(".key")) await addKeynoteDetails(filepath, currentData, advancedSettings);
         else if (!isTextFile(filepath)) attemptAddRawText(filepath, currentData);
 
         if (options.useMetadata) addMetadataDetails(filepath, currentData);
@@ -220,9 +237,61 @@ const addDirectoryDetails = (filepath: string, currentData: { [key: string]: str
   currentData.contents += `This is a folder containing the following files: ${children.join(", ")}`;
 };
 
+const iWorkOptions = {
+  useBarcodeDetection: true,
+  useFaceDetection: true,
+  useHorizonDetection: true,
+  useSaliencyAnalysis: true,
+  useRectangleDetection: true,
+  useSubjectClassification: true,
+};
+
+const addPagesDetails = async (filepath: string, currentData: { [key: string]: string; contents: string }) => {
+  currentData.contents += `<This is a Pages document. Here are details about it.>`;
+  const zipPath = path.join(os.tmpdir(), `${path.basename(filepath, ".pages")}.zip`);
+  execSync(`cp "${filepath}" "${zipPath}"`);
+  const dirPath = await unzipToTemp(zipPath);
+  if (!dirPath) return;
+
+  const imageFile = path.join(dirPath, "preview.jpg");
+  await addImageDetails(imageFile, currentData, iWorkOptions);
+  exec(`rm -rf "${dirPath}"`, (err) => {
+    if (err) console.error(err);
+  });
+};
+
+const addKeynoteDetails = async (
+  filepath: string,
+  currentData: { [key: string]: string; contents: string },
+  settings: typeof defaultAdvancedSettings
+) => {
+  currentData.contents += `<This is a Keynote slideshow. Here are details about it.>`;
+  const zipPath = path.join(os.tmpdir(), `${path.basename(filepath, ".key")}.zip`);
+  execSync(`cp "${filepath}" "${zipPath}"`);
+  const dirPath = await unzipToTemp(zipPath);
+  if (!dirPath) return;
+
+  const dataDir = path.join(dirPath, "Data");
+  if (settings.fileAnalysisSettings.singlePreviewForKeynote) {
+    const imageFile = path.join(dirPath, "preview.jpg");
+    await addImageDetails(imageFile, currentData, iWorkOptions);
+  } else {
+    const filenames = fs.readdirSync(dataDir);
+    for (const filename of filenames) {
+      if (filename.startsWith("st-")) {
+        await addImageDetails(path.join(dataDir, filename), currentData, iWorkOptions);
+      }
+    }
+  }
+
+  exec(`rm -rf "${dirPath}"`, (err) => {
+    if (err) console.error(err);
+  });
+};
+
 const addSpreadsheetDetails = async (filepath: string, currentData: { [key: string]: string; contents: string }) => {
   const text = Object.values(xlsx.readFile(filepath).Sheets)
-    .map((sheet) => xlsx.utils.sheet_to_txt(sheet))
+    .map((sheet) => xlsx.utils.sheet_to_csv(sheet, { FS: ", " }))
     .join("\n\n");
   currentData.contents += text;
 };
@@ -285,7 +354,8 @@ const addPDFDetails = async (
 const addVideoDetails = async (
   filepath: string,
   currentData: { [key: string]: string; contents: string },
-  options: CommandOptions
+  options: CommandOptions,
+  settings: typeof defaultAdvancedSettings
 ) => {
   const videoFeatureExtractor = path.resolve(environment.assetsPath, "scripts", "VideoFeatureExtractor.scpt");
   const videoDetails = await execScript(
@@ -297,6 +367,7 @@ const addVideoDetails = async (
       options.useFaceDetection || false,
       options.useRectangleDetection || false,
       options.useHorizonDetection || false,
+      settings.fileAnalysisSettings.videoSampleCount,
     ],
     "JavaScript"
   ).data;

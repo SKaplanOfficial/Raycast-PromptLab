@@ -41,7 +41,7 @@ export default function useModel(
     "raycast 4",
     "raycast ai 4",
   ];
-  
+
   const fallbackModel: Model = {
     endpoint: "Raycast AI",
     authType: "",

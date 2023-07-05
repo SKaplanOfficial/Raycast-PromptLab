@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { filterString, getTextOfWebpage } from "../../utils/context";
 import runModel from "../../utils/runModel";
 import { getFileContent } from "../../hooks/useFiles";
-import { AdvancedActionSubmenu } from "../actions/AdvancedActionSubmenu";
+import AdvancedActionSubmenu from "../actions/AdvancedActionSubmenu";
 import { defaultAdvancedSettings } from "../../data/default-advanced-settings";
 import { calculateStats, updateChat } from "../../utils/chat-utils";
 

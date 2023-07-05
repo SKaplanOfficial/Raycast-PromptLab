@@ -1,5 +1,10 @@
 # PromptLab DevLog - A More Detailed ChangeLog
 
+### 2023-07-04
+
+- Added support for parsing Pages and Keynote documents.
+- Added `{{screenContent}}` and `{{windowContent}}` placeholders for getting image vision data for the user's entire screen or the active window, respectively.
+
 ### 2023-07-03
 
 - Added command templates

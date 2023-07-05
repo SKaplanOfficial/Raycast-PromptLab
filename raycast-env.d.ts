@@ -66,10 +66,16 @@ declare namespace Preferences {
   "showNewChatShortcut": boolean,
   /**  - Whether to show the 'All Commands' shortcut in the menu. */
   "showAllCommandsShortcut": boolean,
+  /**  - Whether to show the 'Saved Responses' shortcut in the menu. */
+  "showSavedResponsesShortcut": boolean,
   /**  - Whether to show the 'PromptLab Store' shortcut in the menu. */
   "showPromptLabStoreShortcut": boolean,
   /**  - Whether to show the 'New Command' shortcut in the menu. */
   "showNewCommandShortcut": boolean,
+  /**  - Whether to show the 'Custom Placeholders' shortcut in the menu. */
+  "showCustomPlaceholdersShortcut": boolean,
+  /**  - Whether to show the 'Advanced Settings' shortcut in the menu. */
+  "showAdvancedSettingsShortcut": boolean,
   /** Display Settings - Whether to display icons next to the menu items. */
   "displayIcons": boolean,
   /**  - Whether to display colors in the menu item icons. */

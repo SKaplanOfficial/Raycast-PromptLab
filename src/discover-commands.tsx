@@ -1,4 +1,4 @@
-import { ActionPanel, Color, Icon, List } from "@raycast/api";
+import { Color, Icon, List } from "@raycast/api";
 import { useEffect, useState } from "react";
 import { StoreCommand } from "./utils/types";
 import { useCachedState, useFetch } from "@raycast/utils";
@@ -6,14 +6,16 @@ import { STORE_ENDPOINT, STORE_KEY } from "./utils/constants";
 import CategoryDropdown from "./components/CategoryDropdown";
 import { useCommands } from "./hooks/useCommands";
 import CommandListDetail from "./components/Commands/CommandListDetail";
-import RunCommandAction from "./components/Commands/actions/RunCommandAction";
-import { CopyCommandActionsSection } from "./components/Commands/actions/CopyCommandActions";
-import { CommandControlsActionsSection } from "./components/Commands/actions/CommandControlActions";
-import InstallCommandAction from "./components/Commands/actions/InstallCommandAction";
 import { useAdvancedSettings } from "./hooks/useAdvancedSettings";
+import CommandActionPanel from "./components/Commands/actions/CommandActionPanel";
 
 export default function Discover() {
-  const { commands: myCommands, setCommands: setMyCommands, setTemplates, isLoading: loadingMyCommands } = useCommands();
+  const {
+    commands: myCommands,
+    setCommands: setMyCommands,
+    setTemplates,
+    isLoading: loadingMyCommands,
+  } = useCommands();
   const [availableCommands, setAvailableCommands] = useCachedState<StoreCommand[]>("--available-commands", []);
   const [targetCategory, setTargetCategory] = useState<string>("All");
   const { advancedSettings } = useAdvancedSettings();
@@ -43,24 +45,14 @@ export default function Discover() {
         }
         detail={<CommandListDetail command={command} />}
         actions={
-          <ActionPanel>
-            <InstallCommandAction
-              command={command}
-              commands={myCommands}
-              setCommands={setMyCommands}
-              settings={advancedSettings}
-            />
-            {command.setupConfig?.length && command.setupConfig != "None" ? null : <RunCommandAction command={command} settings={advancedSettings} />}
-            <CopyCommandActionsSection command={command} settings={advancedSettings} />
-            <CommandControlsActionsSection
-              command={command}
-              availableCommands={availableCommands}
-              commands={myCommands}
-              setCommands={setMyCommands}
-              settings={advancedSettings}
-              setTemplates={setTemplates}
-            />
-          </ActionPanel>
+          <CommandActionPanel
+            command={command}
+            commands={myCommands}
+            setCommands={setMyCommands}
+            availableCommands={availableCommands}
+            setTemplates={setTemplates}
+            settings={advancedSettings}
+          />
         }
       />
     ));
@@ -72,7 +64,7 @@ export default function Discover() {
       searchBarPlaceholder="Search PromptLab store..."
       searchBarAccessory={<CategoryDropdown onSelection={setTargetCategory} />}
     >
-      <List.EmptyView title="No Custom PromptLab Commands" />
+      <List.EmptyView title="Loading..." icon={{ source: "no-view.png" }} />
       {targetCategory == "All" ? <List.Section title="Newest Commands">{listItems.slice(0, 5)}</List.Section> : null}
       <List.Section title="————————————————————">{listItems.slice(targetCategory == "All" ? 5 : 0)}</List.Section>
     </List>

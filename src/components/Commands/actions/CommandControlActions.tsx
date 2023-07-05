@@ -9,6 +9,7 @@ import DeleteAllAction from "../../actions/DeleteAllAction";
 import DeleteAction from "../../actions/DeleteAction";
 import ToggleFavoriteAction from "../../actions/ToggleFavoriteAction";
 import crypto from "crypto";
+import EditAction from "../../actions/EditAction";
 
 /**
  * Section for actions related to modifying commands (editing, deleting, etc.).
@@ -33,10 +34,10 @@ export const CommandControlsActionsSection = (props: {
       [
         "ToggleFavoriteAction",
         "CreateQuickLinkAction",
-        "EditCommandAction",
+        "EditAction",
         "CreateDerivativeAction",
-        "DeleteCommandAction",
-        "DeleteAllCommandsAction",
+        "DeleteAction",
+        "DeleteAllAction",
         "InstallAllCommandsAction",
       ],
       settings
@@ -59,7 +60,56 @@ export const CommandControlsActionsSection = (props: {
           />
 
           <CreateQuickLinkAction command={command} />
-          <EditCommandAction command={command} setCommands={setCommands} setTemplates={setTemplates} />
+
+          <EditAction
+            objectType="Command"
+            settings={settings}
+            target={
+              <CommandForm
+                oldData={{
+                  id: command.id,
+                  name: command.name,
+                  prompt: command.prompt,
+                  icon: command.icon,
+                  iconColor: command.iconColor,
+                  minNumFiles: command.minNumFiles?.toString(),
+                  acceptedFileExtensions: command.acceptedFileExtensions,
+                  useMetadata: command.useMetadata,
+                  useAudioDetails: command.useAudioDetails,
+                  useSoundClassification: command.useSoundClassification,
+                  useSubjectClassification: command.useSubjectClassification,
+                  useRectangleDetection: command.useRectangleDetection,
+                  useBarcodeDetection: command.useBarcodeDetection,
+                  useFaceDetection: command.useFaceDetection,
+                  useHorizonDetection: command.useHorizonDetection,
+                  outputKind: command.outputKind,
+                  actionScript: command.actionScript,
+                  showResponse: command.showResponse,
+                  description: command.description,
+                  useSaliencyAnalysis: command.useSaliencyAnalysis,
+                  author: command.author,
+                  website: command.website,
+                  version: command.version,
+                  requirements: command.requirements,
+                  scriptKind: command.scriptKind,
+                  categories: command.categories || [],
+                  temperature:
+                    command.temperature == undefined || command.temperature == "" ? "1.0" : command.temperature,
+                  favorited: command.favorited ? command.favorited : false,
+                  model: command.model,
+                  setupConfig: command.setupConfig,
+                  installedFromStore: command.installedFromStore,
+                  setupLocked: command.setupLocked,
+                  useSpeech: command.useSpeech,
+                  speakResponse: command.speakResponse,
+                  showInMenuBar: command.showInMenuBar,
+                }}
+                setCommands={setCommands}
+                setTemplates={setTemplates}
+              />
+            }
+          />
+
           <CreateDerivativeAction command={command} setCommands={setCommands} setTemplates={setTemplates} />
           <DeleteCommandAction command={command} commands={commands} setCommands={setCommands} settings={settings} />
           <DeleteAllCommandsAction commands={commands} setCommands={setCommands} settings={settings} />
@@ -95,70 +145,6 @@ export const CreateQuickLinkAction = (props: { command: Command }) => {
         name: command.name,
       }}
       shortcut={{ modifiers: ["cmd", "shift"], key: "q" }}
-    />
-  );
-};
-
-/**
- * Action to display the "Edit Command" form for a command.
- * @param props.command The command to edit
- * @param props.setCommands The function to update the list of installed commands
- * @returns An Action component
- */
-export const EditCommandAction = (props: {
-  command: Command;
-  setCommands: React.Dispatch<React.SetStateAction<Command[]>>;
-  setTemplates: React.Dispatch<React.SetStateAction<Command[]>>;
-}) => {
-  const { command, setCommands, setTemplates } = props;
-  return (
-    <Action.Push
-      title="Edit Command"
-      target={
-        <CommandForm
-          oldData={{
-            id: command.id,
-            name: command.name,
-            prompt: command.prompt,
-            icon: command.icon,
-            iconColor: command.iconColor,
-            minNumFiles: command.minNumFiles?.toString(),
-            acceptedFileExtensions: command.acceptedFileExtensions,
-            useMetadata: command.useMetadata,
-            useAudioDetails: command.useAudioDetails,
-            useSoundClassification: command.useSoundClassification,
-            useSubjectClassification: command.useSubjectClassification,
-            useRectangleDetection: command.useRectangleDetection,
-            useBarcodeDetection: command.useBarcodeDetection,
-            useFaceDetection: command.useFaceDetection,
-            useHorizonDetection: command.useHorizonDetection,
-            outputKind: command.outputKind,
-            actionScript: command.actionScript,
-            showResponse: command.showResponse,
-            description: command.description,
-            useSaliencyAnalysis: command.useSaliencyAnalysis,
-            author: command.author,
-            website: command.website,
-            version: command.version,
-            requirements: command.requirements,
-            scriptKind: command.scriptKind,
-            categories: command.categories || [],
-            temperature: command.temperature == undefined || command.temperature == "" ? "1.0" : command.temperature,
-            favorited: command.favorited ? command.favorited : false,
-            model: command.model,
-            setupConfig: command.setupConfig,
-            installedFromStore: command.installedFromStore,
-            setupLocked: command.setupLocked,
-            useSpeech: command.useSpeech,
-            speakResponse: command.speakResponse,
-            showInMenuBar: command.showInMenuBar,
-          }}
-          setCommands={setCommands}
-          setTemplates={setTemplates}
-        />
-      }
-      icon={Icon.Pencil}
-      shortcut={{ modifiers: ["cmd"], key: "e" }}
     />
   );
 };

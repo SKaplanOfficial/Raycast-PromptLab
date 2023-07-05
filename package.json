@@ -272,6 +272,14 @@
           "required": false
         },
         {
+          "name": "showSavedResponsesShortcut",
+          "label": "Saved Responses",
+          "type": "checkbox",
+          "default": true,
+          "description": "Whether to show the 'Saved Responses' shortcut in the menu.",
+          "required": false
+        },
+        {
           "name": "showPromptLabStoreShortcut",
           "label": "PromptLab Store",
           "type": "checkbox",
@@ -285,6 +293,22 @@
           "type": "checkbox",
           "default": true,
           "description": "Whether to show the 'New Command' shortcut in the menu.",
+          "required": false
+        },
+        {
+          "name": "showCustomPlaceholdersShortcut",
+          "label": "Custom Placeholders",
+          "type": "checkbox",
+          "default": false,
+          "description": "Whether to show the 'Custom Placeholders' shortcut in the menu.",
+          "required": false
+        },
+        {
+          "name": "showAdvancedSettingsShortcut",
+          "label": "Advanced Settings",
+          "type": "checkbox",
+          "default": false,
+          "description": "Whether to show the 'Advanced Settings' shortcut in the menu.",
           "required": false
         },
         {

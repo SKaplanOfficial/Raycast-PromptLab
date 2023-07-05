@@ -6,6 +6,7 @@ function run(argv) {
   const useFaceDetection = argv[5]
   const useRectangleDetection = argv[6]
   const useHorizonDetection = argv[7]
+  const sampleCount = argv[8]
 
   ObjC.import("objc");
   ObjC.import("CoreMedia");

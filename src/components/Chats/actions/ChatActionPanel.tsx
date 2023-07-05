@@ -6,9 +6,10 @@ import { defaultAdvancedSettings } from "../../../data/default-advanced-settings
 import ChatSettingsForm from "../ChatSettingsForm";
 import { CopyChatActionsSection } from "./CopyChatActions";
 import { anyActionsEnabled, isActionEnabled } from "../../../utils/action-utils";
-import { AdvancedActionSubmenu } from "../../actions/AdvancedActionSubmenu";
+import AdvancedActionSubmenu from "../../actions/AdvancedActionSubmenu";
 import ContextSettingsActionSection from "./ContextSettingsActionSection";
 import { Chat, ChatRef } from "../../../utils/types";
+import EditAction from "../../actions/EditAction";
 
 /**
  * Actions panel for the Chat command.
@@ -77,20 +78,14 @@ export const ChatActionPanel = (props: {
       />
 
       {anyActionsEnabled(
-        [
-          "ChatSettingsAction",
-          "ToggleChatFavoriteAction",
-          "ExportChatAction",
-          "DeleteChatAction",
-          "DeleteAllChatsAction",
-        ],
+        ["EditAction", "ToggleFavoriteAction", "ExportChatAction", "DeleteAction", "DeleteAllAction"],
         settings
       ) ? (
         <ActionPanel.Section title="Chat Actions">
-          {chat && isActionEnabled("ChatSettingsAction", settings) ? (
-            <Action.Push
-              title="Edit Chat Settings..."
-              icon={Icon.Gear}
+          {chat ? (
+            <EditAction
+              objectType="Chat Settings"
+              settings={settings}
               target={
                 <ChatSettingsForm
                   oldData={chat}
@@ -99,7 +94,6 @@ export const ChatActionPanel = (props: {
                   settings={settings}
                 />
               }
-              shortcut={{ modifiers: ["cmd", "shift"], key: "," }}
             />
           ) : null}
 

@@ -172,12 +172,18 @@ In addition to the above, you can use any supported file extension as a directiv
 | `{{monthReminders}}` | The names and due dates/times of all reminders scheduled over the next 30 days. |
 | `{{yearReminders}}` | The names and due dates/times of all reminders scheduled over the next 365 days. |
 
-##### UUIDs
+#### UUIDs
 
 | Placeholder | Replaced With |
 | ----- | ----- |
 | `{{usedUUIDs}}` | The list of UUIDs previously used by the `{{uuid}}` placeholder since Pins' LocalStorage was last reset. |
 | `{{uuid}}` or <br /> `{{UUID}}` | A unique UUID generated at runtime. |
+
+#### On-Screen Information
+
+| `{{focusedElement}}` or <br /> `{{activeElement}}` or <br /> `{{selectedElement}}` or <br /> `{{focusedElementText}}` or <br /> `{{activeElementText}}` or <br /> `{{selectedElementText}}` | The text content of the currently focused element in the active tab of a supported browser. Specify a browser using `{{focusedElement browser="..."}}`. |
+| `{{screenContent}}` | Image vision analysis for a screen capture of the entire screen, including all windows. Primarily extracts all visible text, but also detects objects. |
+| `{{windowContent}}` | Image vision analysis for a screen capture of the active window. Primarily extracts the visible text of the window, but also detects objects. |
 
 #### External Data
 
@@ -185,7 +191,6 @@ In addition to the above, you can use any supported file extension as a directiv
 | ----- | ----- |
 | `{{elementHTML:...}}` or <br /> `{{element:...}}` or <br /> `{{HTMLOfElement:...}}` | The raw HTML source of an HTML element in the active tab of a supported browser. The first matching element will be used. Specify a browser using `{{elementHTML browser="..."}}`. |
 | `{{elementText:...}}` or <br /> `{{textOfElement:...}}` | The text content of the specified HTML element, e.g. `{{elementText:#myElement}}`, `{{elementText:.myClass}}`, or `{{elementText:<body>}}`. The first matching element will be used. Specify a browser using `{{elementText browser="..."}}`. |
-| `{{focusedElement}}` or <br /> `{{activeElement}}` or <br /> `{{selectedElement}}` or <br /> `{{focusedElementText}}` or <br /> `{{activeElementText}}` or <br /> `{{selectedElementText}}` | The text content of the currently focused element in the active tab of a supported browser. Specify a browser using `{{focusedElement browser="..."}}`. |
 | `{{latitude}}` | The user's current latitude. Obtained using [geojs.io](https://get.geojs.io). |
 | `{{longitude}}` | The user's current longitude. Obtained using [geojs.io](https://get.geojs.io). |
 | `{{location}}` or <br /> `{{currentLocation}}` | The user's current location in the format `city, region, country`. Obtained using [geojs.io](https://get.geojs.io).

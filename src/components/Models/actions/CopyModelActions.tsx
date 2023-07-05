@@ -4,32 +4,6 @@ import { Model, ModelManager } from "../../../utils/types";
 import { isActionEnabled } from "../../../utils/action-utils";
 
 /**
- * Action to copy a model's JSON representation to the clipboard.
- * @param props.model The model to copy.
- * @returns An action component.
- */
-export const CopyModelJSONAction = (props: { model: Model; settings: typeof defaultAdvancedSettings }) => {
-  const { model, settings } = props;
-
-  if (!isActionEnabled("CopyModelJSONAction", settings)) {
-    return null;
-  }
-
-  return (
-    <Action.CopyToClipboard
-      title="Copy Model JSON"
-      content={(() => {
-        const key = `--model-${model.name}`;
-        const value: { [key: string]: Model } = {};
-        value[key] = { ...model, id: "", apiKey: "" };
-        return JSON.stringify(value);
-      })()}
-      shortcut={{ modifiers: ["cmd", "shift"], key: "j" }}
-    />
-  );
-};
-
-/**
  * Action to copy all models' JSON representation to the clipboard.
  * @param props.models The model manager object.
  * @param props.settings The advanced settings object.

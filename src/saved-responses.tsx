@@ -1,17 +1,16 @@
-import { ActionPanel, Color, Icon, List } from "@raycast/api";
-import { useCachedState } from "@raycast/utils";
-import { SavedResponse } from "./utils/types";
-import { StorageKeys } from "./utils/constants";
 import { useEffect, useState } from "react";
-import { loadSavedResponses, mapStringToColor } from "./utils/command-utils";
+
+import { ActionPanel, List } from "@raycast/api";
+import { useCachedState } from "@raycast/utils";
+
+import AdvancedActionSubmenu from "./components/actions/AdvancedActionSubmenu";
 import ResponseFilterDropdown from "./components/Responses/ResponseFilterDropdown";
-import DeleteAllSavedResponsesAction from "./components/Responses/actions/DeleteAllSavedResponsesAction";
 import { useAdvancedSettings } from "./hooks/useAdvancedSettings";
-import DeleteSavedResponseAction from "./components/Responses/actions/DeleteSavedResponseAction";
-import ToggleFavoriteSavedResponseAction from "./components/Responses/actions/ToggleFavoriteSavedResponseAction";
-import EditSavedResponseAction from "./components/Responses/actions/EditSavedResponseAction";
-import { AdvancedActionSubmenu } from "./components/actions/AdvancedActionSubmenu";
-import CopyIDAction from "./components/actions/CopyIDAction";
+import { loadSavedResponses } from "./utils/command-utils";
+import { StorageKeys } from "./utils/constants";
+import { installDefaults } from "./utils/file-utils";
+import { SavedResponse } from "./utils/types";
+import ResponseListItem from "./components/Responses/ResponseListItem";
 
 export default function SavedResponses() {
   const [savedResponses, setSavedResponses] = useCachedState<SavedResponse[]>(StorageKeys.SAVED_RESPONSES, []);
@@ -20,8 +19,10 @@ export default function SavedResponses() {
   const { advancedSettings } = useAdvancedSettings();
 
   useEffect(() => {
-    Promise.resolve(loadSavedResponses()).then((responses) => {
-      setSavedResponses(responses);
+    Promise.resolve(installDefaults()).then(() => {
+      Promise.resolve(loadSavedResponses()).then((responses) => {
+        setSavedResponses(responses);
+      });
     });
   }, []);
 
@@ -37,104 +38,16 @@ export default function SavedResponses() {
         return acc;
       } else {
         const item = (
-          <List.Item
+          <ResponseListItem
             key={response.id}
-            title={response.name}
-            icon={response.favorited ? { source: Icon.StarCircle, tintColor: Color.Yellow } : undefined}
-            keywords={[...response.tags, ...response.keywords, response.id]}
-            detail={
-              <List.Item.Detail
-                markdown={`# ${response.name}
-          
-**Response:**
-\`\`\`
-${response.response}
-\`\`\`
-
-**From Prompt:**
-\`\`\`
-${response.prompt}
-\`\`\`
-
-**Base Prompt:**
-\`\`\`
-${response.rawPrompt}
-\`\`\`
-
-_Response ID: ${response.id}_`}
-                metadata={
-                  <List.Item.Detail.Metadata>
-                    <List.Item.Detail.Metadata.Label title="Date" text={new Date(response.date).toString()} />
-                    <List.Item.Detail.Metadata.Label title="Command" text={response.commandName} />
-                    <List.Item.Detail.Metadata.Label title="Launch Source" text={response.launchSource} />
-                    {response.tags.length > 0 ? (
-                      <List.Item.Detail.Metadata.TagList title="Tags">
-                        {response.tags.map((tag) => (
-                          <List.Item.Detail.Metadata.TagList.Item
-                            key={tag}
-                            text={tag}
-                            color={mapStringToColor(tag)}
-                            onAction={() => {
-                              if (selectedTag == tag) {
-                                setSelectedTag("");
-                              } else {
-                                setSelectedTag(tag);
-                              }
-                            }}
-                          />
-                        ))}
-                      </List.Item.Detail.Metadata.TagList>
-                    ) : null}
-                    {response.keywords.length > 0 ? (
-                      <List.Item.Detail.Metadata.TagList title="Keywords">
-                        {response.keywords.map((keyword) => (
-                          <List.Item.Detail.Metadata.TagList.Item
-                            key={keyword}
-                            text={keyword}
-                            color={mapStringToColor(keyword)}
-                            onAction={() => {
-                              if (selectedTag == keyword) {
-                                setSelectedKeyword("");
-                              } else {
-                                setSelectedKeyword(keyword);
-                              }
-                            }}
-                          />
-                        ))}
-                      </List.Item.Detail.Metadata.TagList>
-                    ) : null}
-                  </List.Item.Detail.Metadata>
-                }
-              />
-            }
-            actions={
-              <ActionPanel>
-                <EditSavedResponseAction
-                  response={response}
-                  setSavedResponses={setSavedResponses}
-                  settings={advancedSettings}
-                />
-                <ToggleFavoriteSavedResponseAction
-                  response={response}
-                  savedResponses={savedResponses}
-                  setSavedResponses={setSavedResponses}
-                  settings={advancedSettings}
-                />
-                <CopyIDAction id={response.id} objectType="Saved Response" settings={advancedSettings} />
-                <DeleteSavedResponseAction
-                  response={response}
-                  savedResponses={savedResponses}
-                  setSavedResponses={setSavedResponses}
-                  settings={advancedSettings}
-                />
-                <DeleteAllSavedResponsesAction
-                  savedResponses={savedResponses}
-                  setSavedResponses={setSavedResponses}
-                  settings={advancedSettings}
-                />
-                <AdvancedActionSubmenu settings={advancedSettings} />
-              </ActionPanel>
-            }
+            response={response}
+            savedResponses={savedResponses}
+            setSavedResponses={setSavedResponses}
+            selectedTag={selectedTag}
+            setSelectedTag={setSelectedTag}
+            selectedKeyword={selectedKeyword}
+            setSelectedKeyword={setSelectedKeyword}
+            advancedSettings={advancedSettings}
           />
         );
 
@@ -173,8 +86,9 @@ _Response ID: ${response.id}_`}
       <List.EmptyView
         title="No Saved Responses"
         description="Save a response to see it here."
-        icon={Icon.SaveDocument}
+        icon={{ source: "no-view.png" }}
       />
+
       {listItems.favorites.length > 0 ? (
         <List.Section
           title="Favorite Responses"

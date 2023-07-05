@@ -1,3 +1,16 @@
+/**
+ * @file default-commands.ts
+ *
+ * @summary Default commands for PromptLab.
+ * @author Stephen Kaplan <skaplanofficial@gmail.com>
+ *
+ * Created at     : 2023-07-05 10:33:01
+ * Last modified  : 2023-07-05 10:33:29
+ */
+
+/**
+ * Default commands that are installed with the extension.
+ */
 export const defaultCommands = {
   "Suggest PromptLab Commands": {
     name: "Suggest PromptLab Commands",

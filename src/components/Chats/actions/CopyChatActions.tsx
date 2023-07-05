@@ -2,6 +2,10 @@ import { Action, ActionPanel } from "@raycast/api";
 import { defaultAdvancedSettings } from "../../../data/default-advanced-settings";
 import { anyActionsEnabled } from "../../../utils/action-utils";
 import CopyIDAction from "../../actions/CopyIDAction";
+import CopyJSONAction from "../../actions/CopyJSONAction";
+import { loadChat } from "../../../utils/chat-utils";
+import { getObjectJSON } from "../../../utils/command-utils";
+import CopyNameAction from "../../actions/CopyNameAction";
 
 export const CopyChatActionsSection = (props: {
   chatId: string;
@@ -14,7 +18,7 @@ export const CopyChatActionsSection = (props: {
 
   if (
     !anyActionsEnabled(
-      ["CopyChatResponseAction", "CopyChatQueryAction", "CopyChatBasePromptAction", "CopyIDAction"],
+      ["CopyChatResponseAction", "CopyChatQueryAction", "CopyChatBasePromptAction", "CopyIDAction", "CopyJSONAction", "CopyNameAction"],
       settings
     )
   ) {
@@ -34,7 +38,23 @@ export const CopyChatActionsSection = (props: {
         content={basePrompt}
         shortcut={{ modifiers: ["cmd", "shift"], key: "p" }}
       />
+      <CopyNameAction
+        name={async () => {
+          const chat = await loadChat(chatId);
+          return chat.name;
+        }}
+        objectType="Chat"
+        settings={settings}
+      />
       <CopyIDAction id={chatId} objectType="Chat" settings={settings} />
+      <CopyJSONAction
+        content={async () => {
+          const chat = await loadChat(chatId);
+          return getObjectJSON(chat);
+        }}
+        objectType="Chat"
+        settings={settings}
+      />
     </ActionPanel.Section>
   );
 };

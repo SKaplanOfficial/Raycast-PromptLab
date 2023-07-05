@@ -1,6 +1,21 @@
+/**
+ * @file default-advanced-settings.ts
+ *
+ * @summary Default values for advanced settings, used to generate the advanced settings file and as a fallback if the advanced settings file cannot be loaded.
+ * @author Stephen Kaplan <skaplanofficial@gmail.com>
+ *
+ * Created at     : 2023-07-05 10:31:40
+ * Last modified  : 2023-07-05 10:31:44
+ */
+
 import { Color, Icon } from "@raycast/api";
 
+import { Chat, Command, Model } from "../utils/types";
+
 export const defaultAdvancedSettings = {
+  /**
+   * Default values for newly created commands.
+   */
   commandDefaults: {
     name: "",
     prompt: "",
@@ -34,7 +49,11 @@ export const defaultAdvancedSettings = {
     speakResponse: false,
     showInMenuBar: true,
     template: false,
-  },
+  } as Command,
+
+  /**
+   * Default settings for newly added models.
+   */
   modelDefaults: {
     name: "",
     description: "",
@@ -51,7 +70,11 @@ export const defaultAdvancedSettings = {
     notes: "",
     isDefault: false,
     temperature: "1.0",
-  },
+  } as Model,
+
+  /**
+   * Default settings for newly created chats.
+   */
   chatDefaults: {
     icon: Icon.Message,
     iconColor: Color.Red,
@@ -62,13 +85,51 @@ export const defaultAdvancedSettings = {
     useSelectedFilesContext: false,
     useConversationContext: true,
     allowAutonomy: false,
-  },
+  } as Chat,
+
+  /**
+   * Settings for the Placeholders System and for specific placeholders.
+   */
   placeholderSettings: {
+    /**
+     * Whether to process placeholders at all.
+     */
     processPlaceholders: true,
+
+    /**
+     * Whether to allow custom placeholders.
+     */
     allowCustomPlaceholders: true,
+
+    /**
+     * Whether to allow custom placeholders sourced from custom paths.
+     */
     allowCustomPlaceholderPaths: true,
+
+    /**
+     * Whether to use the user's shell environment when processing `{{shell:...}}` placeholders.
+     */
     useUserShellEnvironment: true,
   },
+
+  /**
+   * Settings for analyzing selected files.
+   */
+  fileAnalysisSettings: {
+    /**
+     * The number of sample frames to use when analyzing video files.
+     */
+    videoSampleCount: 15,
+
+    /**
+     * Whether to use the preview image when analyzing Keynote files vs. analyzing the image of each slide.
+     */
+    singlePreviewForKeynote: false,
+  },
+
+  /**
+   * Settings for actions throughout the extension.
+   */
   actionSettings: {
     DeleteAction: {
       enabled: ["search-commands", "chat", "manage-models", "saved-responses"],
@@ -100,9 +161,6 @@ export const defaultAdvancedSettings = {
     CopyCommandPromptAction: {
       enabled: ["search-commands"],
     },
-    CopyCommandJSONAction: {
-      enabled: ["search-commands"],
-    },
     ExportAllCommandsAction: {
       enabled: ["search-commands"],
     },
@@ -110,9 +168,6 @@ export const defaultAdvancedSettings = {
       enabled: ["search-commands", "discover-commands", "chat", "manage-models", "saved-responses"],
     },
     CreateQuickLinkAction: {
-      enabled: ["search-commands"],
-    },
-    EditCommandAction: {
       enabled: ["search-commands"],
     },
     CreateDerivativeAction: {
@@ -136,9 +191,6 @@ export const defaultAdvancedSettings = {
     CopyChatBasePromptAction: {
       enabled: ["search-commands", "discover-commands", "chat"],
     },
-    ChatSettingsAction: {
-      enabled: ["search-commands", "discover-commands", "chat"],
-    },
     RegenerateChatAction: {
       enabled: ["search-commands", "discover-commands", "chat"],
     },
@@ -151,20 +203,20 @@ export const defaultAdvancedSettings = {
     CreateModelDerivativeAction: {
       enabled: ["manage-models"],
     },
-    CopyModelJSONAction: {
-      enabled: ["manage-models"],
-    },
     CopyAllModelsJSONAction: {
       enabled: ["manage-models"],
     },
     AddNewModelAction: {
       enabled: ["manage-models"],
     },
-    EditModelAction: {
-      enabled: ["manage-models"],
+    CopyJSONAction: {
+      enabled: ["saved-responses", "chat", "search-commands", "discover-commands", "manage-models"],
     },
-    EditSavedResponseAction: {
-      enabled: ["saved-responses"],
+    CopyNameAction: {
+      enabled: ["saved-responses", "chat", "search-commands", "discover-commands", "manage-models"],
+    },
+    EditAction: {
+      enabled: ["saved-responses", "chat", "search-commands", "manage-models"],
     },
   },
 };

@@ -1,25 +1,36 @@
+/**
+ * @file menubar-item.tsx
+ * 
+ * @summary Menu bar item for the PromptLab extension.
+ * @author Stephen Kaplan <skaplanofficial@gmail.com>
+ *
+ * Created at     : yyyy-07-dd 07:56:43 
+ * Last modified  : yyyy-07-dd 07:56:43 
+ */
+
+import path from 'path';
+
 import {
-  Color,
-  Icon,
-  LaunchType,
-  MenuBarExtra,
-  getPreferenceValues,
-  launchCommand,
-  openCommandPreferences,
-} from "@raycast/api";
-import { useEffect } from "react";
-import { Command } from "./utils/types";
-import { useCachedState } from "@raycast/utils";
-import SuggestedCommandsSection from "./components/Commands/SuggestedCommandsSection";
-import * as Insights from "./utils/insights";
-import { useCommands } from "./hooks/useCommands";
-import { commandCategories } from "./utils/constants";
+    environment, getPreferenceValues, Icon, launchCommand, LaunchType, MenuBarExtra, open,
+    openCommandPreferences
+} from '@raycast/api';
+
+import SuggestedCommandsSection from './components/Commands/SuggestedCommandsSection';
+import { useCommands } from './hooks/useCommands';
+import {
+    ADVANCED_SETTINGS_FILENAME, commandCategories, CUSTOM_PLACEHOLDERS_FILENAME
+} from './utils/constants';
+import * as Insights from './utils/insights';
+import { Command } from './utils/types';
 
 interface CommandPreferences {
   showNewChatShortcut: boolean;
   showAllCommandsShortcut: boolean;
+  showSavedResponsesShortcut: boolean;
   showPromptLabStoreShortcut: boolean;
   showNewCommandShortcut: boolean;
+  showCustomPlaceholdersShortcut: boolean;
+  showAdvancedSettingsShortcut: boolean;
   displayIcons: boolean;
   displayColors: boolean;
   displayFavorites: boolean;
@@ -29,19 +40,13 @@ interface CommandPreferences {
 
 export default function PromptLabMenubar() {
   const { commands: allCommands } = useCommands();
-  const [commands, setCommands] = useCachedState<Command[]>("--menubar-commands", []);
-
   const preferences = getPreferenceValues<CommandPreferences>();
 
-  useEffect(() => {
-    if (allCommands.length > 0) {
-      return;
-    }
-
-    const menubarCommands = allCommands.filter((cmd) => cmd.showInMenuBar).sort((a, b) => a.name.localeCompare(b.name));
-    setCommands(menubarCommands);
-  }, [allCommands]);
-
+  /**
+   * Converts a list of commands to a list of menubar items.
+   * @param commands The commands to convert.
+   * @returns The menubar items.
+   */
   const commandsToItems = (commands: Command[]) =>
     commands.map((cmd) => (
       <MenuBarExtra.Item
@@ -71,42 +76,39 @@ export default function PromptLabMenubar() {
       />
     ));
 
+  // Sort menubar-enabled commands into favorites and categories as needed
+  const commands = allCommands.filter((cmd) => cmd.showInMenuBar);
   const menuItems = commandsToItems(commands.filter((cmd) => (preferences.displayFavorites ? !cmd.favorited : true)));
-  const favorites = preferences.displayFavorites ? commandsToItems(commands?.filter((cmd) => cmd.favorited)) : [];
-  const hasOtherCategory = commands?.some(
-    (cmd) =>
-      !cmd.favorited && (!cmd.categories?.length || (cmd.categories?.length == 1 && cmd.categories[0] == "Other"))
-  );
-
+  const favorites = preferences.displayFavorites ? commandsToItems(commands.filter((cmd) => cmd.favorited)) : [];
   const categories = preferences.displayCategories
     ? commands
-        ?.reduce(
-          (acc, cmd) => {
-            if (cmd.categories) {
-              cmd.categories.forEach((category) => {
-                if (!acc.includes(category)) {
-                  acc.push(category);
-                }
-              });
-            }
-            return acc;
-          },
-          hasOtherCategory ? (["Other"] as string[]) : []
-        )
+        .flatMap((cmd) => cmd.categories || ["Other"])
+        .filter((category, index, arr) => arr.indexOf(category) == index)
+        .sort()
         .map((category) => {
-          const cmdCategory = commandCategories.find((cmdCategory) => cmdCategory.name == category) || commandCategories[0]
+          const cmdCategory =
+            commandCategories.find((cmdCategory) => cmdCategory.name == category) || commandCategories[0];
 
           return (
-          <MenuBarExtra.Submenu title={category} icon={preferences.displayIcons ? { source: cmdCategory.icon, tintColor: preferences.displayColors ? cmdCategory.color : undefined } : undefined} key={category}>
-            {commandsToItems(
-              commands.filter(
-                (cmd) =>
-                  !cmd.favorited &&
-                  (cmd.categories?.includes(category) || (category == "Other" && !cmd.categories?.length))
-              )
-            )}
-          </MenuBarExtra.Submenu>
-        )})
+            <MenuBarExtra.Submenu
+              title={category}
+              icon={
+                preferences.displayIcons
+                  ? { source: cmdCategory.icon, tintColor: preferences.displayColors ? cmdCategory.color : undefined }
+                  : undefined
+              }
+              key={category}
+            >
+              {commandsToItems(
+                commands.filter(
+                  (cmd) =>
+                    !cmd.favorited &&
+                    (cmd.categories?.includes(category) || (category == "Other" && !cmd.categories?.length))
+                )
+              )}
+            </MenuBarExtra.Submenu>
+          );
+        })
     : [];
 
   return (
@@ -153,11 +155,32 @@ export default function PromptLabMenubar() {
             onAction={() => launchCommand({ name: "chat", type: LaunchType.UserInitiated })}
           />
         ) : null}
+        {preferences.showSavedResponsesShortcut ? (
+          <MenuBarExtra.Item
+            title="Saved Responses"
+            icon={preferences.displayIcons ? Icon.SaveDocument : undefined}
+            onAction={() => launchCommand({ name: "saved-responses", type: LaunchType.UserInitiated })}
+          />
+        ) : null}
         {preferences.showPromptLabStoreShortcut ? (
           <MenuBarExtra.Item
             title="PromptLab Store"
             icon={preferences.displayIcons ? Icon.Store : undefined}
             onAction={() => launchCommand({ name: "discover-commands", type: LaunchType.UserInitiated })}
+          />
+        ) : null}
+        {preferences.showCustomPlaceholdersShortcut ? (
+          <MenuBarExtra.Item
+            title="Custom Placeholders"
+            icon={preferences.displayIcons ? Icon.Underline : undefined}
+            onAction={() => open(path.join(environment.supportPath, CUSTOM_PLACEHOLDERS_FILENAME))}
+          />
+        ) : null}
+        {preferences.showAdvancedSettingsShortcut ? (
+          <MenuBarExtra.Item
+            title="Advanced Settings"
+            icon={preferences.displayIcons ? Icon.WrenchScrewdriver : undefined}
+            onAction={() => open(path.join(environment.supportPath, ADVANCED_SETTINGS_FILENAME))}
           />
         ) : null}
         <MenuBarExtra.Item

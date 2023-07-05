@@ -5,6 +5,8 @@ import { DebugStyle, logDebug } from "./dev-utils";
 import { CalendarDuration, EventType, ReturnType } from "./types";
 import { environment } from "@raycast/api";
 import path from "path";
+import * as os from "os";
+import * as fs from "fs";
 import { filterString } from "./context";
 
 /**
@@ -315,6 +317,18 @@ export const ScriptRunner = {
       pdfRawText: string;
       imageText: string;
     }>,
+
+  /**
+   * Analyzes an instantaneous screenshot of the display, extracting various features. Deletes the screenshot after analysis.
+   * @returns The path of the screenshot file.
+   */
+  ScreenCapture: async (windowOnly = false) => {
+    const tempPath = path.join(os.tmpdir(), "screenshot.png");
+    await (runScript("ScreenCapture", ReturnType.STRING, "JavaScript", tempPath, windowOnly) as Promise<string>);
+    const data = await ScriptRunner.ImageFeatureExtractor(tempPath, true, true, true, true, false, false, 0.7);
+    await fs.promises.rm(tempPath);
+    return data.output;
+  },
 
   /**
    * Gets the selected files from Finder, even if Finder is not the active application.

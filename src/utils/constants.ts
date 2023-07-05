@@ -3,7 +3,7 @@ import { Color, Icon } from "@raycast/api";
 /**
  * The base URL for the PromptLab Store API.
  */
-export const STORE_ENDPOINT = "https://v1.slashapi.com/promptlab/google-sheets/LMFCs9cU5Y/sheet1";
+export const STORE_ENDPOINT = "https://v1.slashapi.com/promptlab/google-sheets/Rk5NJmgsBa/sheet1";
 
 /**
  * The API key for the PromptLab Store API.

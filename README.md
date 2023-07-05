@@ -255,11 +255,10 @@ Contributions are welcome! Please see the [contributing guidelines](./CONTRIBUTI
 - [ ] WordNet Integration
 - [x] Command Templates
 - [ ] Improved Local Processing
-    - [x] DOCX Parsing
-    - [ ] Keynote/PowerPoint Parsing
+    - [x] DOCX, PPTX, XLSX Parsing
+    - [x] Pages, Numbers, and Keynote Parsing
     - [x] Spreadsheet Parsing
-    - [ ] XML Parsing
-    - [ ] Live Audio Classification
+    - [x] Horizon Detection
 - [ ] WeatherKit Integration
 
 #### Possible

@@ -1,4 +1,14 @@
 /**
+ * @file types.ts
+ *
+ * @summary Types used throughout the PromptLab extension.
+ * @author Stephen Kaplan <skaplanofficial@gmail.com>
+ *
+ * Created at     : 2023-07-05 10:43:31 
+ * Last modified  : 2023-07-05 10:43:47
+ */
+
+/**
  * General preferences for the entire extension.
  */
 export type ExtensionPreferences = {
@@ -91,29 +101,93 @@ export type CommandOptions = {
   speakResponse?: boolean;
 };
 
+/**
+ * A custom configuration field for a PromptLab command.
+ */
 interface ConfigField {
+  /**
+   * The name of the field.
+   */
   name: string;
+
+  /**
+   * A brief description of the field.
+   */
   description: string;
+
+  /**
+   * Instructions for how to fill out the field.
+   */
   guideText: string;
 }
 
+/**
+ * A string type custom configuration field.
+ */
 export interface StringConfigField extends ConfigField {
+  /**
+   * The default value of the field.
+   */
   defaultValue: string;
+
+  /**
+   * The maximum number of characters allowed in the field.
+   */
   maxLength: string;
+
+  /**
+   * The minimum number of characters required in the field.
+   */
   minLength: string;
+
+  /**
+   * A regular expression that the field's value must match.
+   */
   regex: string;
+
+  /**
+   * The current value of the field.
+   */
   value?: string;
 }
 
+/**
+ * A boolean type custom configuration field.
+ */
 export interface BooleanConfigField extends ConfigField {
+  /**
+   * The default value of the field.
+   */
   defaultValue: boolean;
+
+  /**
+   * The current value of the field.
+   */
   value?: boolean;
 }
 
+/**
+ * A numeric type custom configuration field.
+ */
 export interface NumberConfigField extends ConfigField {
+  /**
+   * The default value of the field.
+   */
   defaultValue: string;
+
+  /**
+   * The maximum value of the field.
+   */
   min: string;
+
+  /**
+   * The minimum value of the field.
+   */
   max: string;
+
+  /**
+   * The current value of the field.
+   */
   value?: string;
 }
 

@@ -77,6 +77,10 @@ export default function SuggestedCommandsSection(props: {
     });
   }, []);
 
+  if (!commands?.length) {
+    return null;
+  }
+
   const listItems = preferences.useCommandStatistics
     ? frequentlyUsedCommands.map((cmd) =>
         environment.commandName == "menubar-item" ? (

@@ -1,3 +1,13 @@
+/**
+ * @file default-custom-placeholders.ts
+ *
+ * @summary Example custom placeholders for PromptLab.
+ * @author Stephen Kaplan <skaplanofficial@gmail.com>
+ *
+ * Created at     : 2023-07-05 10:34:41
+ * Last modified  : 2023-07-05 10:34:44
+ */
+
 import { CustomPlaceholder } from "../utils/types";
 
 /**

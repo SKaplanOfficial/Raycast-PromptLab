@@ -1,11 +1,13 @@
 import { Action, ActionPanel, Icon, LocalStorage, Toast, getPreferenceValues, showToast } from "@raycast/api";
-import { getCommandJSON } from "../../../utils/command-utils";
+import { getObjectJSON } from "../../../utils/command-utils";
 import { Command, ExtensionPreferences, StoreCommand, isCommand } from "../../../utils/types";
 import path from "path";
 import * as fs from "fs";
 import { defaultAdvancedSettings } from "../../../data/default-advanced-settings";
 import { isActionEnabled } from "../../../utils/action-utils";
 import CopyIDAction from "../../actions/CopyIDAction";
+import CopyJSONAction from "../../actions/CopyJSONAction";
+import CopyNameAction from "../../actions/CopyNameAction";
 
 /**
  * Action panel section for actions related to copying command data to the clipboard.
@@ -37,14 +39,9 @@ export const CopyCommandActionsSection = (props: {
           shortcut={{ modifiers: ["cmd", "shift"], key: "p" }}
         />
       ) : null}
-      {isActionEnabled("CopyCommandJSONAction", settings) ? (
-        <Action.CopyToClipboard
-          title="Copy Command JSON"
-          content={getCommandJSON(command)}
-          shortcut={{ modifiers: ["cmd", "shift"], key: "j" }}
-        />
-      ) : null}
+      <CopyNameAction name={command.name} objectType="Command" settings={settings} />
       {isCommand(command) ? <CopyIDAction id={command.id} objectType="Command" settings={settings} /> : null}
+      <CopyJSONAction content={getObjectJSON(command)} objectType="Command" settings={settings} />
       {isCommand(command) && isActionEnabled("ExportAllCommandsAction", settings) ? <ExportAllCommandsAction /> : null}
     </ActionPanel.Section>
   );

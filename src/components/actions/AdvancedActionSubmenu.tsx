@@ -1,17 +1,18 @@
 import { ActionPanel, Icon } from "@raycast/api";
+
+import { defaultAdvancedSettings } from "../../data/default-advanced-settings";
 import {
   EditCustomPlaceholdersAction,
   OpenAdvancedSettingsAction,
   OpenPlaceholdersGuideAction,
 } from "./OpenFileActions";
-import { defaultAdvancedSettings } from "../../data/default-advanced-settings";
 
 /**
  * Submenu for advanced actions.
  * @param props.settings The advanced settings object.
  * @returns {JSX.Element} The action component.
  */
-export const AdvancedActionSubmenu = (props: { settings: typeof defaultAdvancedSettings }) => {
+export default function AdvancedActionSubmenu(props: { settings: typeof defaultAdvancedSettings }) {
   const { settings } = props;
   return (
     <ActionPanel.Submenu
@@ -24,4 +25,4 @@ export const AdvancedActionSubmenu = (props: { settings: typeof defaultAdvancedS
       <OpenAdvancedSettingsAction settings={settings} />
     </ActionPanel.Submenu>
   );
-};
+}

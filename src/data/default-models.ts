@@ -1,6 +1,20 @@
-import { Color, Icon } from "@raycast/api";
-import { Model } from "../utils/types";
+/**
+ * @file default-models.ts
+ *
+ * @summary Default models for PromptLab.
+ * @author Stephen Kaplan <skaplanofficial@gmail.com>
+ *
+ * Created at     : 2023-07-05 10:35:24 
+ * Last modified  : 2023-07-05 10:35:39
+ */
 
+import { Color, Icon } from '@raycast/api';
+
+import { Model } from '../utils/types';
+
+/**
+ * Default models included with the extension.
+ */
 export const defaultModels: { [key: string]: Model } = {
   "--model-GPT-3.5-Turbo via Raycast AI": {
     name: "GPT-3.5-Turbo via Raycast AI",

@@ -19,6 +19,7 @@ export function useModels() {
       .map(([, value]) => JSON.parse(value))
       .sort((a, b) => a.name.localeCompare(b.name));
     setModels(modelObjs);
+    console.log(modelObjs)
     setIsLoading(false);
   };
 
@@ -113,6 +114,10 @@ export function useModels() {
     return models.filter((model) => model.favorited);
   };
 
+  const others = () => {
+    return models.filter((model) => !model.favorited);
+  };
+
   return {
     models: models,
     isLoading: isLoading,
@@ -122,6 +127,7 @@ export function useModels() {
     deleteModel: deleteModel,
     createModel: createModel,
     favorites: favorites,
+    others: others,
     dummyModel: dummyModel,
   };
 }

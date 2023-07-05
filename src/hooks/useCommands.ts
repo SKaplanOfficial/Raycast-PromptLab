@@ -35,18 +35,19 @@ export function useCommands() {
         newCommand.id = newID;
         await LocalStorage.setItem(newCommand.name, JSON.stringify(newCommand));
       }
+
       if (command.template) {
         newTemplates.push(newCommand);
       } else {
         newCommands.push(newCommand);
       }
     }
-    setCommands(newCommands);
-    setTemplates(newTemplates);
+    setCommands(newCommands.sort((a, b) => (a.name > b.name ? 1 : -1)));
+    setTemplates(newTemplates.sort((a, b) => (a.name > b.name ? 1 : -1)));
 
     // Get the command names
     const commandNames = newCommands.map((command) => command.name);
-    setCommandNames(commandNames);
+    setCommandNames(commandNames.sort((a, b) => (a > b ? 1 : -1)));
     setIsLoading(false);
   };
 

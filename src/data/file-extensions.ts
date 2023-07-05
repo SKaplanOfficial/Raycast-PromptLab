@@ -1,3 +1,16 @@
+/**
+ * @file file-extensions.ts
+ *
+ * @summary Lists of file extensions for various file types.
+ * @author Stephen Kaplan <skaplanofficial@gmail.com>
+ *
+ * Created at     : 2023-07-05 10:36:45 
+ * Last modified  : 2023-07-05 10:39:16
+ */
+
+/**
+ * Near-exhaustive list of file extensions for text files that can be read as plain text.
+ */
 export const textFileExtensions = [
   "1",
   "1in",
@@ -309,6 +322,9 @@ export const textFileExtensions = [
   "ascii",
 ];
 
+/**
+ * File extensions that are considered images and are supported by Apple's Vision framework.
+ */
 export const imageFileExtensions = [
   "bmp",
   "crw",
@@ -328,8 +344,14 @@ export const imageFileExtensions = [
   "xmp",
 ];
 
+/**
+ * File extensions that are considered to be videos and are supported by Apple's Core Media framework.
+ */
 export const videoFileExtensions = ["avi", "flv", "m4v", "mkv", "mov", "mp4", "mpeg", "mpg", "webm", "wmv"];
 
+/**
+ * File extensions that are considered audio files and are supported by Apple's AV Foundation framework.
+ */
 export const audioFileExtensions = [
   "aac",
   "ac4",
@@ -347,6 +369,12 @@ export const audioFileExtensions = [
   "wav",
 ];
 
+/**
+ * MS Office file extensions.
+ */
 export const officeFileExtensions = ["docx", "pptx"];
 
+/**
+ * Spreadsheet file extensions supported by the XLSX package.
+ */
 export const spreadsheetFileExtensions = ["xls", "xlsx", "xlsm", "xlsb", "ods", "numbers"];
