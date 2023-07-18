@@ -826,6 +826,7 @@ export default function CommandForm(props: {
           <Form.Dropdown.Item title="List" value="list" icon={Icon.List} />
           <Form.Dropdown.Item title="Grid" value="grid" icon={Icon.Message} />
           <Form.Dropdown.Item title="Chat" value="chat" icon={Icon.Message} />
+          <Form.Dropdown.Item title="Dialog Window" value="dialogWindow" icon={Icon.List} />
         </Form.Dropdown>
       ) : null}
 

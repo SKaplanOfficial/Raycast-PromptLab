@@ -1,7 +1,7 @@
 import { LocalStorage, environment } from "@raycast/api";
 import * as fs from "fs";
 import { defaultCommands } from "../data/default-commands";
-import { CommandOptions, Extension, ExtensionCommand } from "./types";
+import { AudioData, CommandOptions, Extension, ExtensionCommand, ImageData } from "./types";
 import { defaultModels } from "../data/default-models";
 import { randomUUID } from "crypto";
 import path from "path";
@@ -73,17 +73,7 @@ export const getFileExifData = async (filePath: string) => {
 export const getImageDetails = async (
   filePath: string,
   options: CommandOptions
-): Promise<{
-  output: string;
-  imageText: string;
-  imagePOI: string;
-  imageBarcodes: string;
-  imageAnimals: string;
-  imageRectangles: string;
-  imageSubjects: string;
-  imageFaces: string;
-  imageEXIFData: string;
-}> => {
+): Promise<ImageData> => {
   const imageDetails = await ScriptRunner.ImageFeatureExtractor(
     filePath,
     options.useSubjectClassification || false,
@@ -92,14 +82,14 @@ export const getImageDetails = async (
     options.useRectangleDetection || false,
     options.useSaliencyAnalysis || false
   );
-  const imageVisionInstructions = filterString(imageDetails.output);
+  const imageVisionInstructions = filterString(imageDetails.stringValue);
   const exifData =
     options.useMetadata && !filePath.endsWith(".svg") ? filterString(await getFileExifData(filePath)) : ``;
   const exifInstruction = options.useMetadata ? `<EXIF data: ###${exifData}###>` : ``;
   return {
     ...imageDetails,
     imageEXIFData: exifInstruction,
-    output: `${imageVisionInstructions}${exifInstruction}`,
+    stringValue: `${imageVisionInstructions}${exifInstruction}`,
   };
 };
 
@@ -113,14 +103,11 @@ export const getImageDetails = async (
  */
 export const getAudioDetails = async (
   filePath: string
-): Promise<{
-  contents: string;
-  soundClassifications: string;
-}> => {
+): Promise<AudioData> => {
   const soundClassifications = filterString((await ScriptRunner.SoundClassifier(filePath)).replace("_", " ")).trim();
   const classificationInstructions = `<Sound classifications: "${soundClassifications}".>`;
   return {
-    contents: `${soundClassifications ? `\n${classificationInstructions}` : ""}`,
+    stringValue: `${soundClassifications ? `\n${classificationInstructions}` : ""}`,
     soundClassifications: soundClassifications,
   };
 };
