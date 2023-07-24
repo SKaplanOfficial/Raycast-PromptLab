@@ -31,10 +31,14 @@ export const ChatActionPanel = (props: {
   previousResponse: string;
   query: string;
   basePrompt: string;
-  onSubmit: (values: Form.Values) => void;
   onCancel: () => void;
   settings: typeof defaultAdvancedSettings;
   revalidate: () => void;
+  setEnableModel: React.Dispatch<React.SetStateAction<boolean>>;
+  stopModel: () => void;
+  setInput: React.Dispatch<React.SetStateAction<string | undefined>>;
+  setRunningCommand: React.Dispatch<React.SetStateAction<boolean>>;
+  submitQuery: (query: string) => void;
 }) => {
   const {
     isLoading,
@@ -54,16 +58,29 @@ export const ChatActionPanel = (props: {
     previousResponse,
     query,
     basePrompt,
-    onSubmit,
     onCancel,
     revalidate,
+    setEnableModel,
+    stopModel,
+    setInput,
+    setRunningCommand,
+    submitQuery,
   } = props;
   return (
     <ActionPanel>
       {isLoading ? (
         <Action title="Cancel" onAction={onCancel} />
       ) : (
-        <Action.SubmitForm title="Submit Query" onSubmit={onSubmit} />
+        <Action
+          title="Submit Query"
+          onAction={() => {
+            setEnableModel(false);
+            stopModel();
+            setInput("");
+            setRunningCommand(false);
+            submitQuery(query);
+          }}
+        />
       )}
 
       <ContextSettingsActionSection

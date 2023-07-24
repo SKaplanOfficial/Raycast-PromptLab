@@ -1,18 +1,11 @@
 import { getPreferenceValues } from "@raycast/api";
-import CommandChatView from "./components/Chats/CommandChatView";
+import { ChatCommandPreferences } from "./utils/preferences";
+import ChatList from "./components/Chats/ChatList";
 
-interface CommandPreferences {
-  basePrompt: string;
-  useSelectedFiles: boolean;
-  useConversationHistory: boolean;
-  autonomousFeatures: boolean;
-}
-
-export default function Command(props: { arguments: { initialQuery: string } }) {
+export default function ChatCommand(props: { arguments: { initialQuery: string } }) {
   const { initialQuery } = props.arguments;
 
-  const preferences = getPreferenceValues<CommandPreferences>();
-
+  const preferences = getPreferenceValues<ChatCommandPreferences>();
   const options = {
     minNumFiles: 1,
     acceptedFileExtensions: undefined,
@@ -26,17 +19,14 @@ export default function Command(props: { arguments: { initialQuery: string } }) 
   };
 
   return (
-    <CommandChatView
+    <ChatList
       isLoading={false}
       options={options}
       prompt={preferences.basePrompt}
       initialQuery={initialQuery}
-      response={"Ready for your query."}
-      revalidate={() => null}
-      cancel={null}
-      useFiles={preferences.useSelectedFiles}
+      useFileContext={preferences.useSelectedFiles}
       useConversation={preferences.useConversationHistory}
-      autonomousFeatures={preferences.autonomousFeatures}
+      useAutonomousFeatures={preferences.autonomousFeatures}
     />
   );
 }

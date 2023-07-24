@@ -19,7 +19,7 @@ import CommandResponse from "./components/Commands/CommandResponse";
 import SuggestedCommandsSection from "./components/Commands/SuggestedCommandsSection";
 import { useAdvancedSettings } from "./hooks/useAdvancedSettings";
 import { useCommands } from "./hooks/useCommands";
-import { commandCategories } from "./utils/constants";
+import { CommandCategories } from "./utils/constants";
 import { Command, ExtensionPreferences, searchPreferences } from "./utils/types";
 import CommandActionPanel from "./components/Commands/actions/CommandActionPanel";
 
@@ -72,7 +72,7 @@ export default function SearchCommand(props: { arguments: { commandName: string;
 
   // Group commands by category, if enabled
   if (preferences.groupByCategory && targetCategory == "All") {
-    listItems = commandCategories
+    listItems = CommandCategories
       .reduce((acc, category) => {
         const categoryCommands = commands.filter((command) => {
           // If a command has no categories, it is considered to be in the "Other" category

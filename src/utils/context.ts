@@ -602,7 +602,7 @@ export const getWeatherData = async (days: number): Promise<JSONObject> => {
  */
 export const getComputerName = async () => {
   return await runAppleScript(`use scripting additions
-  return computer name of ((system info) as record)`);
+    return computer name of ((system info) as record)`);
 };
 
 /**
@@ -611,8 +611,8 @@ export const getComputerName = async () => {
  */
 export const getCurrentDirectory = async () => {
   return await runAppleScript(`tell application "Finder"
-    return POSIX path of (insertion location as alias)
-  end tell`);
+      return POSIX path of (insertion location as alias)
+    end tell`);
 };
 
 /**
@@ -624,27 +624,27 @@ export const getMenubarOwningApplication = async (
   includePaths?: boolean
 ): Promise<string | { name: string; path: string }> => {
   const app = await runAppleScript(`use framework "Foundation"
-  use scripting additions
-  set workspace to current application's NSWorkspace's sharedWorkspace()
-  set runningApps to workspace's runningApplications()
-  
-  set targetApp to missing value
-  repeat with theApp in runningApps
-    if theApp's ownsMenuBar() then
-      set targetApp to theApp
-      exit repeat
-    end if
-  end repeat
-  
-  if targetApp is missing value then
-    return ""
-  else
-    ${
-      includePaths
-        ? `return {targetApp's localizedName() as text, targetApp's bundleURL()'s fileSystemRepresentation() as text}`
-        : `return targetApp's localizedName() as text`
-    }
-  end if`);
+    use scripting additions
+    set workspace to current application's NSWorkspace's sharedWorkspace()
+    set runningApps to workspace's runningApplications()
+    
+    set targetApp to missing value
+    repeat with theApp in runningApps
+      if theApp's ownsMenuBar() then
+        set targetApp to theApp
+        exit repeat
+      end if
+    end repeat
+    
+    if targetApp is missing value then
+      return ""
+    else
+      ${
+        includePaths
+          ? `return {targetApp's localizedName() as text, targetApp's bundleURL()'s fileSystemRepresentation() as text}`
+          : `return targetApp's localizedName() as text`
+      }
+    end if`);
 
   if (includePaths) {
     const data = app.split(", ");

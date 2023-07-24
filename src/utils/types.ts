@@ -5,7 +5,7 @@
  * @author Stephen Kaplan <skaplanofficial@gmail.com>
  *
  * Created at     : 2023-07-05 10:43:31 
- * Last modified  : 2023-07-05 10:43:47
+ * Last modified  : 2023-07-12 00:25:40
  */
 
 /**
@@ -602,6 +602,26 @@ export type Model = {
 /**************/
 
 /**
+ * Wrapper around functions to interact with the chat list.
+ */
+export type ChatManager = {
+  /**
+   * The chat references that are currently loaded.
+   */
+  chatRefs: ChatRef[];
+
+  /**
+   * True if the chats are currently loading, false otherwise.
+   */
+  loadingChats: boolean;
+
+  /**
+   * Reloads the chats.
+   */
+  revalidateChats: () => Promise<void>;
+};
+
+/**
  * A references to a chat, without the full conversation or context data.
  */
 export type ChatRef = {
@@ -644,9 +664,9 @@ export const isChatRef = (obj: object): obj is ChatRef => {
  * The type of a message in a chat conversation.
  */
 export enum MessageType {
-  QUERY = "USER_QUERY",
-  RESPONSE = "MODEL_RESPONSE",
-  SYSTEM = "SYSTEM_MESSAGE",
+  QUERY = "USER",
+  RESPONSE = "MODEL",
+  SYSTEM = "SYSTEM",
 }
 
 /**

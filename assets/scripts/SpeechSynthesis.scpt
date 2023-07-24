@@ -10,6 +10,7 @@
   let content = ""
   const contentToSpeak = []
   let startDate = $.NSDate.date;
+  let iter = 0;
 
   const synthesizer = $.NSSpeechSynthesizer.alloc.init
 
@@ -61,7 +62,12 @@
 	}
 
   	if (contentToSpeak.length > 0 && again) {
-		const nextContent = contentToSpeak.shift()
+		let nextContent = contentToSpeak.shift()
+		while (contentToSpeak.length > 0) {
+			nextContent += contentToSpeak.shift()
+		}
+
+		iter++;
 		if (nextContent?.length) {
 			synthesizer.startSpeakingString(nextContent)
 		}

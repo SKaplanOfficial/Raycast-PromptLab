@@ -4,7 +4,7 @@ import { defaultCommands } from "../data/default-commands";
 import { CommandOptions, Extension, ExtensionCommand } from "./types";
 import { defaultModels } from "../data/default-models";
 import path from "path";
-import { ADVANCED_SETTINGS_FILENAME, CUSTOM_PLACEHOLDERS_FILENAME } from "./constants";
+import { ADVANCED_SETTINGS_FILENAME, CHATS_DIRECTORY, CUSTOM_PLACEHOLDERS_FILENAME } from "./constants";
 import { defaultCustomPlaceholders } from "../data/default-custom-placeholders";
 import { ScriptRunner } from "./scripts";
 import exifr from "exifr";
@@ -20,6 +20,11 @@ import { exec } from "child_process";
  */
 export async function installDefaults() {
   // Set up data files and folders
+  const chatsDirectoryPath = path.join(environment.supportPath, CHATS_DIRECTORY);
+    if (!fs.existsSync(chatsDirectoryPath)) {
+      fs.mkdirSync(chatsDirectoryPath);
+    }
+
   const customPlaceholdersPath = path.join(environment.supportPath, CUSTOM_PLACEHOLDERS_FILENAME);
   if (!fs.existsSync(customPlaceholdersPath)) {
     await fs.promises.writeFile(customPlaceholdersPath, JSON.stringify(defaultCustomPlaceholders, null, 2));

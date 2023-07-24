@@ -9,7 +9,6 @@ import {
   launchCommand,
   showToast,
 } from "@raycast/api";
-import CommandChatView from "../../Chats/CommandChatView";
 import { Command, CommandOptions, ExtensionPreferences, StoreCommand } from "../../../utils/types";
 import { getMenubarOwningApplication } from "../../../utils/context";
 import { useEffect, useState } from "react";
@@ -173,17 +172,17 @@ export default function ResponseActions(props: {
           <Action.Push
             key="open-chat"
             title="Open Chat"
-            target={
-              <CommandChatView
-                isLoading={false}
-                command={command}
-                options={options}
-                prompt={promptText}
-                response={responseText}
-                revalidate={reattempt}
-                cancel={cancel}
-                useFiles={options.minNumFiles != undefined && options.minNumFiles > 0 ? true : false}
-              />
+            target={null
+              // <CommandChatView
+              //   isLoading={false}
+              //   command={command}
+              //   options={options}
+              //   prompt={promptText}
+              //   response={responseText}
+              //   revalidate={reattempt}
+              //   cancel={cancel}
+              //   useFiles={options.minNumFiles != undefined && options.minNumFiles > 0 ? true : false}
+              // />
             }
             icon={Icon.Message}
             shortcut={{ modifiers: ["cmd", "opt"], key: "c" }}

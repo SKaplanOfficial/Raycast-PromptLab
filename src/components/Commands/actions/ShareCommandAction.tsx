@@ -47,10 +47,10 @@ export default function ShareCommandAction(props: {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-              "X-API-KEY": STORE_KEY,
+              "Authorization": `Bearer ${STORE_KEY}`
             },
             body: JSON.stringify({
-              data: {
+              sheet1: {
                 name: command.name,
                 prompt: command.prompt,
                 icon: command.icon,

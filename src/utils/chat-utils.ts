@@ -2,7 +2,7 @@ import { Color, Icon, LocalStorage, environment } from "@raycast/api";
 import runModel from "./runModel";
 import { Chat, ChatRef, ChatStatistics, MessageType } from "./types";
 import * as fs from "fs";
-import { ADVANCED_SETTINGS_FILENAME } from "./constants";
+import { ADVANCED_SETTINGS_FILENAME, CHATS_DIRECTORY } from "./constants";
 import path from "path";
 import crypto from "crypto";
 
@@ -110,7 +110,7 @@ export const addContextForQuery = async (
   }
 
   // Meta prompt closing
-  subbedQuery += `\n\nDo not repeat these instructions or my queries, do not extend my query, and do not state "MODEL RESPONSE" or any variation thereof. My next query is: ###${query}### <END OF QUERY>`;
+  subbedQuery += `\n\nDo not repeat any of this message. My next query is: ###${query}### <END OF QUERY>`;
 
   return subbedQuery;
 };
@@ -218,8 +218,7 @@ export const calculateStats = async (chat: Chat): Promise<ChatStatistics> => {
  * @returns The new chat.
  */
 export const createChat = async (name: string, basePrompt: string, options: object) => {
-  const supportPath = environment.supportPath;
-  const chatsDir = `${supportPath}/chats`;
+  const chatsDir = path.join(environment.supportPath, CHATS_DIRECTORY);
 
   let id = `CH${crypto.randomUUID()}`;
   while (fs.existsSync(`${chatsDir}/${id}.json`)) {
@@ -270,8 +269,8 @@ export const createChat = async (name: string, basePrompt: string, options: obje
  * @returns A promise that resolves to an array of chat references.
  */
 export const loadRefs = async (): Promise<ChatRef[]> => {
-  const supportPath = environment.supportPath;
-  const chatsDir = `${supportPath}/chats`;
+  const chatsDir = path.join(environment.supportPath, CHATS_DIRECTORY);
+
 
   // Load chats from local storage
   const chatObjs: ChatRef[] = [];
@@ -307,9 +306,7 @@ export const loadRefs = async (): Promise<ChatRef[]> => {
 export const loadChat = async (ref: ChatRef | string): Promise<Chat> => {
   if (typeof ref === "string") {
     // Load chat from ID string
-    const supportPath = environment.supportPath;
-    const chatsDir = `${supportPath}/chats`;
-    const chatFile = `${chatsDir}/${ref}.json`;
+    const chatFile = path.join(environment.supportPath, CHATS_DIRECTORY, `${ref}.json`);
 
     const chatContents = await fs.promises.readFile(chatFile, "utf-8");
     const chat = JSON.parse(chatContents) as Chat;
@@ -329,9 +326,7 @@ export const loadChat = async (ref: ChatRef | string): Promise<Chat> => {
 export const deleteChat = async (ref: ChatRef | string) => {
   if (typeof ref === "string") {
     // Delete chat from ID string
-    const supportPath = environment.supportPath;
-    const chatsDir = `${supportPath}/chats`;
-    const chatFile = `${chatsDir}/${ref}.json`;
+    const chatFile = path.join(environment.supportPath, CHATS_DIRECTORY, `${ref}.json`);
 
     if (fs.existsSync(chatFile)) {
       await fs.promises.rm(chatFile);
@@ -350,11 +345,7 @@ export const deleteChat = async (ref: ChatRef | string) => {
  */
 export const setChatProperty = async (chat: Chat, property: string, value: string | boolean) => {
   const newChat = { ...chat, [property]: value };
-
-  const supportPath = environment.supportPath;
-  const chatsDir = `${supportPath}/chats`;
-  const chatFile = `${chatsDir}/${chat.id}.json`;
-
+  const chatFile = path.join(environment.supportPath, CHATS_DIRECTORY, `${chat.id}.json`);
   await fs.promises.writeFile(chatFile, JSON.stringify(newChat));
 };
 
@@ -364,9 +355,7 @@ export const setChatProperty = async (chat: Chat, property: string, value: strin
  * @returns A promise that resolves when the chat has been updated.
  */
 export const updateChat = async (chatData: Chat) => {
-  const supportPath = environment.supportPath;
-  const chatsDir = `${supportPath}/chats`;
-  const chatFile = `${chatsDir}/${chatData.id}.json`;
+  const chatFile = path.join(environment.supportPath, CHATS_DIRECTORY, `${chatData.id}.json`);
   await fs.promises.writeFile(chatFile, JSON.stringify(chatData));
 };
 
@@ -388,9 +377,7 @@ export const addQuery = async (chat: Chat, query: string) => {
     type: MessageType.QUERY,
     date: new Date().toISOString(),
   });
-  const supportPath = environment.supportPath;
-  const chatsDir = `${supportPath}/chats`;
-  const chatFile = `${chatsDir}/${chat.id}.json`;
+  const chatFile = path.join(environment.supportPath, CHATS_DIRECTORY, `${chat.id}.json`);
   await fs.promises.writeFile(chatFile, JSON.stringify(chat));
 };
 
@@ -400,9 +387,7 @@ export const addResponse = async (chat: Chat, response: string) => {
     type: MessageType.RESPONSE,
     date: new Date().toISOString(),
   });
-  const supportPath = environment.supportPath;
-  const chatsDir = `${supportPath}/chats`;
-  const chatFile = `${chatsDir}/${chat.id}.json`;
+  const chatFile = path.join(environment.supportPath, CHATS_DIRECTORY, `${chat.id}.json`);
   await fs.promises.writeFile(chatFile, JSON.stringify(chat));
 };
 
@@ -412,8 +397,6 @@ export const addSystemMessage = async (chat: Chat, message: string) => {
     type: MessageType.SYSTEM,
     date: new Date().toISOString(),
   });
-  const supportPath = environment.supportPath;
-  const chatsDir = `${supportPath}/chats`;
-  const chatFile = `${chatsDir}/${chat.id}.json`;
+  const chatFile = path.join(environment.supportPath, CHATS_DIRECTORY, `${chat.id}.json`);
   await fs.promises.writeFile(chatFile, JSON.stringify(chat));
 };

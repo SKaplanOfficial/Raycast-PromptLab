@@ -12,7 +12,6 @@ import { Command, CommandOptions, ERRORTYPE, ExtensionPreferences, StoreCommand 
 import { runActionScript, runReplacements } from "../../utils/command-utils";
 import useModel from "../../hooks/useModel";
 import CommandDetailView from "./CommandDetailView";
-import CommandChatView from "../Chats/CommandChatView";
 import CommandListView from "./CommandListView";
 import CommandGridView from "./CommandGridView";
 import { useCachedState } from "@raycast/utils";
@@ -266,20 +265,21 @@ export default function CommandResponse(props: {
     );
   } else if (options.outputKind == "chat") {
     return (
-      <CommandChatView
-        isLoading={
-          loading ||
-          isLoading ||
-          loadingData ||
-          (options.minNumFiles != undefined && options.minNumFiles != 0 && fileContents?.contents.length == 0)
-        }
-        command={command}
-        options={options}
-        prompt={fullPrompt}
-        response={text}
-        revalidate={revalidate}
-        cancel={() => setShouldCancel(true)}
-      />
+      null
+      // <CommandChatView
+      //   isLoading={
+      //     loading ||
+      //     isLoading ||
+      //     loadingData ||
+      //     (options.minNumFiles != undefined && options.minNumFiles != 0 && fileContents?.contents.length == 0)
+      //   }
+      //   command={command}
+      //   options={options}
+      //   prompt={fullPrompt}
+      //   response={text}
+      //   revalidate={revalidate}
+      //   cancel={() => setShouldCancel(true)}
+      // />
     );
   }
 

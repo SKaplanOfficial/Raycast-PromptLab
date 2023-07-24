@@ -3,19 +3,24 @@ import { Color, Icon } from "@raycast/api";
 /**
  * The base URL for the PromptLab Store API.
  */
-export const STORE_ENDPOINT = "https://v1.slashapi.com/promptlab/google-sheets/Rk5NJmgsBa/sheet1";
+export const STORE_ENDPOINT = "https://api.sheety.co/544d1a2fdbe4caef690a20cc47996d11/promptLabStoreV120/sheet1";
 
 /**
  * The API key for the PromptLab Store API.
  * This key only permits reading and writing commands, not deleting or otherwise modifying them.
  */
-export const STORE_KEY = "SCH4kmgzqxxFuCWDWayRV07OqHmLXfxmlMxu0G0Y";
+export const STORE_KEY = "wuhsox-jeHduf-qokvi6";
 
 /**
  * The base URL for the PromptLab QuickLinks.
  */
 export const QUICKLINK_URL_BASE =
   "raycast://extensions/HelloImSteven/promptlab/search-commands?arguments=%7B%22commandName%22:%22";
+
+/**
+ * The name of the subdirectory in the support directory where chat files are stored.
+ */
+export const CHATS_DIRECTORY = "chats";
 
 /**
  * The filename for the placeholders guide in the support directory.
@@ -47,12 +52,22 @@ export const StorageKeys = {
    * Key for the list of cached saved response objects.
    */
   SAVED_RESPONSES: "--saved-responses",
+
+  /**
+   * Key for the full path to the advanced settings file.
+   */
+  ADVANCED_SETTINGS_FILEPATH: "--advanced-settings-filepath",
+
+  /**
+   * Key for the full path to the custom placeholders file.
+   */
+  CUSTOM_PLACEHOLDERS_FILEPATH: "--custom-placeholders-filepath",
 };
 
 /**
  * Command categories and their icons/icon colors.
  */
-export const commandCategories = [
+export const CommandCategories = [
   {
     name: "Other",
     icon: Icon.Circle,

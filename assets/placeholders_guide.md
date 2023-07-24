@@ -43,7 +43,7 @@ All placeholders are evaluated at runtime — when you execute a command — and
 | `{{copy:...}}` | Copies the specified text to the clipboard. |
 | `{{cutoff [number]:...}}` | Cuts content to the specified number of characters. |
 | `{{decrement:identifier}}` | Decrements the specified persistent variable by 1. |
-| `{{END}}` | Ends the current prompt, ignore all subsequent content. |
+| `{{END}}` | Ends the current prompt, ignoring all subsequent content. |
 | `{{ignore:...}}` or <br /> `{{IGNORE:...}}` | Ignores all content contained within. Useful for running placeholders without inserting their return value. |
 | `{{increment:identifier}}` | Increments the specified persistent variable by 1. |
 | `{{paste:...}}` | Pastes the specified text into the frontmost application. |

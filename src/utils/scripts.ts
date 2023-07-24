@@ -266,6 +266,7 @@ export const ScriptRunner = {
    * @param useFaceDetection The number of faces detected in the image.
    * @param useRectangleDetection The center points and dimensions of all rectangles detected in the image.
    * @param useSaliencyAnalysis The coordinates of the points of interest in the image.
+   * @param useHorizonDetection The angle of the horizon in the image.
    * @param confidenceThreshold The minimum confidence threshold for detected objects.
    * @returns An object containing the extracted features.
    */

@@ -21,10 +21,10 @@ export default function Discover() {
   const { advancedSettings } = useAdvancedSettings();
 
   // Get available commands from store
-  const { data, isLoading } = useFetch(STORE_ENDPOINT, { headers: { "X-API-KEY": STORE_KEY } });
+  const { data, isLoading } = useFetch(STORE_ENDPOINT, { headers: { "Authorization": `Bearer ${STORE_KEY}` } });
   useEffect(() => {
     if (data && !isLoading) {
-      setAvailableCommands((data as { data: StoreCommand[] })["data"].reverse());
+      setAvailableCommands((data as { sheet1: StoreCommand[] })["sheet1"].reverse());
     }
   }, [data, isLoading]);
 
