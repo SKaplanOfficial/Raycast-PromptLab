@@ -2,6 +2,10 @@
 
 ## v1.1.1 Release
 
+### 2023-07-19
+
+- Added ability to modify action keybindings in the advanced settings
+
 ### 2023-07-17
 
 - Added Dialog Window command response view
