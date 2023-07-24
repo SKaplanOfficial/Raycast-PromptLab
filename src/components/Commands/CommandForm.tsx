@@ -709,7 +709,8 @@ export default function CommandForm(props: {
           icon={{
             source: Icon.Circle,
             tintColor:
-              COMMAND_CATEGORIES.find((category) => category.name == values.categories?.[0])?.color || Color.PrimaryText,
+              COMMAND_CATEGORIES.find((category) => category.name == values.categories?.[0])?.color ||
+              Color.PrimaryText,
           }}
         />
         <Form.Dropdown.Item

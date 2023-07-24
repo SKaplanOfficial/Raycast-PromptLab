@@ -11,7 +11,11 @@ import { getActionShortcut } from "../../../utils/action-utils";
  * @param props.chats The chat manager object.
  * @returns An action component.
  */
-export const ExportChatAction = (props: { chat: Chat; chats: ChatManager, settings: typeof defaultAdvancedSettings }) => {
+export const ExportChatAction = (props: {
+  chat: Chat;
+  chats: ChatManager;
+  settings: typeof defaultAdvancedSettings;
+}) => {
   const { chat, chats, settings } = props;
   const preferences = getPreferenceValues<ExtensionPreferences>();
 

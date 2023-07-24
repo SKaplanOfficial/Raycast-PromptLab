@@ -978,7 +978,7 @@ export type PersistentVariable = {
    * The original value of the variable.
    */
   initialValue: string;
-}
+};
 
 /**
  * The output of a data provider such as a script or fetch request.
@@ -988,7 +988,7 @@ export interface DataProviderOutput {
    * The full text of the data provider's output.
    */
   stringValue: string;
-};
+}
 
 /**
  * The output of an image data provider.

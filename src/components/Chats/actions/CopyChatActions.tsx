@@ -16,7 +16,11 @@ export const CopyChatActionsSection = (props: {
 
   return (
     <ActionPanel.Section title="Clipboard Actions">
-      <Action.CopyToClipboard title="Copy Response" content={response} shortcut={getActionShortcut("CopyChatResponseAction", settings)} />
+      <Action.CopyToClipboard
+        title="Copy Response"
+        content={response}
+        shortcut={getActionShortcut("CopyChatResponseAction", settings)}
+      />
       <Action.CopyToClipboard
         title="Copy Sent Query"
         content={query}

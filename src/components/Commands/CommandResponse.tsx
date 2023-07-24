@@ -163,7 +163,11 @@ export default function CommandResponse(props: {
   }
 
   // Don't show the response if the user has disabled it
-  if (options.showResponse == false || options.outputKind == "dialogWindow" || (!loadingData && substitutedPrompt == "")) {
+  if (
+    options.showResponse == false ||
+    options.outputKind == "dialogWindow" ||
+    (!loadingData && substitutedPrompt == "")
+  ) {
     if (options.showResponse == false || options.outputKind == "dialogWindow") {
       Promise.resolve(showHUD(`Running '${commandName}'...`));
     }

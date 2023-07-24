@@ -101,7 +101,7 @@ export const ToggleFavoriteAction = (props: {
  * @param props.command The command to create a QuickLink for
  * @returns An Action component
  */
-export const CreateQuickLinkAction = (props: { command: Command, settings: typeof defaultAdvancedSettings }) => {
+export const CreateQuickLinkAction = (props: { command: Command; settings: typeof defaultAdvancedSettings }) => {
   const { command, settings } = props;
   return (
     <Action.CreateQuicklink

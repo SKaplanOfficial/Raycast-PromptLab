@@ -61,7 +61,11 @@ export default async function runModel(basePrompt: string, prompt: string, input
     isDefault: false,
   };
 
-  const temp = preferences.includeTemperature ? parseFloat(temperature) == undefined ? 1.0 : parseFloat(temperature) : 1.0;
+  const temp = preferences.includeTemperature
+    ? parseFloat(temperature) == undefined
+      ? 1.0
+      : parseFloat(temperature)
+    : 1.0;
 
   return Promise.resolve(LocalStorage.allItems()).then(async (items) => {
     const models: Model[] = Object.entries(items)

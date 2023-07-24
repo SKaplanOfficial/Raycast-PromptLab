@@ -20,8 +20,6 @@ export default function ToggleModelFavoriteAction(props: {
     return null;
   }
 
-  
-
   return (
     <Action
       title={`${model.favorited ? "Remove From Favorites" : "Add To Favorites"}`}

@@ -188,8 +188,10 @@ export const searchNearbyLocations = async (query: string) => {
  * @param content The message text of the dialog window.
  */
 export const showDialog = async (title: string, content: string) => {
-  return runAppleScript(`display dialog "${content.replaceAll('"', '\\"')}" with title "${title.replaceAll('"', '\\"')}"`);
-}
+  return runAppleScript(
+    `display dialog "${content.replaceAll('"', '\\"')}" with title "${title.replaceAll('"', '\\"')}"`
+  );
+};
 
 /**
  * Gets the names of all currently running non-background applications.
@@ -307,7 +309,15 @@ export const ScriptRunner = {
    * @returns An object containing the extracted text.
    */
   PDFTextExtractor: (filePath: string, useOCR: boolean, pageLimit: number, useMetadata: boolean) =>
-    runScript("PDFTextExtractor", ReturnType.JSON, "AppleScript", filePath, useOCR, pageLimit, useMetadata) as Promise<PDFData>,
+    runScript(
+      "PDFTextExtractor",
+      ReturnType.JSON,
+      "AppleScript",
+      filePath,
+      useOCR,
+      pageLimit,
+      useMetadata
+    ) as Promise<PDFData>,
 
   /**
    * Gets the selected files from Finder, even if Finder is not the active application.

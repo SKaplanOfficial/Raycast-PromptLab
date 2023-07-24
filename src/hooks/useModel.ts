@@ -86,7 +86,9 @@ export default function useModel(
     (models.isLoading && !modelOverride && preferenceModel.endpoint == "");
 
   const temp = preferences.includeTemperature
-    ? parseFloat(temperature) == undefined ? 1.0 : parseFloat(temperature)
+    ? parseFloat(temperature) == undefined
+      ? 1.0
+      : parseFloat(temperature)
     : 1.0;
 
   // Get the value at the specified key path

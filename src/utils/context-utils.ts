@@ -53,7 +53,7 @@ const getCurrentSafariURL = async (): Promise<string> => {
 
 /**
  * Gets the visible text of the active tab in Safari (avoiding paywalls and other issues with the URL).
- * 
+ *
  * @returns A promise which resolves to the visible text of the active tab as a string.
  */
 export const getSafariTabText = async (): Promise<string> => {

@@ -70,10 +70,7 @@ export const getFileExifData = async (filePath: string) => {
  * @param options A {@link CommandOptions} object describing the types of information to include in the output.
  * @returns The image description as a string.
  */
-export const getImageDetails = async (
-  filePath: string,
-  options: CommandOptions
-): Promise<ImageData> => {
+export const getImageDetails = async (filePath: string, options: CommandOptions): Promise<ImageData> => {
   const imageDetails = await ScriptRunner.ImageFeatureExtractor(
     filePath,
     options.useSubjectClassification || false,
@@ -101,9 +98,7 @@ export const getImageDetails = async (
  *
  * @returns The metadata and sound classifications as a single string.
  */
-export const getAudioDetails = async (
-  filePath: string
-): Promise<AudioData> => {
+export const getAudioDetails = async (filePath: string): Promise<AudioData> => {
   const soundClassifications = filterString((await ScriptRunner.SoundClassifier(filePath)).replace("_", " ")).trim();
   const classificationInstructions = `<Sound classifications: "${soundClassifications}".>`;
   return {

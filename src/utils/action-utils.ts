@@ -3,7 +3,7 @@ import { defaultAdvancedSettings } from "../data/default-advanced-settings";
 
 /**
  * Checks if the specified action is enabled for the current command.
- * 
+ *
  * @param actionName The name of the action to check.
  * @param advancedSettings The advanced settings object.
  * @returns True if the action is enabled, false otherwise.
@@ -17,7 +17,7 @@ export const isActionEnabled = (actionName: string, advancedSettings: typeof def
 
 /**
  * Checks if any of the specified actions are enabled for the current command.
- * 
+ *
  * @param actionNames The names of the actions to check.
  * @param advancedSettings The advanced settings object.
  * @returns True if any actions are enabled, false otherwise.
@@ -31,7 +31,7 @@ export const anyActionsEnabled = (actionNames: string[], advancedSettings: typeo
 
 /**
  * Checks if all specified actions are enabled for the current command.
- * 
+ *
  * @param actionNames The names of the actions to check.
  * @param advancedSettings The advanced settings object.
  * @returns True if all actions are enabled, false otherwise.
@@ -49,17 +49,26 @@ export const allActionsEnabled = (actionNames: string[], advancedSettings: typeo
  * @param advancedSettings The advanced settings object.
  * @returns The shortcut for the specified action.
  */
-export const getActionShortcut = (actionName: string, advancedSettings: typeof defaultAdvancedSettings): Keyboard.Shortcut => {
-  const defaultActionSettings = defaultAdvancedSettings.actionSettings as { [key: string]: { shortcut: Keyboard.Shortcut } };
+export const getActionShortcut = (
+  actionName: string,
+  advancedSettings: typeof defaultAdvancedSettings
+): Keyboard.Shortcut => {
+  const defaultActionSettings = defaultAdvancedSettings.actionSettings as {
+    [key: string]: { shortcut: Keyboard.Shortcut };
+  };
 
   const customActionSettings = advancedSettings.actionSettings as { [key: string]: { shortcut: Keyboard.Shortcut } };
 
   const shortcut = {
     modifiers: defaultActionSettings[actionName].shortcut.modifiers,
     key: defaultActionSettings[actionName].shortcut.key,
-  }
+  };
 
-  if (advancedSettings.actionSettings && actionName in customActionSettings && customActionSettings[actionName].shortcut) {
+  if (
+    advancedSettings.actionSettings &&
+    actionName in customActionSettings &&
+    customActionSettings[actionName].shortcut
+  ) {
     shortcut.modifiers = customActionSettings[actionName].shortcut.modifiers ?? shortcut.modifiers;
     shortcut.key = customActionSettings[actionName].shortcut.key ?? shortcut.key;
   }
