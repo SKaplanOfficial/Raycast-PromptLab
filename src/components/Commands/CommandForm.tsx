@@ -49,6 +49,7 @@ interface CommandFormValues {
   useRectangleDetection?: boolean;
   useBarcodeDetection?: boolean;
   useFaceDetection?: boolean;
+  useHorizonDetection?: boolean;
   outputKind?: string;
   actionScript?: string;
   showResponse?: boolean;
@@ -134,16 +135,17 @@ export default function CommandForm(props: {
       useMetadata: false,
       acceptedFileExtensions: "",
       useAudioDetails: false,
-      useSoundClassification: true,
-      useSubjectClassification: true,
+      useSoundClassification: false,
+      useSubjectClassification: false,
       useRectangleDetection: false,
-      useBarcodeDetection: true,
+      useBarcodeDetection: false,
       useFaceDetection: false,
+      useHorizonDetection: false,
       outputKind: "detail",
       actionScript: "",
       showResponse: true,
       description: "",
-      useSaliencyAnalysis: true,
+      useSaliencyAnalysis: false,
       author: "",
       website: "",
       version: "1.0.0",
@@ -327,6 +329,7 @@ export default function CommandForm(props: {
         useRectangleDetection: values.useRectangleDetection,
         useBarcodeDetection: values.useBarcodeDetection,
         useFaceDetection: values.useFaceDetection,
+        useHorizonDetection: values.useHorizonDetection,
         outputKind: values.outputKind,
         actionScript: values.actionScript,
         showResponse: values.showResponse,
@@ -943,6 +946,12 @@ export default function CommandForm(props: {
         label="Use Face Detection"
         {...itemProps.useFaceDetection}
         info="If checked, the number of faces in image files will be included in the text provided to the AI."
+      />
+
+      <Form.Checkbox
+        label="Use Horizon Detection"
+        {...itemProps.useHorizonDetection}
+        info="If checked, the angle of the horizon in image files will be included in the text provided to the AI."
       />
 
       <Form.Checkbox

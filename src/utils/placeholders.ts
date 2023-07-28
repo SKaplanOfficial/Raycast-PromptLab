@@ -22,6 +22,7 @@ import {
   getLastEmail,
   getLastNote,
   getMatchingYouTubeVideoID,
+  getMenubarOwningApplication,
   getSafariBookmarks,
   getSafariTabText,
   getSafariTopSites,
@@ -31,6 +32,7 @@ import {
   getWeatherData,
   getYouTubeVideoTranscriptById,
   getYouTubeVideoTranscriptByURL,
+  runJSInActiveTab,
 } from "./context-utils";
 import * as fs from "fs";
 import * as os from "os";
@@ -387,6 +389,24 @@ const placeholders: PlaceholderList = {
     example: "Is {{imageFaces}} a lot of faces?",
     description: "Replaced with the number of faces detected in selected images in Finder.",
     hintRepresentation: "{{imageFaces}}",
+  },
+
+  /**
+   * Placeholder for the angle of the horizon detected in selected images in Finder.
+   */
+  "{{imageHorizon}}": {
+    name: "imageHorizon",
+    rules: [],
+    apply: async (str: string, context?: { [key: string]: string }) => {
+      const imageHorizon = context && "imageHorizon" in context ? context["imageHorizon"] : "";
+      return { result: imageHorizon, imageFaces: imageHorizon };
+    },
+    result_keys: ["imageHorizon"],
+    constant: true,
+    fn: async () => (await Placeholders.allPlaceholders["{{imageHorizon}}"].apply("{{imageHorizon}}")).result,
+    example: "With a horizon angle of {{imageHorizon}}, is this image likely taken from a drone?",
+    description: "Replaced with the angle of the horizon detected in selected images in Finder.",
+    hintRepresentation: "{{imageHorizon}}",
   },
 
   /**
@@ -1041,6 +1061,40 @@ const placeholders: PlaceholderList = {
     example: "Based on this list of apps, recommend some new ones I might like: {{installedApps}}",
     description: "Replaced with the comma-separated list of names of applications installed on the system.",
     hintRepresentation: "{{installedApps}}",
+  },
+
+  "{{screenContent}}": {
+    name: "screenContent",
+    apply: async (str: string, context?: { [key: string]: string }) => {
+      const currentApp = await getMenubarOwningApplication();
+      const content = await ScriptRunner.ScreenCapture()
+      const overview = filterString(`<Current application: ${currentApp}>\n${content.replaceAll('{{screenContent}}', '')}`, 3000)
+      return { result: overview, screenContent: overview };
+    },
+    result_keys: ["screenContent"],
+    constant: true,
+    fn: async () => (await Placeholders.allPlaceholders["{{screenContent}}"].apply("{{screenContent}}")).result,
+    example: "Based on the following screenshot info, what am I looking at? {{screenContent}}",
+    description: "Replaced with image vision information extracted from a screen capture of your entire display.",
+    hintRepresentation: "{{screenContent}}",
+    rules: [],
+  },
+
+  "{{windowContent}}": {
+    name: "windowContent",
+    apply: async (str: string, context?: { [key: string]: string }) => {
+      const currentApp = await getMenubarOwningApplication();
+      const content = await ScriptRunner.ScreenCapture(true)
+      const overview = filterString(`<Current application: ${currentApp}>\n${content.replaceAll('{{windowContent}}', '')}`, 3000)
+      return { result: overview, windowContent: overview };
+    },
+    result_keys: ["windowContent"],
+    constant: true,
+    fn: async () => (await Placeholders.allPlaceholders["{{windowContent}}"].apply("{{windowContent}}")).result,
+    example: "Based on the following screenshot info, what am I looking at? {{windowContent}}",
+    description: "Replaced with image vision information extracted from a screen capture of the active window.",
+    hintRepresentation: "{{windowContent}}",
+    rules: [],
   },
 
   /**
@@ -1962,6 +2016,150 @@ const placeholders: PlaceholderList = {
     hintRepresentation: "{{decrement:x}}",
   },
 
+  '{{focusedElement( browser="(.*?)")?}}': {
+    name: "focusedElement",
+    rules: [],
+    aliases: [
+      '{{activeElement( browser="(.*?)")?}}',
+      '{{selectedElement( browser="(.*?)")?}}',
+      '{{focusedElementText( browser="(.*?)")?}}',
+      '{{activeElementText( browser="(.*?)")?}}',
+      '{{selectedElementText( browser="(.*?)")?}}',
+    ],
+    apply: async (str: string, context?: { [key: string]: string }) => {
+      try {
+        const browser = str.match(/(focusedElement|activeElement|selectedElement)( browser=")(.*?)(")?/)?.[3];
+        const appName = browser
+          ? browser
+          : context?.["currentAppName"]
+          ? context["currentAppName"]
+          : (await getFrontmostApplication()).name;
+
+        const js = `document.activeElement.innerText`;
+        const elementText = await runJSInActiveTab(js, appName);
+        return { result: elementText };
+      } catch (e) {
+        return { result: "" };
+      }
+    },
+    dependencies: ["currentAppName"],
+    constant: false,
+    fn: async (browser: string) =>
+      (
+        await Placeholders.allPlaceholders['{{focusedElement( browser="(.*?)")?}}'].apply(
+          `{{focusedElement browser="${browser}"}}`
+        )
+      ).result,
+    example: 'Summarize this: {{focusedElement browser="Safari"}}',
+    description:
+      "Replaced with the text content of the currently focused HTML element in the active tab of the given browser. If no browser is specified, the frontmost browser is used.",
+    hintRepresentation: "{{focusedElement}}",
+  },
+
+  '{{textOfElement( browser="(.*)")?:(([^{]|{(?!{)|{{[\\s\\S]*?}})*?)}}': {
+    name: "elementText",
+    rules: [],
+    aliases: ['{{elementText( browser="(.*)")?:(([^{]|{(?!{)|{{[\\s\\S]*?}})*?)}}'],
+    apply: async (str: string, context?: { [key: string]: string }) => {
+      try {
+        const specifier = str.match(
+          /{{(textOfElement|elementText)( browser="(.*)")?:(([^{]|{(?!{)|{{[\s\S]*?}})*?)}}/
+        )?.[4];
+        if (!specifier) return { result: "" };
+
+        const browser = str.match(
+          /{{(textOfElement|elementText)( browser="(.*)"):(([^{]|{(?!{)|{{[\s\S]*?}})*?)}}/
+        )?.[3];
+
+        const appName = browser
+          ? browser
+          : context?.["currentAppName"]
+          ? context["currentAppName"]
+          : (await getFrontmostApplication()).name;
+
+        let js = `document.getElementById('${specifier}')?.innerText`;
+        if (specifier.startsWith(".")) {
+          js = `document.getElementsByClassName('${specifier.slice(1)}')[0]?.innerText`;
+        } else if (specifier.startsWith("#")) {
+          js = `document.getElementById('${specifier.slice(1)}')?.innerText`;
+        } else if (specifier.startsWith("[")) {
+          js = `document.querySelector('${specifier}')?.innerText`;
+        } else if (specifier.startsWith("<") && specifier.endsWith(">")) {
+          js = `document.getElementsByTagName('${specifier.slice(1, -1)}')[0]?.innerText`;
+        }
+
+        const elementText = await runJSInActiveTab(js, appName);
+        return { result: elementText };
+      } catch (e) {
+        return { result: "" };
+      }
+    },
+    dependencies: ["currentAppName"],
+    constant: false,
+    fn: async (specifier: string, browser?: string) =>
+      (
+        await Placeholders.allPlaceholders[
+          '{{textOfElement( browser="(.*)")?:(([^{]|{(?!{)|{{[\\s\\S]*?}})*?)}}'
+        ].apply(`{{elementText${browser ? ` browser="${browser}"` : ``}:${specifier}}}`)
+      ).result,
+    example: "Summarize this: {{elementText:#article}}",
+    description: "Replaced with the text content of an HTML element in the active tab of any supported browser.",
+    hintRepresentation: "{{elementText}}",
+  },
+
+  '{{HTMLOfElement( browser="(.*)")?:(([^{]|{(?!{)|{{[\\s\\S]*?}})*?)}}': {
+    name: "elementHTML",
+    rules: [],
+    aliases: [
+      '{{element( browser="(.*)")?:(([^{]|{(?!{)|{{[\\s\\S]*?}})*?)}}',
+      '{{elementHTML( browser="(.*)")?:(([^{]|{(?!{)|{{[\\s\\S]*?}})*?)}}',
+    ],
+    apply: async (str: string, context?: { [key: string]: string }) => {
+      try {
+        const specifier = str.match(
+          /{{(HTMLOfElement|element|elementHTML)( browser="(.*)")?:(([^{]|{(?!{)|{{[\s\S]*?}})*?)}}/
+        )?.[4];
+        if (!specifier) return { result: "" };
+
+        const browser = str.match(
+          /{{(HTMLOfElement|element|elementHTML)( browser="(.*)"):(([^{]|{(?!{)|{{[\s\S]*?}})*?)}}/
+        )?.[3];
+
+        const appName = browser
+          ? browser
+          : context?.["currentAppName"]
+          ? context["currentAppName"]
+          : (await getFrontmostApplication()).name;
+
+        let js = `document.getElementById('${specifier}')?.outerHTML`;
+        if (specifier.startsWith(".")) {
+          js = `document.getElementsByClassName('${specifier.slice(1)}')[0]?.outerHTML`;
+        } else if (specifier.startsWith("#")) {
+          js = `document.getElementById('${specifier.slice(1)}')?.outerHTML`;
+        } else if (specifier.startsWith("[")) {
+          js = `document.querySelector('${specifier}')?.outerHTML`;
+        } else if (specifier.startsWith("<") && specifier.endsWith(">")) {
+          js = `document.getElementsByTagName('${specifier.slice(1, -1)}')[0]?.outerHTML`;
+        }
+        const elementHTML = await runJSInActiveTab(js, appName);
+        return { result: elementHTML };
+      } catch (e) {
+        return { result: "" };
+      }
+    },
+    dependencies: ["currentAppName"],
+    constant: false,
+    fn: async (specifier: string, browser?: string) =>
+      (
+        await Placeholders.allPlaceholders[
+          '{{HTMLOfElement( browser="(.*)")?:(([^{]|{(?!{)|{{[\\s\\S]*?}})*?)}}'
+        ].apply(`{{element${browser ? ` browser="${browser}"` : ``}:${specifier}}}`)
+      ).result,
+    example: "Summarize this: {{elementHTML:#article}}",
+    description: "Replaced with the raw HTML source of an HTML element in the active tab of any supported browser.",
+    hintRepresentation: "{{elementHTML}}",
+  },
+
   /**
    * Placeholder for a comma-separated list of nearby locations based on the given search query.
    */
@@ -2303,13 +2501,22 @@ const placeholders: PlaceholderList = {
   /**
    * Placeholder for output of a JavaScript script. If the script fails, this placeholder will be replaced with an empty string. The script is run in a sandboxed environment.
    */
-  "{{(js|JS):(([^{]|{(?!{)|{{[\\s\\S]*?}})*?)}}": {
+  '{{(js|JS)( target="(.*?)")?:(([^{]|{(?!{)|{{[\\s\\S]*?}})*?)}}': {
     name: "js",
     rules: [],
     apply: async (str: string, context?: { [key: string]: string }) => {
       try {
-        const script = str.match(/(?<=(js|JS)):(([^{]|{(?!{)|{{[\s\S]*?}})*?)}}/)?.[2];
+        const script = str.match(/(?<=(js|JS))( target="(.*?)")?:(([^{]|{(?!{)|{{[\s\S]*?}})*?)}}/)?.[4];
+        const target = str.match(/(?<=(js|JS))( target="(.*?)")?:(([^{]|{(?!{)|{{[\s\S]*?}})*?)}}/)?.[3];
         if (!script) return { result: "", js: "" };
+
+        if (target) {
+          // Run in active browser tab
+          const res = await runJSInActiveTab(script.replaceAll(/(\n|\r|\t|\\|")/g, "\\$1"), target);
+          return { result: res, js: res };
+        }
+
+        // Run in sandbox
         const sandbox = Object.values(Placeholders.allPlaceholders).reduce((acc, placeholder) => {
           acc[placeholder.name] = placeholder.fn;
           return acc;
@@ -2325,9 +2532,12 @@ const placeholders: PlaceholderList = {
       }
     },
     constant: false,
-    fn: async (script: string) =>
-      (await Placeholders.allPlaceholders["{{(js|JS):(([^{]|{(?!{)|{{[\\s\\S]*?}})*?)}}"].apply(`{{js:${script}}}`))
-        .result,
+    fn: async (script: string, target?: string) =>
+    (
+      await Placeholders.allPlaceholders['{{(js|JS)( target="(.*?)")?:(([^{]|{(?!{)|{{[\\s\\S]*?}})*?)}}'].apply(
+        `{{js${target == undefined ? `` : ` target="${target}"`}:${script}}}`
+      )
+    ).result,
     example: '{{js:log("Hello World")}}',
     description:
       "Placeholder for output of a JavaScript script. If the script fails, this placeholder will be replaced with an empty string. The script is run in a sandboxed environment.",

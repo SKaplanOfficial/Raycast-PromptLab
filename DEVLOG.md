@@ -2,6 +2,15 @@
 
 ## v1.1.1 Release
 
+### 2023-07-27
+
+- Add support for additional browsers (e.g. Dev/Beta/Canary versions of Chrome, Edge, and Brave, Opera GX, etc.)
+- Added support for parsing Pages and Keynote documents.
+- Added support for parsing MS Office and Apple Numbers documents.
+- Added `{{screenContent}}` and `{{windowContent}}` placeholders for getting image vision data for the user's entire screen or the active window, respectively.
+- Added horizon detection and corresponding command setting.
+  - Added `{{imageHorizon}}` placeholder.
+
 ### 2023-07-19
 
 - Added ability to modify action keybindings in the advanced settings
