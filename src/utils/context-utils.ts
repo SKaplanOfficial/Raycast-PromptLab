@@ -207,6 +207,22 @@ const getOrionURL = async (): Promise<string> => {
 };
 
 /**
+ * Gets the URL of the active tab in OmniWeb.
+ * @returns A promise which resolves to the URL of the active tab as a string.
+ */
+const getOmniWebURL = async (): Promise<string> => {
+  return runAppleScript(`tell application "OmniWeb" to return address of active tab of browser 1`);
+};
+
+/**
+ * Gets the URL of the active tab in SigmaOS.
+ * @returns A promise which resolves to the URL of the active tab as a string.
+ */
+const getSigmaOSURL = async (): Promise<string> => {
+  return runAppleScript(`tell application "SigmaOS" to return URL of active tab of window 1`);
+};
+
+/**
  * The browsers from which the current URL can be obtained.
  */
 export const SupportedBrowsers = [
@@ -239,6 +255,8 @@ export const SupportedBrowsers = [
   "Safari",
   "Vivaldi",
   "Yandex",
+  "OmniWeb",
+  "SigmaOS",
 ];
 
 /**
@@ -252,14 +270,6 @@ export const getCurrentURL = async (browserName: string): Promise<string> => {
     case "Safari":
       return getCurrentSafariURL();
       break;
-    case "Google Chrome":
-    case "Microsoft Edge":
-    case "Brave Browser":
-    case "Opera":
-    case "Vivaldi":
-    case "Chromium":
-      return getChromiumURL(browserName);
-      break;
     case "Arc":
       return getArcURL();
       break;
@@ -267,6 +277,15 @@ export const getCurrentURL = async (browserName: string): Promise<string> => {
       return getiCabURL();
     case "Orion":
       return getOrionURL();
+      break;
+    case "OmniWeb":
+      return getOmniWebURL();
+      break;
+    case "SigmaOS":
+      return getSigmaOSURL();
+      break;
+    default:
+      return getChromiumURL(browserName);
       break;
   }
   return "";
@@ -292,23 +311,6 @@ export const runJSInActiveTab = async (script: string, browserName: string): Pro
           end tell
         end tell`);
       break;
-    case "Google Chrome":
-    case "Microsoft Edge":
-    case "Brave Browser":
-    case "Opera":
-    case "Vivaldi":
-    case "Chromium":
-      return runAppleScript(`tell application "${browserName}"
-          set theTab to active tab of window 1
-          tell theTab
-            return execute javascript "try {
-                      ${script}
-                    } catch {
-                      '';
-                    }"
-          end tell
-        end tell`);
-      break;
     case "Arc":
       return runAppleScript(`tell application "Arc"
           set theTab to active tab of front window
@@ -324,8 +326,9 @@ export const runJSInActiveTab = async (script: string, browserName: string): Pro
         end tell`);
       break;
     case "iCab":
-      // iCab doesn't return the result of the script, so we have to get the text of the webpage instead. :(
-      return getTextOfWebpage(await getiCabURL());
+    case "SigmaOS":
+      // No way to return script
+      break;
     case "Orion":
       return runAppleScript(`tell application "Orion"
           set theTab to current tab of window 1
@@ -334,6 +337,27 @@ export const runJSInActiveTab = async (script: string, browserName: string): Pro
                     } catch {
                       '';
                     }" in theTab
+        end tell`);
+      break;
+    case "OmniWeb":
+      return runAppleScript(`tell application "OmniWeb"
+          do script "try {
+            ${script}
+          } catch {
+            '';
+          }" window browser 1
+        end tell`);
+      break;
+    default:
+      return runAppleScript(`tell application "${browserName}"
+          set theTab to active tab of window 1
+          tell theTab
+            return execute javascript "try {
+                      ${script}
+                    } catch {
+                      '';
+                    }"
+          end tell
         end tell`);
       break;
   }
@@ -404,8 +428,7 @@ export const getYouTubeVideoTranscriptById = async (videoId: string): Promise<st
     return "No transcript available.";
   }
 
-  const transcriptURL = "https://youtube.com" + englishCaptionTrack["baseUrl"];
-  const transcriptText = await getTextOfWebpage(transcriptURL);
+  const transcriptText = await getTextOfWebpage(englishCaptionTrack["baseUrl"]);
   return filterString(`Video Title: ${title}\n\nTranscript:\n${transcriptText}`);
 };
 

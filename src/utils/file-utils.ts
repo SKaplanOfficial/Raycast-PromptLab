@@ -203,9 +203,9 @@ export const getExtensions = async (): Promise<Extension[]> => {
 export const unzipToTemp = async (zipPath: string) => {
   const dirPath = path.join(os.tmpdir(), `${path.basename(zipPath, ".zip")}`);
   if (fs.existsSync(dirPath)) {
-    fs.rmSync(dirPath, { recursive: true });
+    await fs.promises.rm(dirPath, { recursive: true });
   }
-
+  
   try {
     // Unzip the file
     await new Promise((resolve) => {

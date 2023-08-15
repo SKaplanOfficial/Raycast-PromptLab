@@ -2,17 +2,27 @@
 
 ## v1.2.0 Release
 
+### 2023-08-16
+
+- Added support for OmniWeb and SigmaOS browsers
+
+### 2023-08-15
+
+- Added support for models that don't respond using the usual "data: ..." format (e.g. on-device Ollama/Orca).
+- Fixed bug where trying to obtain the transcript of a YouTube video would result in an invalid URL error (due to a slight change in the YouTube API).
+
+
 ### 2023-07-29
 
 - Added support for `target` parameter to `{{js:...}}` placeholders.
   - Specify a browser to run the script in. The script will run in the active tab. The placeholder will be replaced with the script's return value.
 - Added `{{elementText:...}}`, `{{elementHTML:...}}`, and `{{focusedElement}}` for getting the text/html of HTML elements in the active tab of a browser.
-  - Doesn't work in iCab.
+  - Doesn't work in iCab or SigmaOS.
 
 ### 2023-07-28
 
 - Added 'Add Placeholder...' action submenu when editing a command prompt.
-  - Inserts the selected placeholder into the prompt at the cursor position.
+  - Inserts the selected placeholder into the prompt at the end of the prompt.
 - Added `{{currentAppBundleID}}` placeholder for getting the bundle ID of the currently active app.
 - When creating a new command, custom setup fields will now default to being unlocked.
 - Fixed per-command model setting not saving.
