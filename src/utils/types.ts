@@ -888,11 +888,6 @@ export type Placeholder = {
   aliases?: string[];
 
   /**
-   * The rules that determine whether or not the placeholder should be replaced. If any of these rules return true, the placeholder will be replaced. If no rules are provided, the placeholder will always be replaced.
-   */
-  rules: ((str: string, context?: { [key: string]: string }) => Promise<boolean>)[];
-
-  /**
    * The function that applies the placeholder to a string.
    * @param str The string to apply the placeholder to.
    * @returns The string with the placeholder applied.
@@ -935,6 +930,11 @@ export type Placeholder = {
    * The demonstration representation of the placeholder, shown as the "name" of the placeholder when the placeholder is detected in a prompt.
    */
   hintRepresentation: string;
+
+  /**
+   * The full name representation of the placeholder, properly spaced.
+   */
+  fullRepresentation: string;
 };
 
 /**

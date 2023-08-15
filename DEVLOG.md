@@ -1,6 +1,21 @@
 # PromptLab DevLog - A More Detailed ChangeLog
 
-## v1.1.1 Release
+## v1.2.0 Release
+
+### 2023-07-29
+
+- Added support for `target` parameter to `{{js:...}}` placeholders.
+  - Specify a browser to run the script in. The script will run in the active tab. The placeholder will be replaced with the script's return value.
+- Added `{{elementText:...}}`, `{{elementHTML:...}}`, and `{{focusedElement}}` for getting the text/html of HTML elements in the active tab of a browser.
+  - Doesn't work in iCab.
+
+### 2023-07-28
+
+- Added 'Add Placeholder...' action submenu when editing a command prompt.
+  - Inserts the selected placeholder into the prompt at the cursor position.
+- Added `{{currentAppBundleID}}` placeholder for getting the bundle ID of the currently active app.
+- When creating a new command, custom setup fields will now default to being unlocked.
+- Fixed per-command model setting not saving.
 
 ### 2023-07-27
 
@@ -14,6 +29,8 @@
 ### 2023-07-19
 
 - Added ability to modify action keybindings in the advanced settings
+
+## v1.1.1 Release
 
 ### 2023-07-17
 
