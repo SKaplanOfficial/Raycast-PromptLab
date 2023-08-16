@@ -1982,7 +1982,7 @@ const placeholders: PlaceholderList = {
           ? context["currentAppName"]
           : (await getFrontmostApplication()).name;
 
-        const js = `document.activeElement.innerText`;
+        const js = `document.querySelector('div:hover').innerText`;
         const elementText = await runJSInActiveTab(js, appName);
         return { result: elementText };
       } catch (e) {
