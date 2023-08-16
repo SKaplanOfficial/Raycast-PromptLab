@@ -11,7 +11,6 @@
 - Added support for models that don't respond using the usual "data: ..." format (e.g. on-device Ollama/Orca).
 - Fixed bug where trying to obtain the transcript of a YouTube video would result in an invalid URL error (due to a slight change in the YouTube API).
 
-
 ### 2023-07-29
 
 - Added support for `target` parameter to `{{js:...}}` placeholders.
@@ -36,11 +35,11 @@
 - Added horizon detection and corresponding command setting.
   - Added `{{imageHorizon}}` placeholder.
 
+## v1.1.1 Release
+
 ### 2023-07-19
 
 - Added ability to modify action keybindings in the advanced settings
-
-## v1.1.1 Release
 
 ### 2023-07-17
 
