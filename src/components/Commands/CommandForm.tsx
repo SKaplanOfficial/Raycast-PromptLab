@@ -936,6 +936,7 @@ export default function CommandForm(props: {
           <Form.Dropdown.Section title="Favorites">
             {models.models
               .filter((model) => model.favorited)
+              .sort((model) => model.isDefault ? -1 : 1)
               .map((model) => (
                 <Form.Dropdown.Item
                   title={model.name}
@@ -948,6 +949,7 @@ export default function CommandForm(props: {
         ) : null}
         {models.models
           .filter((model) => !model.favorited)
+          .sort((model) => model.isDefault ? -1 : 1)
           .map((model) => (
             <Form.Dropdown.Item
               title={model.name}
