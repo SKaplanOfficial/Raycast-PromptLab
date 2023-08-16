@@ -80,7 +80,7 @@ export const getImageDetails = async (filePath: string, options: CommandOptions)
     options.useFaceDetection || false,
     options.useRectangleDetection || false,
     options.useSaliencyAnalysis || false,
-    options.useHorizonDetection || false,
+    options.useHorizonDetection || false
   );
   const imageVisionInstructions = filterString(imageDetails.stringValue);
   const exifData =
@@ -205,7 +205,7 @@ export const unzipToTemp = async (zipPath: string) => {
   if (fs.existsSync(dirPath)) {
     await fs.promises.rm(dirPath, { recursive: true });
   }
-  
+
   try {
     // Unzip the file
     await new Promise((resolve) => {

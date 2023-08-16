@@ -475,9 +475,13 @@ export default function CommandForm(props: {
             <ActionPanel.Submenu title="Add Placeholder..." icon={Icon.Plus}>
               {Object.values(Placeholders.allPlaceholders)
                 .filter(
-                  (placeholder) => !placeholder.name.startsWith("textfile:") && !placeholder.name.startsWith("video:") && !placeholder.name.startsWith("audio:") && !placeholder.name.startsWith("image:")
+                  (placeholder) =>
+                    !placeholder.name.startsWith("textfile:") &&
+                    !placeholder.name.startsWith("video:") &&
+                    !placeholder.name.startsWith("audio:") &&
+                    !placeholder.name.startsWith("image:")
                 )
-                .sort((a, b) => a.fullRepresentation > b.fullRepresentation ? 1 : -1)
+                .sort((a, b) => (a.fullRepresentation > b.fullRepresentation ? 1 : -1))
                 .map((placeholder) => (
                   <Action
                     title={placeholder.fullRepresentation || "empty"}

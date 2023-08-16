@@ -76,7 +76,13 @@ const isSpreadsheet = (filepath: string) => {
   return spreadsheetFileExtensions.includes(path.extname(filepath).slice(1).toLowerCase());
 };
 
-export async function getFileContent(filePath: string, options?: CommandOptions, index?: number, maxCharacters?: number, settings?: typeof defaultAdvancedSettings) {
+export async function getFileContent(
+  filePath: string,
+  options?: CommandOptions,
+  index?: number,
+  maxCharacters?: number,
+  settings?: typeof defaultAdvancedSettings
+) {
   const options_ =
     options == undefined
       ? {
@@ -107,11 +113,13 @@ export async function getFileContent(filePath: string, options?: CommandOptions,
     settings = loadAdvancedSettingsSync();
   }
 
-  const currentData = { contents: `{${index == undefined ? '' : `File #${index+1} - `}${path.basename(filePath)}}:\n` };
+  const currentData = {
+    contents: `{${index == undefined ? "" : `File #${index + 1} - `}${path.basename(filePath)}}:\n`,
+  };
 
   const filepath = filePath.toLowerCase();
   if (isTextFile(filepath)) addTextFileDetails(filepath, currentData);
-  
+
   if (isTrueDirectory(filepath)) addDirectoryDetails(filepath, currentData);
   else if (isApp(filepath)) await addAppDetails(filepath, currentData, options_);
   else if (isPDF(filepath)) await addPDFDetails(filepath, currentData, options_);
@@ -126,7 +134,7 @@ export async function getFileContent(filePath: string, options?: CommandOptions,
   else if (!isTextFile(filepath)) attemptAddRawText(filepath, currentData);
 
   if (options_.useMetadata) addMetadataDetails(filepath, currentData);
-  currentData.contents = filterString(currentData.contents, maxCharacters) 
+  currentData.contents = filterString(currentData.contents, maxCharacters);
   return currentData;
 }
 
@@ -239,7 +247,7 @@ const addKeynoteDetails = async (
   currentData: { [key: string]: string; contents: string },
   settings: typeof defaultAdvancedSettings
 ) => {
-   currentData.contents += `<This is a Keynote slideshow. Here are details about it.>`;
+  currentData.contents += `<This is a Keynote slideshow. Here are details about it.>`;
   const zipPath = path.join(os.tmpdir(), `${path.basename(filepath, ".key")}.zip`);
   if (fs.existsSync(zipPath)) fs.unlinkSync(zipPath);
   execSync(`cp "${filepath}" "${zipPath}"`);
@@ -251,7 +259,7 @@ const addKeynoteDetails = async (
     const imageFile = path.join(dirPath, "preview.jpg");
     await addImageDetails(imageFile, currentData, iWorkOptions);
   } else {
-    console.log("wo")
+    console.log("wo");
     const filenames = fs.readdirSync(dataDir);
     for (const filename of filenames) {
       if (filename.startsWith("st-")) {
@@ -296,10 +304,12 @@ const addAppDetails = async (
   let appDetails = "";
 
   // Include plist information
-  const plist = (await runAppleScript(`use framework "Foundation"
+  const plist = (
+    await runAppleScript(`use framework "Foundation"
   set theURL to current application's NSURL's fileURLWithPath:"${filepath}Contents/Info.plist"
   set theDict to current application's NSDictionary's dictionaryWithContentsOfURL:theURL |error|:(missing value)
-  return theDict's |description|() as text`)).replaceAll(/\s+/g, " ")
+  return theDict's |description|() as text`)
+  ).replaceAll(/\s+/g, " ");
 
   // Include general application-focused instructions
   if (options.useMetadata) {
@@ -338,20 +348,19 @@ const addVideoDetails = async (
   settings: typeof defaultAdvancedSettings
 ) => {
   const videoFeatureExtractor = path.resolve(environment.assetsPath, "scripts", "VideoFeatureExtractor.scpt");
-  const videoDetails =
-    await execScript(
-      videoFeatureExtractor,
-      [
-        filepath,
-        options.useAudioDetails || false,
-        options.useSubjectClassification || false,
-        options.useFaceDetection || false,
-        options.useRectangleDetection || false,
-        options.useHorizonDetection || false,
-        settings.fileAnalysisSettings.videoSampleCount
-      ],
-      "JavaScript"
-    ).data
+  const videoDetails = await execScript(
+    videoFeatureExtractor,
+    [
+      filepath,
+      options.useAudioDetails || false,
+      options.useSubjectClassification || false,
+      options.useFaceDetection || false,
+      options.useRectangleDetection || false,
+      options.useHorizonDetection || false,
+      settings.fileAnalysisSettings.videoSampleCount,
+    ],
+    "JavaScript"
+  ).data;
   currentData.contents += videoDetails;
 };
 
