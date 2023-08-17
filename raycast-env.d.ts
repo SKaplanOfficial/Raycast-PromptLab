@@ -60,6 +60,8 @@ declare namespace Preferences {
   export type DiscoverCommands = ExtensionPreferences & {}
   /** Preferences accessible in the `manage-models` command */
   export type ManageModels = ExtensionPreferences & {}
+  /** Preferences accessible in the `manage-placeholders` command */
+  export type ManagePlaceholders = ExtensionPreferences & {}
   /** Preferences accessible in the `menubar-item` command */
   export type MenubarItem = ExtensionPreferences & {
   /** Shortcuts To Show - Whether to show the 'New Chat' shortcut in the menu. */
@@ -110,6 +112,8 @@ declare namespace Arguments {
   export type DiscoverCommands = {}
   /** Arguments passed to the `manage-models` command */
   export type ManageModels = {}
+  /** Arguments passed to the `manage-placeholders` command */
+  export type ManagePlaceholders = {}
   /** Arguments passed to the `menubar-item` command */
   export type MenubarItem = {}
   /** Arguments passed to the `saved-responses` command */

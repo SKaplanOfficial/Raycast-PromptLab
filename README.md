@@ -213,13 +213,19 @@ Contributions are welcome! Please see the [contributing guidelines](./CONTRIBUTI
 
 ## Roadmap
 
-### Current Release: v1.1.0
+### Current Release: v1.2.0
 
 - Create, Edit, and Run Custom Commands
 - Detail, List, Chat, and No-View Command Types
 - Placeholders in Prompts
+  - Information Placeholders
+  - Persistent Variables
+  - Flow Control Directives
+  - Configuration Placeholders
+  - JS Sandbox
 - Get Content of Selected Files
-- Extract Text, Subjects, QR Codes, etc. from Images
+  - Supports Text, Images, Videos, PDFs, Office Documents, and More
+  - Extract Text, Subjects, QR Codes, etc. from Images
 - Import/Export Commands
 - Run AppleScript or Bash Scripts On Model Response
 - PromptLab Chat with Autonomous Command Execution Capability
@@ -238,36 +244,28 @@ Contributions are welcome! Please see the [contributing guidelines](./CONTRIBUTI
   - Post-Install Configuration [example](./examples/promptlab-1.1.0/commandConfig4.png)
 - Spoken Responses
 - Voice Input
-- New Placeholders
-  - Persistent Variables
-  - Flow Control Directives
-  - Configuration Placeholders
-  - JS Sandbox
 - Manage Models [example](./examples/promptlab-1.1.0/models.png)
 - Menu Bar Extra [example](./examples/promptlab-1.1.0/menubar.png)
 - Placeholders Guide
+- Analyze on-screen content
 
-### Next Release: v1.2.0
+### Next Release: v1.3.0
 
 #### Planned
 
-- [x] Saved Responses
-- [x] Command, Chat, and Placeholder Insights
-- [ ] WordNet Integration
-- [x] Command Templates
-- [ ] Improved Local Processing
-  - [x] DOCX, PPTX, XLSX Parsing
-  - [x] Pages, Numbers, and Keynote Parsing
-  - [x] Spreadsheet Parsing
-  - [x] Horizon Detection
-- [ ] WeatherKit Integration
+- [ ] Saved Responses
+- [ ] Command Templates
+- [ ] Live Audio Classification
+- [ ] 'Manage Custom Placeholders' Command
 
 #### Possible
 
-- [ ] Run Automator Actions
+- [ ] WordNet Integration
+- [ ] Global Statistics
 - [ ] TF-IDF
 - [ ] Autonomous Web Search
 - [ ] LangChain Integration
+- [ ] WeatherKit Integration
 
 ### Future Releases
 

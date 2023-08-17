@@ -991,6 +991,11 @@ export type Placeholder = {
    * The full name representation of the placeholder, properly spaced.
    */
   fullRepresentation: string;
+
+  /**
+   * The file that the placeholder was sourced from, if any.
+   */
+  source?: string;
 };
 
 /**
@@ -1021,6 +1026,11 @@ export type CustomPlaceholder = {
    * A friendlier name for the placeholder, shown as the "name" of the placeholder when the placeholder is detected in a prompt.
    */
   hintRepresentation: string;
+
+  /**
+   * The full name representation of the placeholder, properly spaced.
+   */
+  fullRepresentation: string;
 };
 
 /**

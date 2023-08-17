@@ -2627,7 +2627,7 @@ const applyToObjectValuesWithKeys = async (
  * Loads custom placeholders from the custom-placeholders.json file in the support directory.
  * @returns The custom placeholders as a {@link PlaceholderList} object.
  */
-const loadCustomPlaceholders = async (settings: { allowCustomPlaceholderPaths: boolean }) => {
+export const loadCustomPlaceholders = async (settings: { allowCustomPlaceholderPaths: boolean }) => {
   try {
     const preferences = getPreferenceValues<ExtensionPreferences>();
     const customPlaceholdersPath = path.join(environment.supportPath, CUSTOM_PLACEHOLDERS_FILENAME);
@@ -2640,15 +2640,21 @@ const loadCustomPlaceholders = async (settings: { allowCustomPlaceholderPaths: b
     const customPlaceholderFileContents = await Promise.all(
       customPlaceholderFiles.map(async (customPlaceholdersPath) => {
         try {
-          return await fs.promises.readFile(customPlaceholdersPath, "utf-8");
+          return {
+            path: customPlaceholdersPath,
+            data: await fs.promises.readFile(customPlaceholdersPath, "utf-8")
+          }
         } catch (e) {
-          return "";
+          return {
+            path: customPlaceholdersPath,
+            data: "{}"
+          };
         }
       })
     );
     return customPlaceholderFileContents.reduce((acc, customPlaceholdersFile) => {
       try {
-        const newPlaceholdersData = JSON.parse(customPlaceholdersFile);
+        const newPlaceholdersData = JSON.parse(customPlaceholdersFile.data);
         const newPlaceholders = (Object.entries(newPlaceholdersData) as [string, CustomPlaceholder][]).reduce(
           (acc, [key, placeholder]) => {
             try {
@@ -2673,6 +2679,7 @@ const loadCustomPlaceholders = async (settings: { allowCustomPlaceholderPaths: b
                 example: placeholder.example,
                 hintRepresentation: placeholder.hintRepresentation,
                 fullRepresentation: `${placeholder.name} (Custom)`,
+                source: customPlaceholdersFile.path,
               };
             } catch (e) {
               showToast({ title: `Failed to load placeholder "${key}"`, message: `Invalid regex.` });
@@ -2904,3 +2911,14 @@ export const Placeholders = {
   applyToObjectValuesWithKeys: applyToObjectValuesWithKeys,
   bulkApply: bulkApply,
 };
+
+// export const addCustomPlaceholder = 
+
+export const deleteCustomPlaceholder = async (key: string, placeholder: Placeholder) => {
+  if (placeholder.source != undefined) {
+    const fileContents = await fs.promises.readFile(placeholder.source, "utf-8");
+    const placeholders = JSON.parse(fileContents);
+    delete placeholders[key];
+    await fs.promises.writeFile(placeholder.source, JSON.stringify(placeholders, null, 2));
+  }
+}

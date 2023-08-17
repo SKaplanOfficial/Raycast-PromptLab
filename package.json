@@ -256,6 +256,12 @@
       "mode": "view"
     },
     {
+      "name": "manage-placeholders",
+      "title": "Manage Custom Placeholders",
+      "description": "Manage your custom placeholders for use in PromptLab commands",
+      "mode": "view"
+    },
+    {
       "name": "menubar-item",
       "title": "PromptLab Menu Item",
       "description": "Show PromptLab shortcut in the menu bar",
