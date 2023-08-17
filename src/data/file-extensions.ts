@@ -370,11 +370,6 @@ export const audioFileExtensions = [
 ];
 
 /**
- * MS Office file extensions.
- */
-export const officeFileExtensions = ["docx", "pptx"];
-
-/**
  * Spreadsheet file extensions supported by the XLSX package.
  */
 export const spreadsheetFileExtensions = ["xls", "xlsx", "xlsm", "xlsb", "ods", "numbers"];

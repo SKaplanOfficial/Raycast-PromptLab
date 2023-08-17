@@ -9,7 +9,6 @@
  */
 
 import { Color, Icon } from '@raycast/api';
-
 import { Model } from '../utils/types';
 
 /**

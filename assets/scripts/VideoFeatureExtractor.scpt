@@ -1,12 +1,12 @@
 //@osa-lang:JavaScript
 function run(argv) {
-  const filePath = argv[2]
-  const useAudioDetails = argv[3]
-  const useSubjectClassification = argv[4]
-  const useFaceDetection = argv[5]
-  const useRectangleDetection = argv[6]
-  const useHorizonDetection = argv[7]
-  const sampleCount = argv[8]
+  const filePath = argv[2];
+  const useAudioDetails = argv[3];
+  const useSubjectClassification = argv[4];
+  const useFaceDetection = argv[5];
+  const useRectangleDetection = argv[6];
+  const useHorizonDetection = argv[7];
+  const sampleCount = argv[8];
 
   ObjC.import("objc");
   ObjC.import("CoreMedia");
@@ -60,6 +60,7 @@ function run(argv) {
   let faces = 0;
   const rects = [];
   let horizon = [];
+
   for (let i = 0; i < samples.length; i++) {
     const sample = samples[i];
     const presentationTime = $.CMSampleBufferGetPresentationTimeStamp(sample);
@@ -81,7 +82,7 @@ function run(argv) {
     const animalRequest = $.VNRecognizeAnimalsRequest.alloc.init;
     const faceRequest = $.VNDetectFaceRectanglesRequest.alloc.init;
     const rectRequest = $.VNDetectRectanglesRequest.alloc.init;
-	const horizonRequest = $.VNDetectHorizonRequest.alloc.init
+	const horizonRequest = $.VNDetectHorizonRequest.alloc.init;
     rectRequest.maximumObservations = 0;
 
     requestHandler.performRequestsError(
@@ -95,6 +96,7 @@ function run(argv) {
       ]),
       null
     );
+
     const textResults = textRequest.results;
     const classificationResults = classificationRequest.results;
     const animalResults = animalRequest.results;
@@ -181,13 +183,15 @@ function run(argv) {
 
   if (useSubjectClassification == "true" && animals.length > 0) {
     instructions.push(
-      `<Animals represented: ${animals.join(", ")}.>`
+      "<Animals represented: `" +
+        animals.join(", ") +
+        "`.>"
     );
   }
 
   if (useFaceDetection == "true" && faces > 0) {
     instructions.push(
-      `<Number of faces: ${faces}.>`
+      `<Number of faces: ${faces}>`
     );
   }
 

@@ -93,6 +93,7 @@ export type CommandOptions = {
   actionScript?: string;
   showResponse?: boolean;
   useSaliencyAnalysis?: boolean;
+  useHorizonDetection?: boolean;
   scriptKind?: string;
   temperature?: string;
   model?: string;
@@ -311,6 +312,11 @@ export type Command = {
   useSaliencyAnalysis?: boolean;
 
   /**
+   * Whether to include the angle of the horizon in selected images in the data sent to the model.
+   */
+  useHorizonDetection?: boolean;
+
+  /**
    * The name of the author of the command.
    */
   author?: string;
@@ -423,6 +429,7 @@ export type StoreCommand = {
   showResponse?: string;
   description?: string;
   useSaliencyAnalysis?: string;
+  useHorizonDetection?: string;
   exampleOutput?: string;
   author?: string;
   website?: string;
@@ -979,6 +986,11 @@ export type Placeholder = {
    * The demonstration representation of the placeholder, shown as the "name" of the placeholder when the placeholder is detected in a prompt.
    */
   hintRepresentation: string;
+
+  /**
+   * The full name representation of the placeholder, properly spaced.
+   */
+  fullRepresentation: string;
 };
 
 /**
@@ -1079,6 +1091,11 @@ export interface ImageData extends DataProviderOutput {
    * The number of faces identified in the image.
    */
   imageFaces: string;
+
+  /**
+   * The angle of the horizon in the image.
+   */
+  imageHorizon: string;
 
   /**
    * The EXIF data of the image in JSON string format.

@@ -109,6 +109,7 @@ A few examples of placeholders are:
 | `{{prompt:...}}` | The result of running the specified prompt |
 | `{{todayEvents}}` | The events scheduled for today, including their start and end times |
 | `{{youtube:[search term]}}` | The transcription of the first YouTube video result for the specified search term |
+| `{{prompt:...}}` | The result of running the specified prompt |
 | `{{url:[url]}}` | The visible text at the specified URL |
 | `{{as:...}}` | The result of the specified AppleScript code |
 | `{{js:...}}` | The result of the specified JavaScript code |

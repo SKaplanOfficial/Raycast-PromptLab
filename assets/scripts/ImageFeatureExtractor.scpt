@@ -37,9 +37,9 @@ on run (argv)
 		rectRequest's setMaximumObservations:0
 
 		if theImage's |size|()'s width > 200 and theImage's |size|()'s height > 200 then
-			requestHandler's performRequests:{textRequest, classificationRequest, barcodeRequest, animalRequest, faceRequest, horizonRequest, rectRequest, saliencyRequest} |error|:(missing value)
+			requestHandler's performRequests:{textRequest, classificationRequest, barcodeRequest, animalRequest, faceRequest, rectRequest, saliencyRequest, horizonRequest} |error|:(missing value)
 		else
-			requestHandler's performRequests:{textRequest, classificationRequest, barcodeRequest, animalRequest, faceRequest, horizonRequest, saliencyRequest} |error|:(missing value)
+			requestHandler's performRequests:{textRequest, classificationRequest, barcodeRequest, animalRequest, faceRequest, saliencyRequest, horizonRequest} |error|:(missing value)
 		end if
 
 		-- Extract raw text results

@@ -14,9 +14,9 @@ import { Chat, Command, Model } from "../utils/types";
 
 export const defaultAdvancedSettings = {
   /**
-   * The settings configuration version.
+   * The version of the settings. This is used to determine if the settings need to be migrated.
    */
-  settingsVersion: 1.1,
+  settingsVersion: 1.12,
 
   /**
    * Default values for newly created commands.

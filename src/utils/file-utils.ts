@@ -10,8 +10,8 @@ import { ScriptRunner } from "./scripts";
 import exifr from "exifr";
 import { filterString } from "./context";
 import { defaultAdvancedSettings } from "../data/default-advanced-settings";
-import * as os from "os";
 import { exec } from "child_process";
+import * as os from "os";
 
 /**
  * Installs the default prompts if they haven't been installed yet and the user hasn't input their own command set.
@@ -216,6 +216,10 @@ export const getExtensions = async (): Promise<Extension[]> => {
  */
 export const unzipToTemp = async (zipPath: string) => {
   const dirPath = path.join(os.tmpdir(), `${path.basename(zipPath, ".zip")}`);
+  if (fs.existsSync(dirPath)) {
+    await fs.promises.rm(dirPath, { recursive: true });
+  }
+
   try {
     // Unzip the file
     await new Promise((resolve) => {

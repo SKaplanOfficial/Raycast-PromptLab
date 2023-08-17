@@ -8,22 +8,21 @@ import * as os from "os";
 import {
   audioFileExtensions,
   imageFileExtensions,
-  officeFileExtensions,
-  spreadsheetFileExtensions,
   textFileExtensions,
   videoFileExtensions,
+  spreadsheetFileExtensions,
 } from "../data/file-extensions";
 import { ScriptRunner, execScript } from "../utils/scripts";
 import { getAudioDetails, getImageDetails, unzipToTemp } from "../utils/file-utils";
-import { filterString } from "../utils/context";
 import mammoth from "mammoth";
-import pptxTextParser from "pptx-text-parser";
 import xlsx from "xlsx";
-import { useModels } from "./useModels";
+import pptxTextParser from "pptx-text-parser";
+import { loadAdvancedSettingsSync } from "../utils/storage-utils";
 import { useAdvancedSettings } from "./useAdvancedSettings";
+import { useModels } from "./useModels";
 import { defaultAdvancedSettings } from "../data/default-advanced-settings";
 import { exec, execSync } from "child_process";
-import { loadAdvancedSettingsSync } from "../utils/storage-utils";
+import { filterString } from "../utils/context";
 
 const isTrueDirectory = (filepath: string) => {
   try {
@@ -53,14 +52,6 @@ const isImageFile = (filepath: string) => {
   return imageFileExtensions.includes(path.extname(filepath).slice(1).toLowerCase());
 };
 
-const isOfficeFile = (filepath: string) => {
-  return officeFileExtensions.includes(path.extname(filepath).slice(1).toLowerCase());
-};
-
-const isSpreadsheet = (filepath: string) => {
-  return spreadsheetFileExtensions.includes(path.extname(filepath).slice(1).toLowerCase());
-};
-
 const isTextFile = (filepath: string) => {
   return (
     textFileExtensions.includes(path.extname(filepath).slice(1).toLowerCase()) ||
@@ -68,7 +59,22 @@ const isTextFile = (filepath: string) => {
   );
 };
 
-export async function getFileContent(filePath: string, options?: CommandOptions) {
+const isOfficeFile = (filepath: string) => {
+  const officeFileExtensions = ["doc", "docx", "ppt", "pptx"];
+  return officeFileExtensions.includes(path.extname(filepath).slice(1).toLowerCase());
+};
+
+const isSpreadsheet = (filepath: string) => {
+  return spreadsheetFileExtensions.includes(path.extname(filepath).slice(1).toLowerCase());
+};
+
+export async function getFileContent(
+  filePath: string,
+  options?: CommandOptions,
+  index?: number,
+  maxCharacters?: number,
+  settings?: typeof defaultAdvancedSettings
+) {
   const options_ =
     options == undefined
       ? {
@@ -83,18 +89,25 @@ export async function getFileContent(filePath: string, options?: CommandOptions)
         }
       : options;
 
-  const items = await LocalStorage.allItems();
-  const modelObjs: Model[] = Object.entries(items)
-    .filter(([key]) => key.startsWith("--model-"))
-    .map(([, value]) => JSON.parse(value))
-    .sort((a, b) => a.name.localeCompare(b.name));
+  if (maxCharacters == undefined) {
+    const items = await LocalStorage.allItems();
+    const modelObjs: Model[] = Object.entries(items)
+      .filter(([key]) => key.startsWith("--model-"))
+      .map(([, value]) => JSON.parse(value))
+      .sort((a, b) => a.name.localeCompare(b.name));
 
-  let model = options?.model ? modelObjs.find((m) => m.name == options.model) : undefined;
-  if (!model) model = modelObjs.find((m) => m.isDefault) || modelObjs[0];
-  const maxCharacters = model ? parseInt(model.lengthLimit) : 3000;
+    let model = options?.model ? modelObjs.find((m) => m.name == options.model) : undefined;
+    if (!model) model = modelObjs.find((m) => m.isDefault) || modelObjs[0];
+    maxCharacters = model ? parseInt(model.lengthLimit) : 3000;
+  }
 
-  const settings = loadAdvancedSettingsSync();
-  const currentData = { contents: `{File ${path.basename(filePath)}}:\n` };
+  if (settings == undefined) {
+    settings = loadAdvancedSettingsSync();
+  }
+
+  const currentData = {
+    contents: `{${index == undefined ? "" : `File #${index + 1} - `}${path.basename(filePath)}}:\n`,
+  };
 
   const filepath = filePath.toLowerCase();
   if (isTextFile(filepath)) addTextFileDetails(filepath, currentData);
@@ -105,6 +118,7 @@ export async function getFileContent(filePath: string, options?: CommandOptions)
   else if (isVideoFile(filepath)) await addVideoDetails(filepath, currentData, options_, settings);
   else if (isAudioFile(filepath)) await addAudioDetails(filepath, currentData, options_);
   else if (isImageFile(filepath)) await addImageDetails(filepath, currentData, options_);
+  else if (isTextFile(filepath)) addTextFileDetails(filepath, currentData);
   else if (isOfficeFile(filepath)) await addOfficeDetails(filepath, currentData);
   else if (isSpreadsheet(filepath)) await addSpreadsheetDetails(filepath, currentData);
   else if (filepath.endsWith(".pages")) await addPagesDetails(filepath, currentData);
@@ -172,46 +186,9 @@ export const useFiles = (options: CommandOptions) => {
     };
     for (const [index, filepath] of selection.paths.entries()) {
       // Init. file contents with file name as header
-      const currentData = { contents: `{File ${index + 1} - ${path.basename(filepath)}}:\n` };
-
-      // If the file is too large, just return the metadata
-      try {
-        if (
-          fs.lstatSync(filepath).size > 10000000 &&
-          !filepath.endsWith(".key") &&
-          !filepath.endsWith(".pages") &&
-          !officeFileExtensions.includes(path.extname(filepath).slice(1).toLowerCase()) &&
-          !spreadsheetFileExtensions.includes(path.extname(filepath).slice(1).toLowerCase()) &&
-          !videoFileExtensions.includes(path.extname(filepath).slice(1).toLowerCase())
-        ) {
-          addMetadataDetails(filepath, currentData);
-          currentData.contents = fileData.contents + "\n" + currentData.contents;
-          Object.assign(fileData, currentData);
-          continue;
-        }
-
-        if (isTextFile(filepath)) addTextFileDetails(filepath, currentData);
-
-        if (isTrueDirectory(filepath)) addDirectoryDetails(filepath, currentData);
-        else if (isApp(filepath)) await addAppDetails(filepath, currentData, options);
-        else if (isPDF(filepath)) await addPDFDetails(filepath, currentData, options);
-        else if (isVideoFile(filepath)) await addVideoDetails(filepath, currentData, options, advancedSettings);
-        else if (isAudioFile(filepath)) await addAudioDetails(filepath, currentData, options);
-        else if (isImageFile(filepath)) await addImageDetails(filepath, currentData, options);
-        else if (isOfficeFile(filepath)) await addOfficeDetails(filepath, currentData);
-        else if (isSpreadsheet(filepath)) await addSpreadsheetDetails(filepath, currentData);
-        else if (filepath.endsWith(".pages")) await addPagesDetails(filepath, currentData);
-        else if (filepath.endsWith(".key")) await addKeynoteDetails(filepath, currentData, advancedSettings);
-        else if (!isTextFile(filepath)) attemptAddRawText(filepath, currentData);
-
-        if (options.useMetadata) addMetadataDetails(filepath, currentData);
-
-        currentData.contents =
-          fileData.contents + "\n" + filterString(currentData.contents, maxCharacters / selection.paths.length);
-        Object.assign(fileData, currentData);
-      } catch (e) {
-        console.error(e);
-      }
+      const currentData = await getFileContent(filepath, options, index, maxCharacters, advancedSettings);
+      fileData.contents = filterString(fileData.contents + "\n" + currentData.contents, maxCharacters);
+      Object.assign(fileData, currentData);
     }
 
     setFileContents(fileData);
@@ -381,7 +358,7 @@ const addAudioDetails = async (
 ) => {
   if (options.useAudioDetails) {
     const transcription = await ScriptRunner.AudioTranscriber(filepath, 5000);
-    const audioDetails = transcription;
+    const audioDetails = filterString(transcription);
     currentData.contents += `<Spoken audio: """${audioDetails}"""`;
     currentData["audioTranscription"] = audioDetails;
   } else if (options.useSubjectClassification) {
@@ -397,7 +374,7 @@ const addImageDetails = async (
   options: CommandOptions
 ) => {
   const imageDetails = await getImageDetails(filepath, options);
-  const imageVisionInstructions = filterString(imageDetails.stringValue);
+  const imageVisionInstructions = imageDetails.stringValue;
   currentData.contents += imageVisionInstructions;
   Object.assign(currentData, imageDetails);
 };

@@ -3,7 +3,7 @@
 ------------------------
 
 Author: Stephen Kaplan _(HelloImSteven)_ <br />
-Last Updated: 2023-08-26 <br />
+Last Updated: 2023-08-16 <br />
 PromptLab Version: 1.3.0
 
 ------------------------
@@ -89,6 +89,7 @@ In addition to the above, you can use any supported file extension as a directiv
 | `{{computerName}}` | The 'pretty' hostname of the computer. |
 | `{{currentAppName}}` or <br /> `{{currentApp}}` or <br /> `{{currentApplicationName}}` or <br /> `{{currentApplication}}` | The name of the frontmost application. |
 | `{{currentAppPath}}` or <br /> `{{currentApplicationPath}}` | The POSIX path to the bundle of the frontmost application. |
+| `{{currentAppBundleID}}` or <br /> `{{currentApplicationBundleID}}` | The bundle ID of the frontmost application. |
 | `{{currentDirectory}}` | The POSIX path of Finder's current insertion location. This is the desktop if no Finder windows are open. |
 | `{{currentTabText}}` or <br /> `{{tabText}}` | The visible text of the current tab of the frontmost browser window. |
 | `{{currentURL}}` | The URL of the active tab of the frontmost browser window. |

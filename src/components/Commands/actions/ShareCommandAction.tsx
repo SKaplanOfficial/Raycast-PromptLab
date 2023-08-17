@@ -64,6 +64,7 @@ export default function ShareCommandAction(props: {
                 useRectangleDetection: command.useRectangleDetection ? "TRUE" : "FALSE",
                 useBarcodeDetection: command.useBarcodeDetection ? "TRUE" : "FALSE",
                 useFaceDetection: command.useFaceDetection ? "TRUE" : "FALSE",
+                useHorizonDetection: command.useHorizonDetection ? "TRUE" : "FALSE",
                 outputKind: command.outputKind || "Detail",
                 actionScript: command.actionScript || "None",
                 showResponse: command.showResponse ? "TRUE" : "FALSE",
@@ -81,7 +82,6 @@ export default function ShareCommandAction(props: {
                 setupConfig: command.setupConfig ? JSON.stringify(command.setupConfig) : "None",
                 useSpeech: command.useSpeech ? "TRUE" : "FALSE",
                 speakResponse: command.speakResponse ? "TRUE" : "FALSE",
-                useHorizonDetection: command.useHorizonDetection ? "TRUE" : "FALSE",
               },
             }),
           }).then((res) => {
