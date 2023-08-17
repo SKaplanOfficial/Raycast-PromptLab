@@ -7,13 +7,13 @@ import AdvancedActionSubmenu from "./components/actions/AdvancedActionSubmenu";
 import ResponseFilterDropdown from "./components/Responses/ResponseFilterDropdown";
 import { useAdvancedSettings } from "./hooks/useAdvancedSettings";
 import { loadSavedResponses } from "./utils/command-utils";
-import { StorageKeys } from "./utils/constants";
+import { STORAGE_KEYS } from "./utils/constants";
 import { installDefaults } from "./utils/file-utils";
 import { SavedResponse } from "./utils/types";
 import ResponseListItem from "./components/Responses/ResponseListItem";
 
 export default function SavedResponses() {
-  const [savedResponses, setSavedResponses] = useCachedState<SavedResponse[]>(StorageKeys.SAVED_RESPONSES, []);
+  const [savedResponses, setSavedResponses] = useCachedState<SavedResponse[]>(STORAGE_KEYS.SAVED_RESPONSES, []);
   const [selectedTag, setSelectedTag] = useState<string>("");
   const [selectedKeyword, setSelectedKeyword] = useState<string>("");
   const { advancedSettings } = useAdvancedSettings();

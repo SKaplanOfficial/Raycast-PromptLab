@@ -122,7 +122,7 @@ export const ChatActionPanel = (props: {
             settings={settings}
           />
 
-          {chat && isActionEnabled("ExportChatAction", settings) ? <ExportChatAction chat={chat} /> : null}
+          {chat && isActionEnabled("ExportChatAction", settings) ? <ExportChatAction chat={chat} settings={settings} /> : null}
 
           {chat ? (
             <DeleteChatAction

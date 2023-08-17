@@ -3,7 +3,7 @@ import path from "path";
 import * as fs from "fs";
 import { Insight, PersistentVariable } from "./types";
 import { getStorage } from "./storage-utils";
-import { StorageKeys } from "./constants";
+import { STORAGE_KEYS } from "./constants";
 import crypto from "crypto";
 
 /**
@@ -206,7 +206,7 @@ export const clear = async (): Promise<void> => {
  * @returns A promise resolving to an array of the most frequently occurring values.
  */
 export const objectsByFrequency = async (dataTag: string, key: string, n: number, notIn?: object[]) => {
-  const vars: PersistentVariable[] = await getStorage(StorageKeys.PERSISTENT_VARIABLES);
+  const vars: PersistentVariable[] = await getStorage(STORAGE_KEYS.PERSISTENT_VARIABLES);
   const counts = vars
     .filter((v) => v.name.endsWith(dataTag))
     .sort((a, b) => (parseInt(a.value) > parseInt(b.value) ? -1 : 1))

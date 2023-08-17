@@ -1,6 +1,6 @@
 import { Action, Clipboard, Icon, showToast } from "@raycast/api";
 import { defaultAdvancedSettings } from "../../data/default-advanced-settings";
-import { isActionEnabled } from "../../utils/action-utils";
+import { getActionShortcut, isActionEnabled } from "../../utils/action-utils";
 
 /**
  * Base action to copy an object's JSON representation to the clipboard.
@@ -42,7 +42,7 @@ export default function CopyJSONAction(props: {
         await Clipboard.copy(contentToCopy);
         await showToast({ title: `Copied ${objectType} JSON` })
       }}
-      shortcut={{ modifiers: ["cmd", "shift"], key: "j" }}
+      shortcut={getActionShortcut("CopyJSONAction", settings)}
     />
   );
 }

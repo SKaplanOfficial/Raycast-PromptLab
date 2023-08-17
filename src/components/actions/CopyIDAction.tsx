@@ -1,6 +1,6 @@
 import { Action } from "@raycast/api";
 import { defaultAdvancedSettings } from "../../data/default-advanced-settings";
-import { isActionEnabled } from "../../utils/action-utils";
+import { getActionShortcut, isActionEnabled } from "../../utils/action-utils";
 
 /**
  * Base action to copy an object's ID to the clipboard.
@@ -22,7 +22,7 @@ export default function CopyIDAction(props: {
     <Action.CopyToClipboard
       title={`Copy ${props.objectType} ID`}
       content={props.id}
-      shortcut={{ modifiers: ["cmd", "shift"], key: "i" }}
+      shortcut={getActionShortcut("CopyIDAction", props.settings)}
     />
   );
 }

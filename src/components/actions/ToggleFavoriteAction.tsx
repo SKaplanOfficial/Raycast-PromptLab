@@ -1,6 +1,6 @@
 import { Action, Icon, Toast, showToast } from "@raycast/api";
 import { defaultAdvancedSettings } from "../../data/default-advanced-settings";
-import { isActionEnabled } from "../../utils/action-utils";
+import { getActionShortcut, isActionEnabled } from "../../utils/action-utils";
 
 /**
  * Base action to toggle an object's favorite status.
@@ -21,7 +21,7 @@ export default function ToggleFavoriteAction(props: {
     <Action
       title={props.currentStatus ? "Remove From Favorites" : "Add To Favorites"}
       icon={props.currentStatus ? Icon.StarDisabled : Icon.StarCircle}
-      shortcut={{ modifiers: ["cmd", "shift"], key: "f" }}
+      shortcut={getActionShortcut("ToggleFavoriteAction", props.settings)}
       onAction={async () => {
         try {
           await props.toggleMethod();

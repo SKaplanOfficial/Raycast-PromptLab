@@ -1,6 +1,6 @@
 import { Action, Icon } from "@raycast/api";
 import { defaultAdvancedSettings } from "../../data/default-advanced-settings";
-import { isActionEnabled } from "../../utils/action-utils";
+import { getActionShortcut, isActionEnabled } from "../../utils/action-utils";
 
 /**
  * Base action to open the edit form for an object.
@@ -24,7 +24,7 @@ export default function EditAction(props: {
     <Action.Push
       title={`Edit ${objectType}`}
       icon={Icon.Pencil}
-      shortcut={{ modifiers: ["cmd"], key: "e" }}
+      shortcut={getActionShortcut("EditAction", settings)}
       target={target}
     />
   );

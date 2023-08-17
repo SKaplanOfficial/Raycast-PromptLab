@@ -138,12 +138,24 @@ export const defaultAdvancedSettings = {
   actionSettings: {
     DeleteAction: {
       enabled: ["search-commands", "chat", "manage-models", "saved-responses"],
+      shortcut: {
+        key: "d",
+        modifiers: ["cmd"],
+      },
     },
     DeleteAllAction: {
       enabled: ["search-commands", "chat", "manage-models", "saved-responses"],
+      shortcut: {
+        key: "d",
+        modifiers: ["cmd", "opt", "shift"],
+      },
     },
     CopyIDAction: {
       enabled: ["search-commands", "chat", "manage-models", "saved-responses"],
+      shortcut: {
+        key: "i",
+        modifiers: ["cmd", "shift"],
+      },
     },
     RunCommandAction: {
       enabled: ["search-commands", "discover-commands"],
@@ -190,20 +202,6 @@ export const defaultAdvancedSettings = {
         modifiers: ["cmd", "shift"],
       },
     },
-    CopyCommandJSONAction: {
-      enabled: ["search-commands"],
-      shortcut: {
-        key: "j",
-        modifiers: ["cmd", "shift"],
-      },
-    },
-    CopyCommandIDAction: {
-      enabled: ["search-commands"],
-      shortcut: {
-        key: "i",
-        modifiers: ["cmd", "shift"],
-      },
-    },
     ExportAllCommandsAction: {
       enabled: ["search-commands"],
       shortcut: {
@@ -225,32 +223,11 @@ export const defaultAdvancedSettings = {
         modifiers: ["cmd", "shift"],
       },
     },
-    EditCommandAction: {
-      enabled: ["search-commands"],
-      shortcut: {
-        key: "e",
-        modifiers: ["cmd"],
-      },
-    },
     CreateDerivativeAction: {
       enabled: ["search-commands", "discover-commands"],
       shortcut: {
         key: "d",
         modifiers: ["cmd"],
-      },
-    },
-    DeleteCommandAction: {
-      enabled: ["search-commands"],
-      shortcut: {
-        key: "d",
-        modifiers: ["cmd"],
-      },
-    },
-    DeleteAllCommandsAction: {
-      enabled: ["search-commands"],
-      shortcut: {
-        key: "d",
-        modifiers: ["cmd", "opt", "shift"],
       },
     },
     InstallAllCommandsAction: {
@@ -309,39 +286,11 @@ export const defaultAdvancedSettings = {
         modifiers: ["cmd"],
       },
     },
-    ToggleChatFavoriteAction: {
-      enabled: ["search-commands", "discover-commands", "chat"],
-      shortcut: {
-        key: "f",
-        modifiers: ["cmd"],
-      },
-    },
     ExportChatAction: {
       enabled: ["search-commands", "discover-commands", "chat"],
       shortcut: {
         key: "e",
         modifiers: ["cmd", "shift"],
-      },
-    },
-    DeleteChatAction: {
-      enabled: ["search-commands", "discover-commands", "chat"],
-      shortcut: {
-        key: "d",
-        modifiers: ["cmd"],
-      },
-    },
-    DeleteAllChatsAction: {
-      enabled: ["search-commands", "discover-commands", "chat"],
-      shortcut: {
-        key: "d",
-        modifiers: ["cmd", "opt", "shift"],
-      },
-    },
-    ToggleModelFavoriteAction: {
-      enabled: ["manage-models"],
-      shortcut: {
-        key: "f",
-        modifiers: ["cmd"],
       },
     },
     ToggleModelDefaultAction: {
@@ -358,34 +307,6 @@ export const defaultAdvancedSettings = {
         modifiers: ["cmd", "shift"],
       },
     },
-    DeleteModelAction: {
-      enabled: ["manage-models"],
-      shortcut: {
-        key: "d",
-        modifiers: ["cmd"],
-      },
-    },
-    DeleteAllModelsAction: {
-      enabled: ["manage-models"],
-      shortcut: {
-        key: "d",
-        modifiers: ["cmd", "opt", "shift"],
-      },
-    },
-    CopyModelJSONAction: {
-      enabled: ["manage-models"],
-      shortcut: {
-        key: "j",
-        modifiers: ["cmd", "shift"],
-      },
-    },
-    CopyAllModelsJSONAction: {
-      enabled: ["manage-models"],
-      shortcut: {
-        key: "j",
-        modifiers: ["cmd", "opt", "shift"],
-      },
-    },
     AddNewModelAction: {
       enabled: ["manage-models"],
       shortcut: {
@@ -395,12 +316,24 @@ export const defaultAdvancedSettings = {
     },
     CopyJSONAction: {
       enabled: ["saved-responses", "chat", "search-commands", "discover-commands", "manage-models"],
+      shortcut: {
+        key: "j",
+        modifiers: ["cmd", "shift"],
+      },
     },
     CopyNameAction: {
       enabled: ["saved-responses", "chat", "search-commands", "discover-commands", "manage-models"],
+      shortcut: {
+        key: "n",
+        modifiers: ["cmd", "shift"],
+      },
     },
     EditAction: {
       enabled: ["saved-responses", "chat", "search-commands", "manage-models"],
+      shortcut: {
+        key: "e",
+        modifiers: ["cmd"],
+      },
     },
   },
 };

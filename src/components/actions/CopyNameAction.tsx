@@ -1,6 +1,6 @@
 import { Action, Clipboard, Icon, showToast } from "@raycast/api";
 import { defaultAdvancedSettings } from "../../data/default-advanced-settings";
-import { isActionEnabled } from "../../utils/action-utils";
+import { getActionShortcut, isActionEnabled } from "../../utils/action-utils";
 
 /**
  * Base action to copy an object's name to the clipboard.
@@ -40,7 +40,7 @@ export default function CopyNameAction(props: {
         await Clipboard.copy(contentToCopy);
         await showToast({ title: `Copied ${objectType} Name` })
       }}
-      shortcut={{ modifiers: ["cmd", "shift"], key: "n" }}
+      shortcut={getActionShortcut("CopyNameAction", settings)}
     />
   );
 }

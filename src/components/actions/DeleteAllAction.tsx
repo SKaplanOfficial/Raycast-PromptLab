@@ -1,6 +1,6 @@
 import { Action, Alert, Icon, Toast, confirmAlert, showToast } from "@raycast/api";
 import { defaultAdvancedSettings } from "../../data/default-advanced-settings";
-import { isActionEnabled } from "../../utils/action-utils";
+import { getActionShortcut, isActionEnabled } from "../../utils/action-utils";
 
 /**
  * Base action to delete all objects of a given type.
@@ -22,7 +22,7 @@ export default function DeleteAllAction(props: {
     <Action
       title={`Delete All ${props.objectType}`}
       icon={Icon.Trash}
-      shortcut={{ modifiers: ["cmd", "opt", "shift"], key: "d" }}
+      shortcut={getActionShortcut("DeleteAllAction", props.settings)}
       style={Action.Style.Destructive}
       onAction={async () => {
         if (

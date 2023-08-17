@@ -18,7 +18,7 @@ import {
 import SuggestedCommandsSection from './components/Commands/SuggestedCommandsSection';
 import { useCommands } from './hooks/useCommands';
 import {
-    ADVANCED_SETTINGS_FILENAME, CommandCategories, CUSTOM_PLACEHOLDERS_FILENAME
+    ADVANCED_SETTINGS_FILENAME, COMMAND_CATEGORIES, CUSTOM_PLACEHOLDERS_FILENAME
 } from './utils/constants';
 import * as Insights from './utils/insights';
 import { Command } from './utils/types';
@@ -87,7 +87,7 @@ export default function PromptLabMenubar() {
         .sort()
         .map((category) => {
           const cmdCategory =
-            CommandCategories.find((cmdCategory) => cmdCategory.name == category) || CommandCategories[0];
+          COMMAND_CATEGORIES.find((cmdCategory) => cmdCategory.name == category) || COMMAND_CATEGORIES[0];
 
           return (
             <MenuBarExtra.Submenu
