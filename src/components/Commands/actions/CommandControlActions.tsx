@@ -4,12 +4,12 @@ import CommandForm from "../CommandForm";
 import { QUICKLINK_URL_BASE } from "../../../utils/constants";
 import { updateCommand } from "../../../utils/command-utils";
 import { defaultAdvancedSettings } from "../../../data/default-advanced-settings";
-import { anyActionsEnabled } from "../../../utils/action-utils";
+import { anyActionsEnabled, getActionShortcut } from "../../../utils/action-utils";
 import DeleteAllAction from "../../actions/DeleteAllAction";
 import DeleteAction from "../../actions/DeleteAction";
-import ToggleFavoriteAction from "../../actions/ToggleFavoriteAction";
 import crypto from "crypto";
 import EditAction from "../../actions/EditAction";
+import ToggleFavoriteAction from "../../actions/ToggleFavoriteAction";
 
 /**
  * Section for actions related to modifying commands (editing, deleting, etc.).
@@ -59,7 +59,7 @@ export const CommandControlsActionsSection = (props: {
             settings={settings}
           />
 
-          <CreateQuickLinkAction command={command} />
+          <CreateQuickLinkAction command={command} settings={settings} />
 
           <EditAction
             objectType="Command"
@@ -110,7 +110,7 @@ export const CommandControlsActionsSection = (props: {
             }
           />
 
-          <CreateDerivativeAction command={command} setCommands={setCommands} setTemplates={setTemplates} />
+          <CreateDerivativeAction command={command} setCommands={setCommands} setTemplates={setTemplates} settings={settings} />
           <DeleteCommandAction command={command} commands={commands} setCommands={setCommands} settings={settings} />
           <DeleteAllCommandsAction commands={commands} setCommands={setCommands} settings={settings} />
         </>
@@ -121,8 +121,9 @@ export const CommandControlsActionsSection = (props: {
             availableCommands={availableCommands || []}
             commands={commands}
             setCommands={setCommands}
+            settings={settings}
           />
-          <CreateDerivativeAction command={command} setCommands={setCommands} setTemplates={setTemplates} />
+          <CreateDerivativeAction command={command} setCommands={setCommands} setTemplates={setTemplates} settings={settings} />
         </>
       ) : null}
     </ActionPanel.Section>
@@ -134,8 +135,8 @@ export const CommandControlsActionsSection = (props: {
  * @param props.command The command to create a QuickLink for
  * @returns An Action component
  */
-export const CreateQuickLinkAction = (props: { command: Command }) => {
-  const { command } = props;
+export const CreateQuickLinkAction = (props: { command: Command; settings: typeof defaultAdvancedSettings }) => {
+  const { command, settings } = props;
   return (
     <Action.CreateQuicklink
       quicklink={{
@@ -144,7 +145,7 @@ export const CreateQuickLinkAction = (props: { command: Command }) => {
         }%7D`,
         name: command.name,
       }}
-      shortcut={{ modifiers: ["cmd", "shift"], key: "q" }}
+      shortcut={getActionShortcut("CreateQuickLinkAction", settings)}
     />
   );
 };
@@ -212,8 +213,9 @@ export const CreateDerivativeAction = (props: {
   command: Command | StoreCommand;
   setCommands: React.Dispatch<React.SetStateAction<Command[]>>;
   setTemplates: React.Dispatch<React.SetStateAction<Command[]>>;
+  settings: typeof defaultAdvancedSettings;
 }) => {
-  const { command, setCommands, setTemplates } = props;
+  const { command, setCommands, setTemplates, settings } = props;
   return (
     <Action.Push
       title="Create Derivative"
@@ -268,7 +270,7 @@ export const CreateDerivativeAction = (props: {
         />
       }
       icon={Icon.EyeDropper}
-      shortcut={{ modifiers: ["ctrl"], key: "c" }}
+      shortcut={getActionShortcut("CreateDerivativeAction", settings)}
     />
   );
 };
@@ -369,8 +371,9 @@ export const InstallAllCommandsAction = (props: {
   availableCommands: StoreCommand[];
   commands: Command[];
   setCommands: React.Dispatch<React.SetStateAction<Command[]>>;
+  settings: typeof defaultAdvancedSettings;
 }) => {
-  const { availableCommands, commands, setCommands } = props;
+  const { availableCommands, commands, setCommands, settings } = props;
 
   const knownCommandNames = commands.map((command) => command.name);
   const knownPrompts = commands.map((command) => command.prompt);
@@ -379,7 +382,7 @@ export const InstallAllCommandsAction = (props: {
     <Action
       title="Install All Commands"
       icon={Icon.Plus}
-      shortcut={{ modifiers: ["cmd", "shift"], key: "i" }}
+      shortcut={getActionShortcut("InstallAllCommandsAction", settings)}
       onAction={async () => {
         const successes: string[] = [];
         const failures: string[] = [];

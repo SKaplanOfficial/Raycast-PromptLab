@@ -2,7 +2,7 @@ import { spawn } from "child_process";
 import { runAppleScript } from "run-applescript";
 import * as util from "util";
 import { DebugStyle, logDebug } from "./dev-utils";
-import { CalendarDuration, EventType, ReturnType } from "./types";
+import { CalendarDuration, EventType, ImageData, PDFData, ReturnType } from "./types";
 import { environment } from "@raycast/api";
 import path from "path";
 import * as os from "os";
@@ -185,6 +185,17 @@ export const searchNearbyLocations = async (query: string) => {
 };
 
 /**
+ * Displays a dialog window with the provided title and content
+ * @param title The title of the dialog window.
+ * @param content The message text of the dialog window.
+ */
+export const showDialog = async (title: string, content: string) => {
+  return runAppleScript(
+    `display dialog "${content.replaceAll('"', '\\"')}" with title "${title.replaceAll('"', '\\"')}"`
+  );
+};
+
+/**
  * Gets the names of all currently running non-background applications.
  * @returns A promise that resolves to a comma-separated list of application names.
  */
@@ -292,17 +303,7 @@ export const ScriptRunner = {
       useSaliencyAnalysis,
       useHorizonDetection,
       confidenceThreshold
-    ) as Promise<{
-      output: string;
-      imageText: string;
-      imagePOI: string;
-      imageBarcodes: string;
-      imageAnimals: string;
-      imageRectangles: string;
-      imageSubjects: string;
-      imageFaces: string;
-      imageHorizon: string;
-    }>,
+    ) as Promise<ImageData>,
 
   /**
    * Extracts text from a PDF file.
@@ -313,11 +314,15 @@ export const ScriptRunner = {
    * @returns An object containing the extracted text.
    */
   PDFTextExtractor: (filePath: string, useOCR: boolean, pageLimit: number, useMetadata: boolean) =>
-    runScript("PDFTextExtractor", ReturnType.JSON, "AppleScript", filePath, useOCR, pageLimit, useMetadata) as Promise<{
-      pdfOCRText: string;
-      pdfRawText: string;
-      imageText: string;
-    }>,
+    runScript(
+      "PDFTextExtractor",
+      ReturnType.JSON,
+      "AppleScript",
+      filePath,
+      useOCR,
+      pageLimit,
+      useMetadata
+    ) as Promise<PDFData>,
 
   /**
    * Analyzes an instantaneous screenshot of the display, extracting various features. Deletes the screenshot after analysis.

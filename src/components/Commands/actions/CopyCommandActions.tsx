@@ -4,7 +4,7 @@ import { Command, ExtensionPreferences, StoreCommand, isCommand } from "../../..
 import path from "path";
 import * as fs from "fs";
 import { defaultAdvancedSettings } from "../../../data/default-advanced-settings";
-import { isActionEnabled } from "../../../utils/action-utils";
+import { getActionShortcut, isActionEnabled } from "../../../utils/action-utils";
 import CopyIDAction from "../../actions/CopyIDAction";
 import CopyJSONAction from "../../actions/CopyJSONAction";
 import CopyNameAction from "../../actions/CopyNameAction";
@@ -36,7 +36,7 @@ export const CopyCommandActionsSection = (props: {
         <Action.CopyToClipboard
           title="Copy Prompt"
           content={command.prompt}
-          shortcut={{ modifiers: ["cmd", "shift"], key: "p" }}
+          shortcut={getActionShortcut("CopyCommandPromptAction", settings)}
         />
       ) : null}
       <CopyNameAction name={command.name} objectType="Command" settings={settings} />
@@ -57,7 +57,7 @@ export const ExportAllCommandsAction = (): JSX.Element => {
     <Action
       title="Export All Commands"
       icon={Icon.CopyClipboard}
-      shortcut={{ modifiers: ["cmd", "shift"], key: "a" }}
+      shortcut={getActionShortcut("ExportAllCommandsAction", defaultAdvancedSettings)}
       onAction={async () => {
         const toast = await showToast({ title: "Exporting Commands", style: Toast.Style.Animated });
 

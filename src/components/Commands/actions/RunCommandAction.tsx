@@ -2,9 +2,9 @@ import { Action, Icon, getPreferenceValues, useNavigation } from "@raycast/api";
 import { Command, ExtensionPreferences, StoreCommand, isCommand, isTrueStr } from "../../../utils/types";
 import CommandResponse from "../CommandResponse";
 import { defaultAdvancedSettings } from "../../../data/default-advanced-settings";
-import { isActionEnabled } from "../../../utils/action-utils";
+import { getActionShortcut, isActionEnabled } from "../../../utils/action-utils";
 import { getPersistentVariable, setPersistentVariable } from "../../../utils/placeholders";
-import * as Insights from "../../../utils/insights";
+import { Insights } from "../../../utils";
 
 /**
  * Action to run a command.
@@ -80,7 +80,7 @@ export default function RunCommandAction(props: {
         );
       }}
       icon={Icon.ArrowRight}
-      shortcut={{ modifiers: ["cmd"], key: "r" }}
+      shortcut={getActionShortcut("RunCommandAction", settings)}
     />
   );
 }

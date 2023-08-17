@@ -19,9 +19,9 @@ import CommandResponse from "./components/Commands/CommandResponse";
 import SuggestedCommandsSection from "./components/Commands/SuggestedCommandsSection";
 import { useAdvancedSettings } from "./hooks/useAdvancedSettings";
 import { useCommands } from "./hooks/useCommands";
-import { CommandCategories } from "./utils/constants";
 import { Command, ExtensionPreferences, searchPreferences } from "./utils/types";
 import CommandActionPanel from "./components/Commands/actions/CommandActionPanel";
+import { COMMAND_CATEGORIES } from "./utils/constants";
 
 export default function SearchCommand(props: { arguments: { commandName: string; queryInput: string } }) {
   const { commandName, queryInput } = props.arguments;
@@ -72,16 +72,15 @@ export default function SearchCommand(props: { arguments: { commandName: string;
 
   // Group commands by category, if enabled
   if (preferences.groupByCategory && targetCategory == "All") {
-    listItems = CommandCategories
-      .reduce((acc, category) => {
-        const categoryCommands = commands.filter((command) => {
-          // If a command has no categories, it is considered to be in the "Other" category
-          return (!command.categories?.length && category.name == "Other") || command.categories?.[0] == category.name;
-        });
-        const categoryListItems = listItems.filter((item) => {
-          // Add list items for commands in the current category
-          return categoryCommands.map((command) => command.name).includes(item.props.title);
-        });
+    listItems = COMMAND_CATEGORIES.reduce((acc, category) => {
+      const categoryCommands = commands?.filter((command) => {
+        // If a command has no categories, it is considered to be in the "Other" category
+        return (!command.categories?.length && category.name == "Other") || command.categories?.[0] == category.name;
+      });
+      const categoryListItems = listItems.filter((item) => {
+        // Add list items for commands in the current category
+        return categoryCommands?.map((command) => command.name).includes(item.props.title);
+      });
 
         // Only add a section if there are commands in the current category
         if (categoryListItems.length) {

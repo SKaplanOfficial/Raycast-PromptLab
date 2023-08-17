@@ -3,6 +3,8 @@ import { Chat, ExtensionPreferences } from "../../../utils/types";
 import path from "path";
 import * as fs from "fs";
 import { calculateStats } from "../../../utils/chat-utils";
+import { getActionShortcut } from "../../../utils/action-utils";
+import { defaultAdvancedSettings } from "../../../data/default-advanced-settings";
 
 /**
  * Action to export a chat to a JSON file.
@@ -10,14 +12,15 @@ import { calculateStats } from "../../../utils/chat-utils";
  * @param props.chats The chat manager object.
  * @returns An action component.
  */
-export const ExportChatAction = (props: { chat: Chat }) => {
-  const { chat } = props;
+export const ExportChatAction = (props: { chat: Chat, settings: typeof defaultAdvancedSettings }) => {
+  const { chat, settings } = props;
   const preferences = getPreferenceValues<ExtensionPreferences>();
+
   return (
     <Action
       title="Export Chat"
       icon={Icon.Download}
-      shortcut={{ modifiers: ["cmd", "shift"], key: "e" }}
+      shortcut={getActionShortcut("ExportChatAction", settings)}
       onAction={async () => {
         const toast = await showToast({ title: "Exporting Chat", style: Toast.Style.Animated });
 

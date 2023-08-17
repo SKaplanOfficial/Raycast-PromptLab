@@ -1,18 +1,15 @@
 # PromptLab DevLog - A More Detailed ChangeLog
 
-### 2023-07-04
-
-- Added support for parsing Pages and Keynote documents.
-- Added `{{screenContent}}` and `{{windowContent}}` placeholders for getting image vision data for the user's entire screen or the active window, respectively.
+## v1.3.0 Release
 
 ### 2023-07-03
 
 - Added command templates
-    - Created using the 'Save As Template' action in the command creation view
-    - To delete: Create a command with the same name as the template, then delete the command
+  - Created using the 'Save As Template' action in the command creation view
+  - To delete: Create a command with the same name as the template, then delete the command
 - Added `{{photoAlbums}}` placeholder for getting a comma-separated list of the names of all photo albums.
 - Added horizon detection and corresponding command setting.
-    - Added `{{imageHorizon}}` placeholder.
+  - Added `{{imageHorizon}}` placeholder.
 - Added support for parsing MS Office and Apple Numbers documents.
 
 ### 2023-07-01
@@ -22,86 +19,105 @@
 - Added 'Save Response' action + option to set it as the primary action for command outputs.
 - Added 'View Saved Responses' command.
 - Added ability to edit saved response settings.
-    - Added ability to set a saved response as a favorite.
-    - Added ability to customize tags for saved responses.
+  - Added ability to set a saved response as a favorite.
+  - Added ability to customize tags for saved responses.
 - Added ability to delete saved responses individually or in bulk.
 - Added prefixes to each PromptLab object type's UUID:
-    - Commands: `CM`
-    - Models: `MO`
-    - Chats: `CH`
-    - Saved Responses: `SR`
-    - Insights: `IN`
+  - Commands: `CM`
+  - Models: `MO`
+  - Chats: `CH`
+  - Saved Responses: `SR`
+  - Insights: `IN`
 - Added saved response placeholders. Use the ID of a saved response to insert its output into a prompt.
-    - Can also use `{{SR:name}}` to insert the output of the saved response with the given name.
+  - Can also use `{{SR:name}}` to insert the output of the saved response with the given name.
 
 ### 2023-06-30
 
 - Added support for `target` parameter to `{{js:...}}` placeholders.
-    - Specify a browser to run the script in. The script will run in the active tab. The placeholder will be replaced with the script's return value.
+  - Specify a browser to run the script in. The script will run in the active tab. The placeholder will be replaced with the script's return value.
 - Added Insights (experimental)
-    - Small summaries of your PromptLab usage generated locally as you use the extension.
-    - Used to deliver command and placeholder suggestions.
-        - Added command suggestions (toggleable, off by default) in menubar and 'My PromptLab Commands'.
-        - Added placeholder suggestions (toggleable, off by default) command creation and editing views.
-        - Added `{{insights:tag}}` placeholder - returns a summary of recent insights, optionally filtered by tag.
+  - Small summaries of your PromptLab usage generated locally as you use the extension.
+  - Used to deliver command and placeholder suggestions.
+    - Added command suggestions (toggleable, off by default) in menubar and 'My PromptLab Commands'.
+    - Added placeholder suggestions (toggleable, off by default) command creation and editing views.
+    - Added `{{insights:tag}}` placeholder - returns a summary of recent insights, optionally filtered by tag.
 - Added `{{elementText:...}}`, `{{elementHTML:...}}`, and `{{focusedElement}}` for getting the text/html of HTML elements in the active tab of a browser.
-    - Doesn't work in iCab.
+  - Doesn't work in iCab.
 - Added `{{musicAlbums}}`, `{{musicArtists}}`, and `{{musicPlaylists}}` placeholders.
 - Added `{{tvDirectors}}`, `{{tvPlaylists}}`, `{{tvShows}}`, and `{{tvTracks}}` placeholders.
+
+## v1.1.1 Release
+
+### 2023-07-19
+
+- Added ability to modify action keybindings in the advanced settings
+
+### 2023-07-17
+
+- Added Dialog Window command response view
+- Fixed bug where list and grid output views would fail to display any content due to condensing of symbols
+- Fixed bug where command-specific temperature settings would not be applied
+- Fixed bug where old-style URL placeholders using HTTP instead of HTTPS would not be processed.
+
+## v1.1.0 Release
+
+### 2023-07-15
+
+- Fixed bug where event/reminder placeholders require both event and reminder permissions, even if only one is used
 
 ### 2023-06-27
 
 - Added advanced settings JSON file & integration throughout the extension
-    - Control which actions are available in the action menu
-    - Control default command/model/chat settings
-    - Control placeholder processing
+  - Control which actions are available in the action menu
+  - Control default command/model/chat settings
+  - Control placeholder processing
 
 ### 2023-06-25
 
 - Added setting for specifying additional custom placeholder file paths
 - Added placeholder detection when writing prompts + information about detected placeholders in the prompt info box.
-- Added support for Orion browser.
-- Added action to copy command ID.
-- PromptLab command placeholders can now use the command ID instead of the command name.
-- URL placeholders now support `raw` parameter to return the raw HTML instead of the visible text.
+- Added support for Orion browser
+- Added action to copy command ID
+- PromptLab command placeholders can now use the command ID instead of the command name
+- URL placeholders now support `raw` parameter to return the raw HTML instead of the visible text
 - Moved many scripts into the `scripts` folder as `.scpt` files -- more efficient + easier to edit
 - Switched command QuickLinks to use command IDs. Name-based QuickLinks are still supported.
 
 ### 2023-06-24
 
 - Added conditional prompting using filetype placeholders
-    - {{images:...}} - Content (including other placeholders) will only be evaluated if there is at least on selected image files
-    - Other file categories: {{textfiles:...}}, {{videos:...}}, {{audio:...}}
-    - For image, text, audio, and video file extensions, use {{ext:...}} to single out a specific file extension, e.g. {{svg:...}} or {{mov:...}}
-        - Also supports {{pdf:...}}
-    - Conditional prompting have other placeholders nested inside them, e.g. {{images:{{url:https://www.example.com}}}}
-        - Inner placeholders will only be evaluated if the condition is met (e.g. if there is at least one image file)
+  - {{images:...}} - Content (including other placeholders) will only be evaluated if there is at least on selected image files
+  - Other file categories: {{textfiles:...}}, {{videos:...}}, {{audio:...}}
+  - For image, text, audio, and video file extensions, use {{ext:...}} to single out a specific file extension, e.g. {{svg:...}} or {{mov:...}}
+    - Also supports {{pdf:...}}
+  - Conditional prompting have other placeholders nested inside them, e.g. {{images:{{url:<https://www.example.com}}}}>
+    - Inner placeholders will only be evaluated if the condition is met (e.g. if there is at least one image file)
 - Added Custom Placeholders stored in supportPath/custom_placeholders.json
 - Added action to edit the custom placeholders file
 - Added Placeholders Guide and an action to open it
 - Added automatic detection of placeholders in prompts
-    - If a placeholder is detected, the info box for the prompt will show the detected placeholder, its description, and an example
+  - If a placeholder is detected, the info box for the prompt will show the detected placeholder, its description, and an example
 
 ### 2023-06-22
 
 - Redesigned the placeholders system to be more efficient and more versatile
-    - Added several new placeholders
-        - {{day locale="en-US"}} - Returns the name of the current day of the week
-        - {{jxa:...}} - Run a JXA script and return the output
-        - {{shortcuts}} - List of names of all Siri Shortcuts
-        - {{shortcut:shortcutName:input}} - Run a Siri Shortcut with the given input and return the output
-        - {{uuid}} - Generate a UUID
-        - {{usedUUIDs}} - List of all UUIDs generated via the {{uuid}} placeholder thus far
-    - Expanded functionality of many placeholders by adding support for optional customizations
-        - {{date format="d MMMM, YYYY"}} - Added optional format parameter
-        - {{time format="h:mm a"}} - Added optional format parameter
-    - Expanded persistent variable support with new directives
-        - {{set x:y}} - Set the persistent variable x to y
-        - {{get x}} - Get the value of the persistent variable x
-        - {{reset x}} - Reset the persistent variable x to its initial value
-        - {{delete x}} - Delete the persistent variable x
-        - {{vars}} - List of stored persistent variable names
-    - Now using bulkApply strategy that uses memoization to improve performance, especially when using multiple placeholders in a single command
+  - Added several new placeholders
+    - {{day locale="en-US"}} - Returns the name of the current day of the week
+    - {{jxa:...}} - Run a JXA script and return the output
+    - {{shortcuts}} - List of names of all Siri Shortcuts
+    - {{shortcut:shortcutName:input}} - Run a Siri Shortcut with the given input and return the output
+    - {{uuid}} - Generate a UUID
+    - {{usedUUIDs}} - List of all UUIDs generated via the {{uuid}} placeholder thus far
+  - Expanded functionality of many placeholders by adding support for optional customizations
+    - {{date format="d MMMM, YYYY"}} - Added optional format parameter
+    - {{time format="h:mm a"}} - Added optional format parameter
+  - Expanded persistent variable support with new directives
+    - {{set x:y}} - Set the persistent variable x to y
+    - {{get x}} - Get the value of the persistent variable x
+    - {{reset x}} - Reset the persistent variable x to its initial value
+    - {{delete x}} - Delete the persistent variable x
+    - {{vars}} - List of stored persistent variable names
+  - Now using bulkApply strategy that uses memoization to improve performance, especially when using multiple placeholders in a single command
 - Added settings for displaying icons & icon colors in menu bar menu
 - Added settings for displaying core PromptLab commands in menu bar menu
 - Added settings for displaying favorites & categories in menu bar menu
@@ -113,7 +129,9 @@
 - Added option to show a command in the menu bar menu
 - Added option to speak responses
 - Added {{prompt:text}} placeholder
- 
+
+## v1.0.0 Release
+
 ### 2023-05-17
 
 #### v1.1.0
@@ -125,7 +143,7 @@
 - Added ability to delete chats individually or in bulk
 - Added chat statistics
 - Added {{nearbyLocations:searchTerm}} placeholder
-    - Returns a list of nearby location addresses matching the search term
+  - Returns a list of nearby location addresses matching the search term
 
 #### v1.0.0
 
@@ -156,15 +174,15 @@
 - Fixed bug where commands whose acceptedFileExtensions fields were empty would yield an error
 - Fixed bug where the `{input}` placeholder in model schemas was not provided when in a chat view
 
-## 2023-05-12
+### 2023-05-12
 
 - Added setting to group commands by category
 - Added setting for prompt length limit
 - Added setting for export location to use when exporting all commands
 - Added previousCommand, previousPrompt, and previousResponse placeholders
 - Added {{youtube:URL}} and {{youtube:searchTerm}} placeholders
-    - Both placeholders will return the transcript of the first matching video result
-    - Transcript text is limited to the configured prompt length limit
+  - Both placeholders will return the transcript of the first matching video result
+  - Transcript text is limited to the configured prompt length limit
 - Fixed allocation error when analyzing images with a dimension < 100px
 - Fixed bug where placeholder replacements were run multiple times
 - Fixed bug where no-view commands would not pop to root view after being run
@@ -186,9 +204,9 @@
 ### 2023-04-23
 
 - Added "Allow AI To Run Commands" checkbox in chat views
-    - The AI will run other PromptLab commands to fulfil the user's request
+  - The AI will run other PromptLab commands to fulfil the user's request
 - Removed "Allow AI To Control Computer" checkbox in chat views, at least for now
-    - It was too unreliable, and the commands approach is more understandable to users
+  - It was too unreliable, and the commands approach is more understandable to users
 
 ### 2023-04-21
 
@@ -205,8 +223,8 @@
 - Added syntax highlighting to action script blocks
 - Updated PromptLab Chat command to use the new CommandChatView component
 - Added customizable base prompt for the PromptLab Chat command (see the command's settings)
-    - Also added a setting for using selected files as context by default
-    - Also added a setting for using conversation history as context by default
+  - Also added a setting for using selected files as context by default
+  - Also added a setting for using conversation history as context by default
 - Added command placeholders
 - Fixed bug where only the initially selected files where recognized when using "Use Selected Files As Context" in Chat response views
 
@@ -223,13 +241,13 @@
 
 - Added saliency analysis option in the create command form
 - Adjusted names of PromptLab's built-in commands
-    - `Create PromptLab Command` --> `New PromptLab Command`
-    - `Search PromptLab Commands` --> `My PromptLab Commands`
+  - `Create PromptLab Command` --> `New PromptLab Command`
+  - `Search PromptLab Commands` --> `My PromptLab Commands`
 - Added `{basePrompt}` and `{prompt}` placeholders for custom model JSON schemas
-    - `{basePrompt}` is the prompt before any user input (but still including placeholder substitutions)
-    - `{prompt}` is the full prompt after any user input
+  - `{basePrompt}` is the prompt before any user input (but still including placeholder substitutions)
+  - `{prompt}` is the full prompt after any user input
 - Adjusted behavior of `{input}` placeholder for custom model JSON schemas
-    - Now, the placeholder is replaced with the input text/select file contents, instead of the entire prompt. Use `{prompt}` to get the entire prompt instead.
+  - Now, the placeholder is replaced with the input text/select file contents, instead of the entire prompt. Use `{prompt}` to get the entire prompt instead.
 - Added support for asynchronous output from custom model endpoints
 - Fixed bug where Quicklink commands were unable to reference the current application and thus prevented several placeholder substitutions from working
 - Fixed error when trying to run `Search PromptLab Commands` command without any commands saved`

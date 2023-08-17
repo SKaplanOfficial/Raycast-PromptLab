@@ -26,7 +26,6 @@ export default function ContextSettingsActionSection(props: {
     setUseConversationContext,
     setUseAutonomousFeatures,
   } = props;
-
   return (
     <ActionPanel.Section title="Context Settings">
       <Action

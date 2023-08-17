@@ -16,18 +16,16 @@ PromptLab also supports "action scripts" -- AppleScripts which run with the AI's
 - [Top-Level Commands](#top-level-commands)
 - [Images](#images)
 - [Create Your Own Commands](#create-your-own-commands)
-    - [Placeholders](#placeholders)
-    - [Action Scripts](#action-scripts)
-        - [Provided Variables](#provided-variables)
-        - [Provided Handlers](#provided-handlers)
-    - [Custom Configuration Fields](#custom-configuration-fields)
+  - [Placeholders](#placeholders)
+  - [Action Scripts](#action-scripts)
+    - [Provided Variables](#provided-variables)
+    - [Provided Handlers](#provided-handlers)
+  - [Custom Configuration Fields](#custom-configuration-fields)
 - [Chats, Context Data, Statistics, and More](#chats-context-data-statistics-and-more)
-    - [Chats](#chats)
-    - [Context Data](#context-data)
-    - [Statistics](#statistics)
-    - [Autonomous Agent Features](#autonomous-agent-features)
+  - [Chats](#chats)
+  - [Autonomous Agent Features](#autonomous-agent-features)
 - [Installation](#installation)
-    - [Manual Installation](#manual-installation)
+  - [Manual Installation](#manual-installation)
 - [Custom Model Endpoints](#custom-model-endpoints)
 - [Troubleshooting](#troubleshooting)
 - [Contributing](#contributing)
@@ -61,19 +59,19 @@ PromptLab also supports "action scripts" -- AppleScripts which run with the AI's
 ## Top-Level Commands
 
 - New PromptLab Command
-    - Create a custom PromptLab command accessible via 'My PromptLab Commands'.
+  - Create a custom PromptLab command accessible via 'My PromptLab Commands'.
 - My PromptLab Commands
-    - Search and run custom PromptLab commands that you've installed or created.
+  - Search and run custom PromptLab commands that you've installed or created.
 - Manage Models
-    - View, edit, add, and delete custom models.
+  - View, edit, add, and delete custom models.
 - PromptLab Command Store
-    - Explore and search commands uploaded to the store by other PromptLab users.
+  - Explore and search commands uploaded to the store by other PromptLab users.
 - PromptLab Chat
-    - Start a back-and-forth conversation with AI with selected files provided as context.       
+  - Start a back-and-forth conversation with AI with selected files provided as context.
 - PromptLab Menu Item
-    - Displays a menu of PromptLab commands in your menu bar.
+  - Displays a menu of PromptLab commands in your menu bar.
 - Import PromptLab Commands
-    - Add custom commands from a JSON string.
+  - Add custom commands from a JSON string.
 
 ## Images
 
@@ -91,10 +89,9 @@ PromptLab also supports "action scripts" -- AppleScripts which run with the AI's
 
 View more images in [the gallery](https://skaplanofficial.github.io/Raycast-PromptLab/gallery).
 
-
 ## Create Your Own Commands
 
-You can create custom PromptLab commands, accessed via the "My PromptLab Commands" command, to execute your own prompts acting on the contents of selected files. A variety of useful defaults are provided, as listed under [Default Commands](#default-commands), and you can find more in the *PromptLab Command Store*.
+You can create custom PromptLab commands, accessed via the "My PromptLab Commands" command, to execute your own prompts acting on the contents of selected files. A variety of useful defaults are provided, and you can find more in the *PromptLab Command Store*.
 
 ### Placeholders
 
@@ -113,7 +110,7 @@ A few examples of placeholders are:
 | `{{todayEvents}}` | The events scheduled for today, including their start and end times |
 | `{{youtube:[search term]}}` | The transcription of the first YouTube video result for the specified search term |
 | `{{url:[url]}}` | The visible text at the specified URL |
-| `{{as:...}}` | The result of the specified AppleScript code | 
+| `{{as:...}}` | The result of the specified AppleScript code |
 | `{{js:...}}` | The result of the specified JavaScript code |
 
 These are just a few of the many placeholders available. [View the full list here](./assets/placeholders_guide.md). You even create your own placeholders using JSON, if you want!
@@ -123,6 +120,7 @@ These are just a few of the many placeholders available. [View the full list her
 When configuring a PromptLab command, you can provide AppleScript code to execute once the AI finishes its response. You can access the response text via the `response` variable in AppleScript. Several convenient handlers for working with the response text are also provided, as listed below. Action Scripts can be used to build complex workflows using AI as a content provider, navigator, or decision-maker.
 
 ### Provided Variables
+
 | Variable | Value | Type |
 | --- | --- | --- |
 | `input` | The selected files or text input provided to the command. | String |
@@ -130,6 +128,7 @@ When configuring a PromptLab command, you can provide AppleScript code to execut
 | `response` | The full response received from the AI. | String |
 
 #### Provided Handlers
+
 | Handler | Purpose | Returns |
 | --- | --- | --- |
 | `split(theText, theDelimiter)` | Splits text around the specified delimiter. | List of String |
@@ -158,6 +157,7 @@ PromptLab is now available on the Raycast extensions store! [Download it now](ht
 Alternatively, you can install the extension manually from this repository by following the instructions below.
 
 ### Manual Installation
+
 ```bash
 git clone https://github.com/SKaplanOfficial/Raycast-PromptLab.git && cd Raycast-PromptLab
 
@@ -176,7 +176,7 @@ To use Anthropic's Claude API as the model endpoint, configure the extension as 
 
 | Preference Name | Value |
 | --- | --- |
-| Model Endpoint | https://api.anthropic.com/v1/complete |
+| Model Endpoint | <https://api.anthropic.com/v1/complete> |
 | API Authorization Type | X-API-Key |
 | API Key | Your API key |
 | Input Schema | { "prompt": "\n\nHuman: {prompt}\n\nAssistant: ", "model": "claude-instant-v1-100k", "max_tokens_to_sample": 300, "stop_sequences": ["\n\nHuman:"] , "stream": true  } |
@@ -189,7 +189,7 @@ To use the OpenAI API as the model endpoint, configure the extension as follows:
 
 | Preference Name | Value |
 | --- | --- |
-| Model Endpoint | https://api.openai.com/v1/chat/completions |
+| Model Endpoint | <https://api.openai.com/v1/chat/completions> |
 | API Authorization Type | Bearer Token |
 | API Key | Your API key |
 | Input Schema | { "model": "gpt-4", "messages": [{"role": "user", "content": "{prompt}"}], "stream": true }
@@ -224,24 +224,24 @@ Contributions are welcome! Please see the [contributing guidelines](./CONTRIBUTI
 - PromptLab Chat with Autonomous Command Execution Capability
 - Upload & Download Commands To/From PromptLab Command Store
 - Custom Model Endpoints with Synchronous or Asynchronous Responses
-- Save & Run Commands as Quicklinks 
+- Save & Run Commands as Quicklinks
 - Video Feature Extraction [example](./examples/promptlab-1.1.0/videoSubjectSummarization.png)
 - Switch Between Chats & Export Chat History [example](./examples/promptlab-1.1.0/multipleChats.png)
 - Auto-Compress Chat History
-- Chat Settings [example]()
-    - Context Files/Folders/URLs [example1](./examples/promptlab-1.1.0/addContextData.png) [example2](./examples/promptlab-1.1.0/contextDataSummaries.png) [example3](./examples/promptlab-1.1.0/contextualKnowledge.png)
-    - Favorite Chats [example](./examples/promptlab-1.1.0/favoriteChats.png)
-    - Chat Statistics [example](./examples/promptlab-1.1.0/chatStats.png)
+- Chat Settings
+  - Context Files/Folders/URLs [example1](./examples/promptlab-1.1.0/addContextData.png) [example2](./examples/promptlab-1.1.0/contextDataSummaries.png) [example3](./examples/promptlab-1.1.0/contextualKnowledge.png)
+  - Favorite Chats [example](./examples/promptlab-1.1.0/favoriteChats.png)
+  - Chat Statistics [example](./examples/promptlab-1.1.0/chatStats.png)
 - Command Setup On Install
-    - Custom Configuration Fields [example](./examples/promptlab-1.1.0/commandConfig.png) [example2](./examples/promptlab-1.1.0/commandConfig2.png) [example3](./examples/promptlab-1.1.0/)
-    - Post-Install Configuration [example](./examples/promptlab-1.1.0/commandConfig4.png)
+  - Custom Configuration Fields [example](./examples/promptlab-1.1.0/commandConfig.png) [example2](./examples/promptlab-1.1.0/commandConfig2.png) [example3](./examples/promptlab-1.1.0/)
+  - Post-Install Configuration [example](./examples/promptlab-1.1.0/commandConfig4.png)
 - Spoken Responses
 - Voice Input
 - New Placeholders
-    - Persistent Variables
-    - Flow Control Directives
-    - Configuration Placeholders
-    - JS Sandbox
+  - Persistent Variables
+  - Flow Control Directives
+  - Configuration Placeholders
+  - JS Sandbox
 - Manage Models [example](./examples/promptlab-1.1.0/models.png)
 - Menu Bar Extra [example](./examples/promptlab-1.1.0/menubar.png)
 - Placeholders Guide
@@ -250,15 +250,15 @@ Contributions are welcome! Please see the [contributing guidelines](./CONTRIBUTI
 
 #### Planned
 
-- [x] Saved Responses 
+- [x] Saved Responses
 - [x] Command, Chat, and Placeholder Insights
 - [ ] WordNet Integration
 - [x] Command Templates
 - [ ] Improved Local Processing
-    - [x] DOCX, PPTX, XLSX Parsing
-    - [x] Pages, Numbers, and Keynote Parsing
-    - [x] Spreadsheet Parsing
-    - [x] Horizon Detection
+  - [x] DOCX, PPTX, XLSX Parsing
+  - [x] Pages, Numbers, and Keynote Parsing
+  - [x] Spreadsheet Parsing
+  - [x] Horizon Detection
 - [ ] WeatherKit Integration
 
 #### Possible

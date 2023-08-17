@@ -21,6 +21,7 @@ import SpeechInputView from "./SpeechInputView";
 import { useFiles } from "../../hooks/useFiles";
 import runModel from "../../utils/runModel";
 import * as Insights from "../../utils/insights";
+import { showDialog } from "../../utils/scripts";
 
 export default function CommandResponse(props: {
   command: Command | StoreCommand;
@@ -105,10 +106,10 @@ export default function CommandResponse(props: {
     Promise.resolve(runReplacements(prompt, context, [command.name], options)).then((subbedPrompt) => {
       if (options.outputKind == "list" && subbedPrompt.trim().length > 0) {
         subbedPrompt +=
-          "<Format the output as a single list with each item separated by '~~~'. Do not provide any other commentary, headings, or data.>";
+          "\n\n<Format the output as a single list with each item separated by '~~~'. Do not provide any other commentary, headings, or data.>";
       } else if (options.outputKind == "grid" && subbedPrompt.trim().length > 0) {
         subbedPrompt +=
-          "<Format the output as a single list with each item separated by '~~~'. At the start of each item, put an object emoji or person emoji that represents that item followed by '$$$'. Do not provide any other commentary, headings, or data.>";
+          "\n\n<Format the output as a single list with each item separated by '~~~'. At the start of each item, put an object emoji or person emoji that represents that item followed by '$$$'. Do not provide any other commentary, headings, or data.>";
       }
 
       setSubstitutedPrompt(subbedPrompt);
@@ -157,6 +158,9 @@ export default function CommandResponse(props: {
 
     // Update previous command placeholders
     if (!loadingData && !loading && !isLoading && data.length) {
+      if (options.outputKind == "dialogWindow") {
+        Promise.resolve(showDialog(command.name, text));
+      }
       setPreviousCommand(command.name);
       setPreviousResponse(text);
       setPreviousPrompt(fullPrompt);
@@ -209,8 +213,12 @@ export default function CommandResponse(props: {
   }
 
   // Don't show the response if the user has disabled it
-  if (options.showResponse == false || (!loadingData && substitutedPrompt == "")) {
-    if (options.showResponse == false) {
+  if (
+    options.showResponse == false ||
+    options.outputKind == "dialogWindow" ||
+    (!loadingData && substitutedPrompt == "")
+  ) {
+    if (options.showResponse == false || options.outputKind == "dialogWindow") {
       Promise.resolve(showHUD(`Running '${command.name}'...`));
     }
 

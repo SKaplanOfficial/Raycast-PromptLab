@@ -1,15 +1,15 @@
-import { Action, ActionPanel, Form, Icon } from "@raycast/api";
+import { Action, ActionPanel, Icon } from "@raycast/api";
 import { ToggleChatFavoriteAction } from "./ToggleChatFavoriteAction";
 import { ExportChatAction } from "./ExportChatAction";
 import { DeleteAllChatsAction, DeleteChatAction } from "./DeleteChatActions";
 import { defaultAdvancedSettings } from "../../../data/default-advanced-settings";
 import ChatSettingsForm from "../ChatSettingsForm";
 import { CopyChatActionsSection } from "./CopyChatActions";
-import { anyActionsEnabled, isActionEnabled } from "../../../utils/action-utils";
-import AdvancedActionSubmenu from "../../actions/AdvancedActionSubmenu";
+import { anyActionsEnabled, getActionShortcut, isActionEnabled } from "../../../utils/action-utils";
 import ContextSettingsActionSection from "./ContextSettingsActionSection";
 import { Chat, ChatRef } from "../../../utils/types";
 import EditAction from "../../actions/EditAction";
+import AdvancedActionSubmenu from "../../actions/AdvancedActionSubmenu";
 
 /**
  * Actions panel for the Chat command.
@@ -66,6 +66,7 @@ export const ChatActionPanel = (props: {
     setRunningCommand,
     submitQuery,
   } = props;
+
   return (
     <ActionPanel>
       {isLoading ? (
@@ -147,7 +148,7 @@ export const ChatActionPanel = (props: {
           title="Regenerate"
           icon={Icon.ArrowClockwise}
           onAction={previousResponse?.length ? () => setSentQuery(query + " ") : revalidate}
-          shortcut={{ modifiers: ["cmd"], key: "r" }}
+          shortcut={getActionShortcut("RegenerateChatAction", settings)}
         />
       ) : null}
 
