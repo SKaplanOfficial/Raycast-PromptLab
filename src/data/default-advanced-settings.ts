@@ -137,14 +137,14 @@ export const defaultAdvancedSettings = {
    */
   actionSettings: {
     DeleteAction: {
-      enabled: ["search-commands", "chat", "manage-models", "saved-responses"],
+      enabled: ["search-commands", "chat", "manage-models", "saved-responses", "manage-placeholders"],
       shortcut: {
         key: "d",
         modifiers: ["cmd"],
       },
     },
     DeleteAllAction: {
-      enabled: ["search-commands", "chat", "manage-models", "saved-responses"],
+      enabled: ["search-commands", "chat", "manage-models", "saved-responses", "manage-placeholders"],
       shortcut: {
         key: "d",
         modifiers: ["cmd", "opt", "shift"],
@@ -172,7 +172,7 @@ export const defaultAdvancedSettings = {
       },
     },
     OpenPlaceholdersGuideAction: {
-      enabled: ["search-commands", "create-command", "chat", "saved-responses"],
+      enabled: ["search-commands", "create-command", "chat", "saved-responses", "manage-placeholders"],
       openIn: "default",
       shortcut: {
         key: "g",
@@ -180,7 +180,7 @@ export const defaultAdvancedSettings = {
       },
     },
     OpenAdvancedSettingsAction: {
-      enabled: ["search-commands", "create-command", "chat", "saved-responses"],
+      enabled: ["search-commands", "create-command", "chat", "saved-responses", "manage-models", "manage-placeholders"],
       openIn: "default",
       shortcut: {
         key: "v",
@@ -315,25 +315,39 @@ export const defaultAdvancedSettings = {
       },
     },
     CopyJSONAction: {
-      enabled: ["saved-responses", "chat", "search-commands", "discover-commands", "manage-models"],
+      enabled: ["saved-responses", "chat", "search-commands", "discover-commands", "manage-models", "manage-placeholders"],
       shortcut: {
         key: "j",
         modifiers: ["cmd", "shift"],
       },
     },
     CopyNameAction: {
-      enabled: ["saved-responses", "chat", "search-commands", "discover-commands", "manage-models"],
+      enabled: ["saved-responses", "chat", "search-commands", "discover-commands", "manage-models", "manage-placeholders"],
       shortcut: {
         key: "n",
         modifiers: ["cmd", "shift"],
       },
     },
     EditAction: {
-      enabled: ["saved-responses", "chat", "search-commands", "manage-models"],
+      enabled: ["saved-responses", "chat", "search-commands", "manage-models", "manage-placeholders"],
       shortcut: {
         key: "e",
         modifiers: ["cmd"],
       },
     },
+    "CreatePlaceholderAction": {
+      enabled: ["manage-placeholders"],
+      shortcut: {
+        key: "n",
+        modifiers: ["cmd"],
+      },
+    },
+    "CopyCurrentValueAction": {
+      enabled: ["manage-placeholders"],
+      shortcut: {
+        key: "c",
+        modifiers: ["cmd", "shift"],
+      },
+    }
   },
 };

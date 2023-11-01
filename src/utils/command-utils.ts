@@ -1,4 +1,3 @@
-import { runAppleScript } from "run-applescript";
 import { objcImports, replaceAllHandler, rselectHandler, splitHandler, trimHandler } from "./scripts";
 import { exec } from "child_process";
 import {
@@ -20,6 +19,7 @@ import path from "path";
 import runModel from "./runModel";
 import * as Insights from "./insights";
 import { loadChat } from "./chat-utils";
+import { runAppleScript } from "@raycast/utils";
 
 /**
  * Runs the action script of a PromptLab command, providing the AI response as the `response` variable.

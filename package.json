@@ -375,13 +375,12 @@
     }
   ],
   "dependencies": {
-    "@raycast/api": "^1.51.0",
-    "@raycast/utils": "^1.6.1",
+    "@raycast/api": "^1.57.2",
+    "@raycast/utils": "^1.9.0",
     "exifr": "^7.1.3",
     "mammoth": "^1.6.0",
     "node-fetch": "^3.3.1",
     "pptx-text-parser": "^1.1.1",
-    "run-applescript": "^6.1.0",
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.19.3/xlsx-0.19.3.tgz"
   },
   "devDependencies": {
@@ -391,6 +390,7 @@
     "@types/textract": "^2.4.2",
     "eslint": "^7.32.0",
     "prettier": "^2.5.1",
+    "react-devtools": "^4.24.6",
     "typescript": "^4.4.3"
   },
   "scripts": {

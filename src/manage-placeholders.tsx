@@ -1,57 +1,34 @@
-import { Action, ActionPanel, Color, Icon, List } from "@raycast/api";
+import { List } from "@raycast/api";
 import { useAdvancedSettings } from "./hooks/useAdvancedSettings";
 import { useCustomPlaceholders } from "./hooks/useCustomPlaceholders";
-import { deleteCustomPlaceholder } from "./utils/placeholders";
+import PlaceholdersActionPanel from "./components/Placeholders/actions/PlaceholdersActionPanel";
+import NoPlaceholdersView from "./components/Placeholders/NoPlaceholdersView";
+import PlaceholderListItem from "./components/Placeholders/PlaceholderListItem";
 
+/**
+ * View for managing custom placeholders.
+ * @returns A list view component.
+ */
 export default function ManagePlaceholders() {
   const { customPlaceholders, isLoading, revalidate } = useCustomPlaceholders();
   const { advancedSettings } = useAdvancedSettings();
 
-  const listItems = Object.entries(customPlaceholders).map(([key, customPlaceholder]) => {
-    return (
-      <List.Item
-        title={customPlaceholder.name}
-        subtitle={customPlaceholder.description}
-        key={key}
-        accessories={[
-          {
-            icon: Icon.Document,
-            tooltip: `Source: ${customPlaceholder.source}`,
-          },
-        ]}
-        actions={
-          <ActionPanel>
-            <Action
-              title="Delete Placeholder"
-              icon={Icon.Trash}
-              shortcut={{ modifiers: ["cmd"], key: "d" }}
-              onAction={async () => {
-                await deleteCustomPlaceholder(key, customPlaceholder);
-                await revalidate();
-              }}
-              style={Action.Style.Destructive}
-            />
-          </ActionPanel>
-        }
-      />
-    );
-  });
+  const listItems = Object.entries(customPlaceholders).map(([key, placeholder]) => (
+    <PlaceholderListItem
+      settings={advancedSettings}
+      customPlaceholders={customPlaceholders}
+      placeholderKey={key}
+      placeholder={placeholder}
+      revalidatePlaceholders={revalidate}
+    />
+  ));
 
   return (
     <List
       isLoading={isLoading}
-      actions={
-        <ActionPanel>
-          {/* <Action.Push
-            title="Add New Model"
-            icon={Icon.PlusCircle}
-            shortcut={{ modifiers: ["cmd"], key: "n" }}
-            target={<ModelForm models={models} />}
-          /> */}
-        </ActionPanel>
-      }
+      actions={<PlaceholdersActionPanel settings={advancedSettings} revalidatePlaceholders={revalidate} />}
     >
-      <List.EmptyView title="No custom placeholders yet, add one to get started." icon={Icon.PlusCircle} />
+      <NoPlaceholdersView totalCount={listItems.length} />
       {listItems}
     </List>
   );

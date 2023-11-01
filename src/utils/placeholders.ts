@@ -10,7 +10,6 @@ import {
   showToast,
 } from "@raycast/api";
 import { Clipboard } from "@raycast/api";
-import { runAppleScript } from "run-applescript";
 import * as Context from "./context";
 import * as fs from "fs";
 import * as os from "os";
@@ -40,6 +39,7 @@ import {
   PlaceholderList,
 } from "./types";
 import * as Insights from "./insights";
+import { runAppleScript } from "@raycast/utils";
 
 /**
  * Placeholder specification.
@@ -166,10 +166,13 @@ const placeholders: PlaceholderList = {
     name: "input",
     apply: async (str: string, context?: { [key: string]: string }) => {
       let input = context && "input" in context ? context["input"] : "";
-      try {
-        input = await getSelectedText();
-      } catch (error) {
-        input = "";
+
+      if (input != "") {
+        try {
+          input = await getSelectedText();
+        } catch (error) {
+          input = "";
+        }
       }
       return { result: input, input: input };
     },
@@ -2642,12 +2645,12 @@ export const loadCustomPlaceholders = async (settings: { allowCustomPlaceholderP
         try {
           return {
             path: customPlaceholdersPath,
-            data: await fs.promises.readFile(customPlaceholdersPath, "utf-8")
-          }
+            data: await fs.promises.readFile(customPlaceholdersPath, "utf-8"),
+          };
         } catch (e) {
           return {
             path: customPlaceholdersPath,
-            data: "{}"
+            data: "{}",
           };
         }
       })
@@ -2912,13 +2915,58 @@ export const Placeholders = {
   bulkApply: bulkApply,
 };
 
-// export const addCustomPlaceholder = 
+export const createCustomPlaceholder = async (regex: string, data: CustomPlaceholder) => {
+  if (data.source == undefined) {
+    data.source = path.join(environment.supportPath, CUSTOM_PLACEHOLDERS_FILENAME);
+  }
 
-export const deleteCustomPlaceholder = async (key: string, placeholder: Placeholder) => {
+  // Wrap the placeholder data in a CustomPlaceholder, minus the source
+  const newPlaceholder: CustomPlaceholder = {
+    name: data.name,
+    value: data.value,
+    description: data.description,
+    example: data.example,
+    hintRepresentation: data.hintRepresentation,
+    fullRepresentation: data.fullRepresentation,
+  };
+
+  try {
+    // Read the current placeholders and add the new one
+    const fileContents = await fs.promises.readFile(data.source, "utf-8");
+    const placeholders = JSON.parse(fileContents);
+    placeholders[`{{${regex}}}`] = newPlaceholder;
+
+    // Write the new placeholder to the file
+    await fs.promises.writeFile(data.source, JSON.stringify(placeholders, null, 2));
+  } catch (e) {
+    console.error(e);
+  }
+};
+
+/**
+ * Deletes a custom placeholder from the custom placeholders file.
+ * @param key The key of the placeholder to delete.
+ * @param placeholder The placeholder to get the source file from. If no source file is provided, the default custom placeholders file will be used.
+ */
+export const deleteCustomPlaceholder = async (key: string, placeholder: Placeholder | CustomPlaceholder) => {
   if (placeholder.source != undefined) {
     const fileContents = await fs.promises.readFile(placeholder.source, "utf-8");
     const placeholders = JSON.parse(fileContents);
     delete placeholders[key];
     await fs.promises.writeFile(placeholder.source, JSON.stringify(placeholders, null, 2));
   }
+};
+
+/**
+ * Gets a custom placeholder from a custom placeholders file.
+ * @param key The key of the placeholder to get.
+ * @param placeholder The placeholder to get the source file from. Optional. Defaults to the default custom placeholders file.
+ * @returns A promise resolving to the {@link CustomPlaceholder} object, or undefined if the placeholder does not exist.
+ */
+export const getCustomPlaceholder = async (key: string, placeholder?: Placeholder) => {
+  const sourceFile = placeholder?.source || path.join(environment.supportPath, CUSTOM_PLACEHOLDERS_FILENAME);
+  const fileContents = await fs.promises.readFile(sourceFile, "utf-8");
+  const placeholders = JSON.parse(fileContents);
+  placeholders[key].source = sourceFile;
+  return placeholders[key];
 }

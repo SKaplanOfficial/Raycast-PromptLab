@@ -1,5 +1,11 @@
 # PromptLab DevLog - A More Detailed ChangeLog
 
+## v1.4.0 Release
+
+### 2023-11-01
+
+- Fixed bug where `{{input}}`, `{{selectedText}}`, and `{{clipboardText}}` could not be used at the same time.
+
 ## v1.3.0 Release
 
 ### 2023-07-03

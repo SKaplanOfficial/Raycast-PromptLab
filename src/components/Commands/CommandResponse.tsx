@@ -96,7 +96,7 @@ export default function CommandResponse(props: {
 
     const context = {
       ...fileContents,
-      input: options.useSpeech != undefined || speechInput?.length ? speechInput || "" : input || "",
+      input: options.useSpeech == true || speechInput?.length ? speechInput || "" : input || "",
       selectedFiles: selectedFiles?.csv || "",
       previousCommand: previousCommand,
       previousResponse: previousResponse,

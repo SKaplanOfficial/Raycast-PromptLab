@@ -1,4 +1,3 @@
-import { runAppleScript } from "run-applescript";
 import { CommandOptions, ERRORTYPE, ExtensionPreferences, Model } from "../utils/types";
 import { useEffect, useState } from "react";
 import { LocalStorage, environment, getPreferenceValues } from "@raycast/api";
@@ -23,6 +22,7 @@ import { useModels } from "./useModels";
 import { defaultAdvancedSettings } from "../data/default-advanced-settings";
 import { exec, execSync } from "child_process";
 import { filterString } from "../utils/context";
+import { runAppleScript } from "@raycast/utils";
 
 const isTrueDirectory = (filepath: string) => {
   try {

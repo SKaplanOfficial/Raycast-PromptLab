@@ -27,13 +27,13 @@ export default function CopyJSONAction(props: {
       onAction={async () => {
         let contentToCopy = "";
         if (typeof content == "function") {
-          contentToCopy = await new Promise((resolve, reject) => {
+          contentToCopy = JSON.stringify(await new Promise((resolve, reject) => {
             try {
               resolve(content());
             } catch (e) {
               reject(e);
             }
-          });
+          }));
         } else if (content == "string") {
           contentToCopy = content;
         } else {

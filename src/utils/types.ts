@@ -88,7 +88,6 @@ export type CommandOptions = {
   useRectangleDetection?: boolean;
   useBarcodeDetection?: boolean;
   useFaceDetection?: boolean;
-  useHorizonDetection?: boolean;
   outputKind?: string;
   actionScript?: string;
   showResponse?: boolean;
@@ -312,11 +311,6 @@ export type Command = {
   useSaliencyAnalysis?: boolean;
 
   /**
-   * Whether to include the angle of the horizon in selected images in the data sent to the model.
-   */
-  useHorizonDetection?: boolean;
-
-  /**
    * The name of the author of the command.
    */
   author?: string;
@@ -423,7 +417,6 @@ export type StoreCommand = {
   useRectangleDetection?: string;
   useBarcodeDetection?: string;
   useFaceDetection?: string;
-  useHorizonDetection?: string;
   outputKind?: string;
   actionScript?: string;
   showResponse?: string;
@@ -1031,6 +1024,11 @@ export type CustomPlaceholder = {
    * The full name representation of the placeholder, properly spaced.
    */
   fullRepresentation: string;
+
+  /**
+   * The file that the placeholder was sourced from, if any.
+   */
+  source?: string;
 };
 
 /**
