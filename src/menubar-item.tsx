@@ -15,12 +15,10 @@ import {
     openCommandPreferences
 } from '@raycast/api';
 
-import SuggestedCommandsSection from './components/Commands/SuggestedCommandsSection';
 import { useCommands } from './hooks/useCommands';
 import {
     ADVANCED_SETTINGS_FILENAME, COMMAND_CATEGORIES, CUSTOM_PLACEHOLDERS_FILENAME
 } from './utils/constants';
-import * as Insights from './utils/insights';
 import { Command } from './utils/types';
 
 interface CommandPreferences {
@@ -60,12 +58,6 @@ export default function PromptLabMenubar() {
         key={cmd.name}
         onAction={async (event) => {
           if (event.type == "left-click") {
-            await Insights.add(
-              `Command Execution`,
-              `Executed command ${cmd.name} via the menubar`,
-              ["commands", "menubar"],
-              []
-            );
             await launchCommand({
               name: "search-commands",
               type: LaunchType.UserInitiated,
@@ -130,8 +122,6 @@ export default function PromptLabMenubar() {
       ) : (
         menuItems
       )}
-
-      <SuggestedCommandsSection />
 
       <MenuBarExtra.Section>
         {preferences.showAllCommandsShortcut ? (

@@ -33,12 +33,10 @@ import {
   CustomPlaceholder,
   EventType,
   ExtensionPreferences,
-  Insight,
   PersistentVariable,
   Placeholder,
   PlaceholderList,
 } from "./types";
-import * as Insights from "./insights";
 import { runAppleScript } from "@raycast/utils";
 
 /**
@@ -124,42 +122,6 @@ const placeholders: PlaceholderList = {
       "Replaced with a comma-separated list of all persistent variables. If no persistent variables have been set, the placeholder will be replaced with an empty string.",
     hintRepresentation: "{{vars}}",
     fullRepresentation: "List of Persistent Variables",
-  },
-
-  "{{insights(:(.*?))?}}": {
-    name: "insights",
-    apply: async (str: string, context?: { [key: string]: string }) => {
-      const tag = str.match(/{{insights:(.*?)}}/)?.[1];
-      let insights: Insight[] = [];
-      if (tag) {
-        insights = await Insights.get(50, tag);
-      } else {
-        insights = await Insights.get(50);
-      }
-
-      if (insights.length == 0) {
-        return { result: "" };
-      }
-
-      const recentInsights = insights.slice(0, 50);
-      const recentInsightData = recentInsights
-        .map(
-          (insight) =>
-            `${insight.title} on ${insight.date}, description: '${insight.description}' tags: ${insight.tags.join(
-              ", "
-            )}`
-        )
-        .join("\n");
-      return { result: Context.filterString(recentInsightData) };
-    },
-    constant: false,
-    fn: async (tag?: string) =>
-      (await Placeholders.allPlaceholders["{{insights(:(.*?))?}}"].apply(`{{insights${tag ? `:${tag}` : ""}}}`)).result,
-    example: "Summarize these data entries: {{insights}}",
-    description:
-      "Replaced with local data entries, one per line. If a tag is specified, only data entries with that tag will be included.",
-    hintRepresentation: "{{insights}}",
-    fullRepresentation: "Insights",
   },
 
   "{{input}}": {

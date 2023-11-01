@@ -1,12 +1,10 @@
 # PromptLab DevLog - A More Detailed ChangeLog
 
-## v1.4.0 Release
+## v1.3.0 Release
 
 ### 2023-11-01
 
 - Fixed bug where `{{input}}`, `{{selectedText}}`, and `{{clipboardText}}` could not be used at the same time.
-
-## v1.3.0 Release
 
 ### 2023-07-03
 
@@ -30,18 +28,11 @@
   - Models: `MO`
   - Chats: `CH`
   - Saved Responses: `SR`
-  - Insights: `IN`
 - Added saved response placeholders. Use the ID of a saved response to insert its output into a prompt.
   - Can also use `{{SR:name}}` to insert the output of the saved response with the given name.
 
 ### 2023-06-30
 
-- Added Insights (experimental)
-  - Small summaries of your PromptLab usage generated locally as you use the extension.
-  - Used to deliver command and placeholder suggestions.
-    - Added command suggestions (toggleable, off by default) in menubar and 'My PromptLab Commands'.
-    - Added placeholder suggestions (toggleable, off by default) command creation and editing views.
-    - Added `{{insights:tag}}` placeholder - returns a summary of recent insights, optionally filtered by tag.
 - Added `{{musicAlbums}}`, `{{musicArtists}}`, and `{{musicPlaylists}}` placeholders.
 - Added `{{tvDirectors}}`, `{{tvPlaylists}}`, `{{tvShows}}`, and `{{tvTracks}}` placeholders.
 

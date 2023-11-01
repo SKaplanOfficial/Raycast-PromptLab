@@ -1136,66 +1136,6 @@ export interface AudioData extends DataProviderOutput {
   soundClassifications: string;
 }
 
-/************/
-/* Insights */
-/************/
-
-/**
- * Wrapper type for the insight manager returned by {@link useInsights}.
- */
-export type InsightManager = {
-  /**
-   * The list of insights, loaded from the disk and sorted by date.
-   */
-  insights: Insight[];
-
-  /**
-   * True if the insights are currently being loaded from the disk, false otherwise.
-   */
-  loadingInsights: boolean;
-
-  /**
-   * Revalidates the insights by reloading them from the disk and sorting them by date.
-   * @returns A promise that resolves when the insights have been revalidated.
-   */
-  revalidateInsights: () => Promise<void>;
-};
-
-/**
- * A piece of insight generated as a result of a user's actions.
- */
-export type Insight = {
-  /**
-   * The unique ID of the insight. This is used as the filename of the insight.
-   */
-  id: string;
-
-  /**
-   * The title of the insight, non-unique.
-   */
-  title: string;
-
-  /**
-   * The descriptive text of the insight.
-   */
-  description: string;
-
-  /**
-   * The date the insight was created.
-   */
-  date: Date;
-
-  /**
-   * The tags associated with the insight.
-   */
-  tags: string[];
-
-  /**
-   * The related insights, by ID.
-   */
-  relatedInsights: string[];
-};
-
 /*******************/
 /* Saved Responses */
 /*******************/

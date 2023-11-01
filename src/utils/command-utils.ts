@@ -4,20 +4,18 @@ import {
   Chat,
   Command,
   CommandOptions,
-  ExtensionPreferences,
   LaunchSource,
   Model,
   SavedResponse,
   StoreCommand,
   isCommand,
 } from "./types";
-import { LocalStorage, AI, showToast, Toast, Clipboard, environment, getPreferenceValues, Color } from "@raycast/api";
+import { LocalStorage, AI, showToast, Toast, Clipboard, environment, Color } from "@raycast/api";
 import { Placeholders } from "./placeholders";
 import * as fs from "fs";
 import crypto from "crypto";
 import path from "path";
 import runModel from "./runModel";
-import * as Insights from "./insights";
 import { loadChat } from "./chat-utils";
 import { runAppleScript } from "@raycast/utils";
 
@@ -149,17 +147,6 @@ export const runReplacements = async (
 
   subbedPrompt = await Placeholders.bulkApply(subbedPrompt, context);
 
-  // Replace insight placeholders
-  if (subbedPrompt.match(/{{IN.*?}}/g)) {
-    const id = subbedPrompt.match(/{{(IN.*?)}}/)?.[1];
-    if (id != undefined) {
-      const insight = await Insights.read(id);
-      if (insight != undefined) {
-        subbedPrompt = subbedPrompt.replaceAll(`{{${id}}}`, `${insight.date}:${insight.description}`);
-      }
-    }
-  }
-
   // Replace model placeholders
   if (subbedPrompt.match(/{{MO.*?}}/g)) {
     const id = subbedPrompt.match(/{{(MO.*?)}}/)?.[1];
@@ -290,7 +277,6 @@ export const saveResponse = async (
    */
   id: string;
 }> => {
-  const preferences = getPreferenceValues<ExtensionPreferences>();
   const savedResponsesDir = path.join(environment.supportPath, "saved-responses");
 
   if (!fs.existsSync(savedResponsesDir)) {
@@ -323,14 +309,6 @@ export const saveResponse = async (
   const savedResponsePath = path.join(savedResponsesDir, `${savedResponse.id}.json`);
   try {
     await fs.promises.writeFile(savedResponsePath, JSON.stringify(savedResponse));
-    if (preferences.useCommandStatistics) {
-      await Insights.add(
-        "Saved a Response",
-        `Saved a response for command ${command.name}`,
-        ["commands", "saved-responses"],
-        []
-      );
-    }
   } catch (error) {
     console.error(error);
     return { status: false, outputPath: "", id: "" };

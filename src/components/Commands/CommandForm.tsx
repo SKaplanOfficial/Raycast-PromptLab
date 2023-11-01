@@ -34,8 +34,6 @@ import path from "path";
 import { ADVANCED_SETTINGS_FILENAME, COMMAND_CATEGORIES } from "../../utils/constants";
 import { useAdvancedSettings } from "../../hooks/useAdvancedSettings";
 import { isActionEnabled } from "../../utils/action-utils";
-import runModel from "../../utils/runModel";
-import * as Insights from "../../utils/insights";
 import { defaultAdvancedSettings } from "../../data/default-advanced-settings";
 
 interface CommandFormValues {
@@ -86,7 +84,6 @@ export default function CommandForm(props: {
   const [showAddPlaceholderAction, setShowAddPlaceholderAction] = useState<boolean>(false);
   const [prompt, setPrompt] = useState<string>(oldData != undefined ? oldData.prompt : "");
   const models = useModels();
-  const [insightMessage, setInsightMessage] = useState<string>("");
   const { pop } = useNavigation();
 
   const [setupFields, setSetupFields] = useState<
@@ -132,56 +129,6 @@ export default function CommandForm(props: {
       return defaultAdvancedSettings.commandDefaults;
     }
   };
-
-  useEffect(() => {
-    if (!preferences.usePlaceholderStatistics) {
-      return;
-    }
-
-    const placeholders = Object.values(Placeholders.allPlaceholders).filter((p) =>
-      p.name.includes(":") ? Math.random() < 0.05 : true
-    );
-
-    // Shuffle the array (to avoid bias)
-    for (let i = placeholders.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      const temp = placeholders[i];
-      placeholders[i] = placeholders[j];
-      placeholders[j] = temp;
-    }
-
-    Insights.objectsByFrequency("_count", "name", 5).then((mostFrequentPlaceholders) => {
-      const modelInput = `I want you to recommend placeholders for me to use based on the following information. First, here are the placeholders that I most frequently use:\n\n${mostFrequentPlaceholders.join(
-        "\n"
-      )}\n\nNext, here are all of the other placeholders that I know about:\n\n${placeholders
-        .filter((p) => !mostFrequentPlaceholders.includes(p.name))
-        .map((p) => p.name)
-        .join(
-          "\n"
-        )}\n\nFrom the second list, which placeholders best compliment to the ones that I use most frequently? Output the names of 3 complimentary placeholders, separated by commas. Do not output any other text.`;
-
-      runModel(modelInput, modelInput, "").then((response) => {
-        const message = response
-          ? `\n\nSuggested Placeholders Based on Your Usage:\n${response
-              .split(",")
-              .map((p) =>
-                Object.values(Placeholders.allPlaceholders).find((placeholder) => placeholder.name == p.trim())
-              )
-              .map((p) => `\n${p?.hintRepresentation}: ${p?.description}\nExample: ${p?.example}`)
-              .join("\n")}`
-          : "";
-        setInsightMessage(message);
-        if (message) {
-          Insights.add(
-            "Placeholder Suggestions",
-            `Your most frequently used placeholders in PromptLab prompts are: ${mostFrequentPlaceholders}. \n\nBased on those, consider using these placeholders: ${response}`,
-            ["placeholders"],
-            []
-          );
-        }
-      });
-    });
-  }, []);
 
   useEffect(() => {
     lastAddedFieldRef.current?.focus();
@@ -838,7 +785,7 @@ export default function CommandForm(props: {
         title="Prompt"
         placeholder="Instructions for AI to follow"
         info={`This is the prompt that the AI will use to generate a response. You can use placeholders to add dynamic content to your prompt. Use the 'Open Placeholders Guide' action to learn more. ${
-          promptInfo ? promptInfo : insightMessage
+          promptInfo ? promptInfo : ""
         }`}
         {...itemProps.prompt}
         value={prompt}
@@ -863,7 +810,7 @@ export default function CommandForm(props: {
         title="Script"
         placeholder="Script to run after response is received"
         info={`Code for the script to run after receiving a response to the prompt. Use the 'response' variable to access the text of the response. ${
-          scriptInfo ? scriptInfo : insightMessage
+          scriptInfo ? scriptInfo : ""
         }`}
         {...itemProps.actionScript}
         onChange={async (value) => {

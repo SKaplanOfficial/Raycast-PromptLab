@@ -1,1 +1,0 @@
-export * as Insights from "./insights";

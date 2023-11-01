@@ -16,7 +16,6 @@ import { useCachedState } from "@raycast/utils";
 import CategoryDropdown from "./components/CategoryDropdown";
 import CommandListItem from "./components/Commands/CommandListItem";
 import CommandResponse from "./components/Commands/CommandResponse";
-import SuggestedCommandsSection from "./components/Commands/SuggestedCommandsSection";
 import { useAdvancedSettings } from "./hooks/useAdvancedSettings";
 import { useCommands } from "./hooks/useCommands";
 import { Command, ExtensionPreferences, searchPreferences } from "./utils/types";
@@ -140,15 +139,6 @@ export default function SearchCommand(props: { arguments: { commandName: string;
           {listItems.filter((item) => favorites.map((command) => command.name).includes(item.props.command.name))}
         </List.Section>
       ) : null}
-
-      <SuggestedCommandsSection
-        commands={commands}
-        templates={templates}
-        setCommands={setCommands}
-        setTemplates={setTemplates}
-        previousCommand={previousCommand}
-        settings={advancedSettings}
-      />
 
       {otherCommands.length && !preferences.groupByCategory ? (
         <List.Section title={favorites.length ? `Other Commands` : `All Commands`}>
