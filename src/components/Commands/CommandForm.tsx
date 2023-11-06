@@ -22,7 +22,6 @@ import {
 import { Fragment, useEffect, useState } from "react";
 import * as crypto from "crypto";
 import { useRef } from "react";
-import { Placeholders, checkForPlaceholders } from "../../utils/placeholders";
 import {
   EditCustomPlaceholdersAction,
   OpenAdvancedSettingsAction,
@@ -34,6 +33,8 @@ import path from "path";
 import { ADVANCED_SETTINGS_FILENAME, COMMAND_CATEGORIES } from "../../utils/constants";
 import { useAdvancedSettings } from "../../hooks/useAdvancedSettings";
 import { isActionEnabled } from "../../utils/action-utils";
+import { DefaultPlaceholders, checkForPlaceholders } from "../../utils/placeholders";
+import { loadCustomPlaceholders } from "../../utils/file-utils";
 
 interface CommandFormValues {
   name: string;
@@ -169,25 +170,27 @@ export default function CommandForm(props: {
 
   useEffect(() => {
     if (oldData) {
-      checkForPlaceholders(oldData.prompt).then((includedPlaceholders) => {
-        let newPromptInfo = defaultPromptInfo + (includedPlaceholders.length > 0 ? "\n\nDetected Placeholders:" : "");
-        includedPlaceholders.forEach((placeholder) => {
-          newPromptInfo =
-            newPromptInfo +
-            `\n\n${placeholder.hintRepresentation || ""}: ${placeholder.description}\nExample: ${placeholder.example}`;
-        });
-        setPromptInfo(newPromptInfo);
-
-        checkForPlaceholders(oldData.actionScript || "").then((includedPlaceholders) => {
-          let newScriptInfo = includedPlaceholders.length > 0 ? "Detected Placeholders:" : "";
+      loadCustomPlaceholders(advancedSettings).then((customPlaceholders) => {
+        checkForPlaceholders(oldData.prompt, customPlaceholders).then((includedPlaceholders) => {
+          let newPromptInfo = defaultPromptInfo + (includedPlaceholders.length > 0 ? "\n\nDetected Placeholders:" : "");
           includedPlaceholders.forEach((placeholder) => {
-            newScriptInfo =
-              newScriptInfo +
-              `\n\n${placeholder.hintRepresentation || ""}: ${placeholder.description}\nExample: ${
-                placeholder.example
-              }`;
+            newPromptInfo =
+              newPromptInfo +
+              `\n\n${placeholder.hintRepresentation || ""}: ${placeholder.description}\nExample: ${placeholder.example}`;
           });
-          setScriptInfo(newScriptInfo);
+          setPromptInfo(newPromptInfo);
+
+          checkForPlaceholders(oldData.actionScript || "").then((includedPlaceholders) => {
+            let newScriptInfo = includedPlaceholders.length > 0 ? "Detected Placeholders:" : "";
+            includedPlaceholders.forEach((placeholder) => {
+              newScriptInfo =
+                newScriptInfo +
+                `\n\n${placeholder.hintRepresentation || ""}: ${placeholder.description}\nExample: ${
+                  placeholder.example
+                }`;
+            });
+            setScriptInfo(newScriptInfo);
+          });
         });
       });
     }
@@ -473,7 +476,7 @@ export default function CommandForm(props: {
           />
           {showAddPlaceholderAction ? (
             <ActionPanel.Submenu title="Add Placeholder..." icon={Icon.Plus}>
-              {Object.values(Placeholders.allPlaceholders)
+              {DefaultPlaceholders
                 .filter(
                   (placeholder) =>
                     !placeholder.name.startsWith("textfile:") &&

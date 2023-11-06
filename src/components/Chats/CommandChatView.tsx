@@ -8,8 +8,9 @@ import runModel from "../../utils/runModel";
 import { useFiles as useFileContents } from "../../hooks/useFiles";
 import { useAdvancedSettings } from "../../hooks/useAdvancedSettings";
 import { ChatActionPanel } from "./actions/ChatActionPanel";
-import { checkForPlaceholders } from "../../utils/placeholders";
 import { useCachedState } from "@raycast/utils";
+import { checkForPlaceholders } from "../../utils/placeholders";
+import { loadCustomPlaceholders } from "../../utils/file-utils";
 
 interface CommandPreferences {
   useSelectedFiles: boolean;
@@ -459,10 +460,10 @@ export default function CommandChatView(props: {
         id="queryField"
         value={query}
         info={promptInfo}
-        onChange={(value) => {
+        onChange={async (value) => {
           setQuery(value);
-
-          checkForPlaceholders(value).then((includedPlaceholders) => {
+          const customPlaceholders = await loadCustomPlaceholders(advancedSettings);
+          checkForPlaceholders(value, customPlaceholders).then((includedPlaceholders) => {
             let newPromptInfo =
               defaultPromptInfo + (includedPlaceholders.length > 0 ? "\n\nDetected Placeholders:" : "");
             includedPlaceholders.forEach((placeholder) => {

@@ -1,11 +1,12 @@
 import { Action, ActionPanel, Form, showToast, Icon, useNavigation, Color, environment, Toast } from "@raycast/api";
 import { Chat, ChatManager, ChatStatistics } from "../../utils/types";
 import { useEffect, useState } from "react";
-import { filterString, getTextOfWebpage } from "../../utils/context-utils";
+import { filterString } from "../../utils/context-utils";
 import runModel from "../../utils/runModel";
 import { getFileContent } from "../../hooks/useFiles";
 import { AdvancedActionSubmenu } from "../actions/AdvancedActionSubmenu";
 import { defaultAdvancedSettings } from "../../data/default-advanced-settings";
+import { utils } from "../../utils/browsers";
 
 interface ChatSettingsFormValues {
   chatNameField: string;
@@ -98,7 +99,7 @@ export default function ChatSettingsForm(props: {
                     let condensedText = "";
                     switch (contextField.type) {
                       case "website": {
-                        condensedText = filterString(await getTextOfWebpage(contextDataField));
+                        condensedText = filterString(await utils.getTextOfWebpage(contextDataField));
                         while (condensedText.length > parseInt(values.chatSummaryLengthField)) {
                           const randomIndex = Math.floor(Math.random() * condensedText.length);
                           condensedText = condensedText.slice(0, randomIndex) + condensedText.slice(randomIndex + 1);
@@ -133,7 +134,7 @@ export default function ChatSettingsForm(props: {
                     let lines: string[] = [];
                     switch (contextField.type) {
                       case "website": {
-                        lines = filterString(await getTextOfWebpage(contextDataField)).split("\n");
+                        lines = filterString(await utils.getTextOfWebpage(contextDataField)).split("\n");
                         while (lines.length > parseInt(values.chatSummaryLengthField)) {
                           const randomIndex = Math.floor(Math.random() * lines.length);
                           lines = [...lines.slice(0, randomIndex), ...lines.slice(randomIndex + 1)];
@@ -168,7 +169,7 @@ export default function ChatSettingsForm(props: {
                     let prompt = "";
                     switch (contextField.type) {
                       case "website": {
-                        const websiteText = filterString(await getTextOfWebpage(contextDataField));
+                        const websiteText = filterString(await utils.getTextOfWebpage(contextDataField));
                         if (values.chatCondensingStrategyField == "summarize") {
                           prompt = `Summarize the following text of ${contextDataField} in 50 words or fewer: ###${websiteText}###`;
                         } else if (values.chatCondensingStrategyField == "summarizeParagraphs") {

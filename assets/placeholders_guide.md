@@ -4,7 +4,7 @@
 
 Author: Stephen Kaplan _(HelloImSteven)_ <br />
 Last Updated: 2023-08-16 <br />
-PromptLab Version: 1.2.0
+PromptLab Version: 1.2.1
 
 ------------------------
 
@@ -40,16 +40,21 @@ All placeholders are evaluated at runtime — when you execute a command — and
 
 | Placeholder | Action |
 | ----- | ----- |
+| `{{alert:...}}` | Displays an alert with the specified text. Specify an optional title and timeout using `{{alert timeout=[number] title="...":...}}`. |
 | `{{command:...}}` | Runs a Raycast command. Replaced with empty string. Accepts up to three values in the format `{{command:commandName,extensionName,fallbackText}}`. |
 | `{{copy:...}}` | Copies the specified text to the clipboard. |
 | `{{cutoff [number]:...}}` | Cuts content to the specified number of characters. |
 | `{{decrement:identifier}}` | Decrements the specified persistent variable by 1. |
+| `{{dialog:...}}` | Displays a dialog with the specified text. Specify an optional title and timeout using `{{dialog timeout=[number] title="...":...}}`. |
 | `{{END}}` | Ends the current prompt, ignoring all subsequent content. |
 | `{{ignore:...}}` or <br /> `{{IGNORE:...}}` | Ignores all content contained within. Useful for running placeholders without inserting their return value. |
 | `{{increment:identifier}}` | Increments the specified persistent variable by 1. |
 | `{{paste:...}}` | Pastes the specified text into the frontmost application. |
 | `{{prompt:...}}` | Runs the provided content in a sub-prompt and returns the AI's response. |
+| `{{say:...}}` | Speaks the specified text aloud. Specify optional parameters using `{{say voice="..." speed=[number] pitch=[number] volume=[number]:...}}`. |
 | `{{selectFile:...}}` | Adds the specified file to the current selection. |
+| `{{toast:...}}` or <br /> `{{hud:...}}` | Displays a toast or HUD notification with the specified text, depending on whether Raycast is currently visible or not. Specify an optional style using `{{toast style="success/failure/fail":...}}`. |
+| `{{type:...}}` | Types the specified text into the frontmost application. |
 | `{{PromptLab Command Name/ID}}` | Runs another PromptLab command in the background and returns the result. |
 
 #### Persistent Variables
@@ -257,7 +262,7 @@ You can run commands of other Raycast extensions by specifying their name and op
 
 PromptLab parses the file tree in Raycast's extension directory to map user-facing command and extension names to the names defined in each extension's _package.json_.
 
-### Configuration Placeholders
+### Configuration Placeholder Details
 
 Configuration placeholders are placeholders that hold the user-specified value of a custom command configuration variable. The value is set by the user when they try to run the command for the first time. To add a custom configuration field to a command, use the `Unlock Setup Fields` action when creating/editing a command. This wil enable some additional actions to create different types of configuration fields, e.g. text-only fields, number fields, or true/false (checkbox) fields. Each field type has a slightly different format; instructions for each type are provided within the form's info panels. Once you've setup each field as desired, use the `Lock Setup Fields` action to lock the form and save your changes. When you upload the command to the PromptLab Store, the configuration fields will be included in the command's listing.
 
@@ -299,7 +304,7 @@ You can include multiple flow control directives within a prompt to create compl
 
 See the table in [Flow Control](#flow-control) for a list of supported directives.
 
-### Persistent Variables
+### Persistent Variable Details
 
 Persistent variables are placeholder-managed variables that are stored in the extension's local storage. They are useful for storing information that you want to use across multiple prompts. You can use persistent variables to store raw text or, more importantly, the output of other placeholders. For example, you can use `{{set desserts:{{prompt:Give me a list of desserts.}}}}` to store an AI-generated list of desserts in the `desserts` variable, and then use `{{get desserts}}` to include the list in another prompt at any time.
 
@@ -320,7 +325,7 @@ There is no currently any way to export persistent variables.
 
 To include sub-prompts within a command, use this placeholder format: `{{prompt:promptText}}`. Each prompt included in this way will be run sequentially, in order of occurrence, with the output of each prompt included in the final prompt. You can also nest prompts within prompts, as in `{{prompt:{{prompt:Hello}}}}`, which will use the AI's response to the first prompt as the prompt text for the second prompt. There is no limit to how deep you can nest prompts, but keep in mind that the AI will need to generate a response for each prompt, so nesting too deeply may result in long wait times.
 
-### Script Placeholders
+### Script Placeholder Details
 
 You can include various scripts in your commands that will be evaluated prior to sending the prompt, allowing you to include more dynamic content in your prompts.
 
@@ -410,3 +415,39 @@ You can instruct PromptLab to extract text from any webpage by using the `{{url:
 - [Raycast Custom Date Format Reference](https://manual.raycast.com/snippets/reference-for-supported-alphabets-in-custom-date-format) - Straight forward reference for customizing the `{{date}}` and `{{time}}` placeholders.
 - [Best practices for prompt engineering with OpenAI API](https://help.openai.com/en/articles/6654000-best-practices-for-prompt-engineering-with-openai-api) - Strategies for creating effective ChatGPT prompts, from OpenAI itself
 - [Brex's Prompt Engineering Guide](https://github.com/brexhq/prompt-engineering#what-is-a-prompt) - A guide to prompt engineering, with examples and in-depth explanations
+
+------------------------
+
+## Changelog
+
+### PromptLab 1.2.1
+
+**New Placeholders:**
+
+- `{{timezone}}`
+
+**New Directives:**
+
+- `{{alert:...}}`
+- `{{dialog:...}}`
+- `{{hud:...}}` / `{{toast:...}}`
+- `{{say:...}}`
+- `{{type:...}}`
+
+**Changes:**
+
+### PromptLab 1.2.0
+
+**New Placeholders:**
+
+- `{{currentAppBundleID}}`
+- `{{elementHTML}}`
+- `{{elementText:...}}`
+- `{{focusedElement}}`
+- `{{imageHorizon}}`
+- `{{screenContent}}`
+- `{{windowContent}}`
+
+**Changes:**
+
+- Added support for `target` parameter in `{{js:...}}`

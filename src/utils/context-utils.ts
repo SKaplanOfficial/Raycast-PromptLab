@@ -1,8 +1,41 @@
-import * as os from "os";
-import { getPreferenceValues } from "@raycast/api";
+import { getFrontmostApplication, getPreferenceValues } from "@raycast/api";
 import { ExtensionPreferences, JSONObject } from "./types";
-import fetch from "node-fetch";
 import { runAppleScript } from "@raycast/utils";
+import {
+  Arc,
+  Blisk,
+  Brave,
+  BraveBeta,
+  BraveDev,
+  BraveNightly,
+  Browser,
+  Chromium,
+  Epic,
+  GoogleChrome,
+  GoogleChromeBeta,
+  GoogleChromeCanary,
+  GoogleChromeDev,
+  Iron,
+  Maxthon,
+  MaxthonBeta,
+  MicrosoftEdge,
+  MicrosoftEdgeBeta,
+  MicrosoftEdgeCanary,
+  MicrosoftEdgeDev,
+  OmniWeb,
+  Opera,
+  OperaBeta,
+  OperaDeveloper,
+  OperaGX,
+  OperaNeon,
+  Orion,
+  Safari,
+  SigmaOS,
+  Vivaldi,
+  Yandex,
+  iCab,
+  utils,
+} from "./browsers";
 
 /**
  * Removes extraneous symbols from a string and limits it to (by default) 3000 characters.
@@ -39,340 +72,69 @@ export const filterString = (str: string, cutoff?: number): string => {
 };
 
 /**
- * Gets the URL of the active tab in Safari.
- *
- * @returns A promise which resolves to the URL of the active tab as a string.
- */
-const getCurrentSafariURL = async (): Promise<string> => {
-  return runAppleScript(`try
-        tell application "Safari"
-            return URL of document 1
-        end tell
-    end try`);
-};
-
-/**
- * Gets the visible text of the active tab in Safari (avoiding paywalls and other issues with the URL).
- *
- * @returns A promise which resolves to the visible text of the active tab as a string.
- */
-export const getSafariTabText = async (): Promise<string> => {
-  return runAppleScript(`try
-    tell application "Safari" to return text of current tab of window 1
-  end try`);
-};
-
-/**
- * Gets the top sites in Safari as a comma-separated string.
- *
- * @returns A promise resolving to the list of top sites as a string.
- */
-export const getSafariTopSites = async (): Promise<string> => {
-  return runAppleScript(`use framework "Foundation"
-    property ca : current application
-    
-    on plist for thePath
-      set plistData to ca's NSData's dataWithContentsOfFile:thePath
-      set plist to ca's NSPropertyListSerialization's propertyListWithData:plistData options:(ca's NSPropertyListImmutable) format:(missing value) |error|:(missing value)
-    end plist
-    
-    set topSitesPlist to plist for "${os.homedir()}/Library/Safari/TopSites.plist"
-    
-    set siteSummaries to {}
-    set sites to TopSites of topSitesPlist as list
-    repeat with site in sites
-      set siteTitle to TopSiteTitle of site
-      set siteURL to TopSiteURLString of site
-      copy siteTitle & ": " & siteURL to end of siteSummaries
-    end repeat
-    return siteSummaries`);
-};
-
-/**
- * Gets a list of the specified number of bookmarks from Safari.
- *
- * @param count The maximum number of bookmarks to retrieve, defaults to 100
- * @returns A promise resolving to the list of bookmark URLs as a string.
- */
-export const getSafariBookmarks = async (count = 100): Promise<string> => {
-  return runAppleScript(`use framework "Foundation"
-
-  on plist for thePath
-    set plistData to current application's NSData's dataWithContentsOfFile:thePath
-    set plist to current application's NSPropertyListSerialization's propertyListWithData:plistData options:(current application's NSPropertyListImmutable) format:(missing value) |error|:(missing value)
-  end plist
-  
-  set bookmarksPlist to (plist for "/Users/steven/Library/Safari/Bookmarks.plist") as record
-  
-  on getChildBookmarks(node)
-    set internalBookmarks to {}
-    if WebBookmarkType of node is "WebBookmarkTypeLeaf" then
-      set maxLength to 50
-      set theURL to URLString of node as text
-      if length of theURL < maxLength then
-        set maxLength to length of theURL
-      end if
-      copy text 1 thru maxLength of theURL to end of internalBookmarks
-    else if WebBookmarkType of node is "WebBookmarkTypeProxy" then
-      -- Ignore
-    else
-      try
-        repeat with theChild in Children of node
-          set internalBookmarks to internalBookmarks & my getChildBookmarks(theChild)
-        end repeat
-      on error err
-        log err
-      end try
-    end if
-    return internalBookmarks
-  end getChildBookmarks
-  
-  set bookmarks to {}
-  repeat with theChild in Children of bookmarksPlist
-    if WebBookmarkType of theChild is "WebBookmarkTypeLeaf" then
-      set maxLength to 50
-      set theURL to URLString of theChild as text
-      if length of theURL < maxLength then
-        set maxLength to length of theURL
-      end if
-      copy text 1 thru maxLength of theURL to end of bookmarks
-    else
-      set bookmarks to bookmarks & getChildBookmarks(theChild)
-    end if
-  end repeat
-  
-  set maxBookmarks to ${count}
-  if (count of bookmarks) < maxBookmarks then
-    set maxBookmarks to count of bookmarks
-  end if
-
-  set finalBookmarks to {}
-  repeat maxBookmarks times
-    copy some item of bookmarks to end of finalBookmarks
-  end repeat
-  return finalBookmarks`);
-};
-
-/**
- * Gets the URL of the active tab in Arc.
- *
- * @returns A promise which resolves to the URL of the active tab as a string.
- */
-const getArcURL = async (): Promise<string> => {
-  return runAppleScript(`try
-        tell application "Arc"
-            return URL of active tab of window 1
-        end tell
-    end try`);
-};
-
-/**
- * Gets the URL of the active tab in iCab.
- *
- * @returns A promise which resolves to the URL of the active tab as a string.
- */
-const getiCabURL = async (): Promise<string> => {
-  return runAppleScript(`try
-        tell application "iCab"
-            return url of document 1
-        end tell
-    end try`);
-};
-
-/**
- * Gets the URL of the active tab in a Chromium-based browser.
- *
- * @param browserName The name of the browser.
- * @returns A promise which resolves to the URL of the active tab as a string.
- */
-const getChromiumURL = async (browserName: string): Promise<string> => {
-  return runAppleScript(`try
-        tell application "${browserName}"
-            set tabIndex to active tab index of window 1
-            return URL of tab tabIndex of window 1
-        end tell
-    end try`);
-};
-
-/**
- * Gets the URL of the active tab in Orion.
- * @returns A promise which resolves to the URL of the active tab as a string.
- */
-const getOrionURL = async (): Promise<string> => {
-  return runAppleScript(`try
-    tell application "Orion"
-      return URL of current tab of window 1
-    end tell
-  end try`);
-};
-
-/**
- * Gets the URL of the active tab in OmniWeb.
- * @returns A promise which resolves to the URL of the active tab as a string.
- */
-const getOmniWebURL = async (): Promise<string> => {
-  return runAppleScript(`tell application "OmniWeb" to return address of active tab of browser 1`);
-};
-
-/**
- * Gets the URL of the active tab in SigmaOS.
- * @returns A promise which resolves to the URL of the active tab as a string.
- */
-const getSigmaOSURL = async (): Promise<string> => {
-  return runAppleScript(`tell application "SigmaOS" to return URL of active tab of window 1`);
-};
-
-/**
  * The browsers from which the current URL can be obtained.
  */
 export const SupportedBrowsers = [
-  "Arc",
-  "Blisk",
-  "Brave Browser Beta",
-  "Brave Browser Dev",
-  "Brave Browser Nightly",
-  "Brave Browser",
-  "Chromium",
-  "Epic",
-  "Google Chrome Beta",
-  "Google Chrome Canary",
-  "Google Chrome Dev",
-  "Google Chrome",
-  "iCab",
-  "Iron",
-  "Maxthon Beta",
-  "Maxthon",
-  "Microsoft Edge Beta",
-  "Microsoft Edge Canary",
-  "Microsoft Edge Dev",
-  "Microsoft Edge",
-  "Opera Beta",
-  "Opera Developer",
-  "Opera GX",
-  "Opera Neon",
-  "Opera",
-  "Orion",
-  "Safari",
-  "Vivaldi",
-  "Yandex",
-  "OmniWeb",
-  "SigmaOS",
+  Arc,
+  Safari,
+  SigmaOS,
+  iCab,
+  Orion,
+  OmniWeb,
+  Chromium("Chromium"),
+  Blisk,
+  Brave,
+  BraveBeta,
+  BraveDev,
+  BraveNightly,
+  Epic,
+  GoogleChrome,
+  GoogleChromeBeta,
+  GoogleChromeCanary,
+  GoogleChromeDev,
+  Iron,
+  Maxthon,
+  MaxthonBeta,
+  MicrosoftEdge,
+  MicrosoftEdgeBeta,
+  MicrosoftEdgeCanary,
+  MicrosoftEdgeDev,
+  Opera,
+  OperaBeta,
+  OperaDeveloper,
+  OperaGX,
+  OperaNeon,
+  Vivaldi,
+  Yandex,
 ];
 
 /**
- * Gets the current URL of the active tab of the specified browser.
- *
- * @param browserName The name of the browser application. Must be a member of {@link SupportedBrowsers}.
- * @returns A promise which resolves to the URL of the active tab of the browser as a string.
+ * Gets the active browser.
+ * @returns A promise resolving to the active browser, or undefined if another kind of application is active.
  */
-export const getCurrentURL = async (browserName: string): Promise<string> => {
-  switch (browserName) {
-    case "Safari":
-      return getCurrentSafariURL();
-      break;
-    case "Arc":
-      return getArcURL();
-      break;
-    case "iCab":
-      return getiCabURL();
-    case "Orion":
-      return getOrionURL();
-      break;
-    case "OmniWeb":
-      return getOmniWebURL();
-      break;
-    case "SigmaOS":
-      return getSigmaOSURL();
-      break;
-    default:
-      return getChromiumURL(browserName);
-      break;
-  }
-  return "";
-};
+export const getActiveBrowser = async (): Promise<Browser | undefined> => {
+  const app = (await getFrontmostApplication()).name || "";
+  return SupportedBrowsers.find((browser) => browser.name === app);       
+}
 
 /**
- * Executes a JavaScript script in the active tab of the specified browser.
- *
- * @param browserName The name of the browser application. Must be a member of {@link SupportedBrowsers}.
- * @returns A promise which resolves to the result of the script as a string.
+ * Executes the specified JavaScript in the active tab of the target browser.
+ * @param script The JavaScript to execute.
+ * @param browserName The name of the browser to execute the script in. If not specified, the active browser will be used.
+ * @returns A promise resolving to the result of executing the JavaScript.
  */
-export const runJSInActiveTab = async (script: string, browserName: string): Promise<string> => {
-  switch (browserName) {
-    case "Safari":
-      return runAppleScript(`tell application "Safari"
-          set theTab to current tab of window 1
-          tell theTab
-            return do JavaScript "try {
-              ${script}
-            } catch {
-              '';
-            }"
-          end tell
-        end tell`);
-      break;
-    case "Arc":
-      return runAppleScript(`tell application "Arc"
-          set theTab to active tab of front window
-          set js to "try {
-            ${script}
-          } catch {
-            '';
-          }"
-          
-          tell front window's active tab
-            return execute javascript js
-          end tell
-        end tell`);
-      break;
-    case "iCab":
-    case "SigmaOS":
-      // No way to return script
-      break;
-    case "Orion":
-      return runAppleScript(`tell application "Orion"
-          set theTab to current tab of window 1
-          do JavaScript "try {
-                      ${script}
-                    } catch {
-                      '';
-                    }" in theTab
-        end tell`);
-      break;
-    case "OmniWeb":
-      return runAppleScript(`tell application "OmniWeb"
-          do script "try {
-            ${script}
-          } catch {
-            '';
-          }" window browser 1
-        end tell`);
-      break;
-    default:
-      return runAppleScript(`tell application "${browserName}"
-          set theTab to active tab of window 1
-          tell theTab
-            return execute javascript "try {
-                      ${script}
-                    } catch {
-                      '';
-                    }"
-          end tell
-        end tell`);
-      break;
+export const runJSInActiveTab = async (script: string, browserName?: string) => {
+  let browser: Browser | undefined;
+  if (browserName) {
+    browser = SupportedBrowsers.find((browser) => browser.name === browserName);
+  } else {
+    browser = await getActiveBrowser();
+  }
+
+  if (browser) {
+    return await browser.runJSInActiveTab(script);
   }
   return "";
-};
-
-/**
- * Gets the raw HTML of a URL.
- *
- * @param URL The URL to get the HTML of.
- * @returns The HTML as a string.
- */
-export const getURLHTML = async (URL: string): Promise<string> => {
-  const request = await fetch(URL);
-  return await request.text();
 };
 
 /**
@@ -382,28 +144,8 @@ export const getURLHTML = async (URL: string): Promise<string> => {
  * @returns The JSON as a {@link JSONObject}.
  */
 export const getJSONResponse = async (URL: string): Promise<JSONObject> => {
-  const raw = await getURLHTML(URL);
+  const raw = await utils.getURLHTML(URL);
   return JSON.parse(raw);
-};
-
-/**
- * Gets the visible text of a URL.
- *
- * @param URL The URL to get the visible text of.
- * @returns A promise resolving to the visible text as a string.
- */
-export const getTextOfWebpage = async (URL: string): Promise<string> => {
-  const html = await getURLHTML(URL);
-  const filteredString = html
-    .replaceAll(/(<br ?\/?>|[\n\r]+)/g, "\n")
-    .replaceAll(
-      /(<script[\s\S\n\r]+?<\/script>|<style[\s\S\n\r]+?<\/style>|<nav[\s\S\n\r]+?<\/nav>|<link[\s\S\n\r]+?<\/link>|<form[\s\S\n\r]+?<\/form>|<button[\s\S\n\r]+?<\/button>|<!--[\s\S\n\r]+?-->|<select[\s\S\n\r]+?<\/select>|<[\s\n\r\S]+?>)/g,
-      "\t"
-    )
-    .replaceAll(/([\t ]*[\n\r][\t ]*)+/g, "\r")
-    .replaceAll(/(\([^A-Za-z0-9\n]*\)|(?<=[,.!?%*])[,.!?%*]*?\s*[,.!?%*])/g, " ")
-    .replaceAll(/{{(.*?)}}/g, "$1");
-  return filteredString;
 };
 
 /**
@@ -412,7 +154,7 @@ export const getTextOfWebpage = async (URL: string): Promise<string> => {
  * @returns A promise resolving to the transcript as a string, or "No transcript available." if there is no transcript.
  */
 export const getYouTubeVideoTranscriptById = async (videoId: string): Promise<string> => {
-  const html = await getURLHTML(`https://www.youtube.com/watch?v=${videoId}`);
+  const html = await utils.getURLHTML(`https://www.youtube.com/watch?v=${videoId}`);
   const captionsJSON = JSON.parse(html.split(`"captions":`)?.[1]?.split(`,"videoDetails"`)?.[0]?.replace("\n", ""))[
     "playerCaptionsTracklistRenderer"
   ];
@@ -428,7 +170,7 @@ export const getYouTubeVideoTranscriptById = async (videoId: string): Promise<st
     return "No transcript available.";
   }
 
-  const transcriptText = await getTextOfWebpage(englishCaptionTrack["baseUrl"]);
+  const transcriptText = await utils.getTextOfWebpage(englishCaptionTrack["baseUrl"]);
   return filterString(`Video Title: ${title}\n\nTranscript:\n${transcriptText}`);
 };
 
@@ -448,7 +190,7 @@ export const getYouTubeVideoTranscriptByURL = async (videoURL: string): Promise<
  * @returns The ID of the first matching video.
  */
 export const getMatchingYouTubeVideoID = async (searchText: string): Promise<string> => {
-  const html = await getURLHTML(`https://www.youtube.com/results?search_query=${encodeURIComponent(searchText)}`);
+  const html = await utils.getURLHTML(`https://www.youtube.com/results?search_query=${encodeURIComponent(searchText)}`);
   const videoID = html.matchAll(/videoId\\x22:\\x22(.*?)\\x22,/g).next().value?.[1];
   return videoID;
 };
@@ -585,7 +327,7 @@ export const getWeatherData = async (days: number): Promise<JSONObject> => {
   const longitude = jsonObj["longitude"];
   const timezone = (jsonObj["timezone"] as string).replace("/", "%2F");
   return getJSONResponse(
-    `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&daily=weathercode,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max,rain_sum,snowfall_sum,precipitation_hours&current_weather=true&windspeed_unit=ms&forecast_days=${days.toString()}&timezone=${timezone}`
+    `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&daily=weathercode,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max,rain_sum,snowfall_sum,precipitation_hours&current_weather=true&windspeed_unit=ms&forecast_days=${days.toString()}&timezone=${timezone}`,
   );
 };
 
@@ -615,7 +357,7 @@ export const getCurrentDirectory = async () => {
  * @returns A promise resolving to the name of the application as a string, or an object containing the name and path if includePaths is true.
  */
 export const getMenubarOwningApplication = async (
-  includePaths?: boolean
+  includePaths?: boolean,
 ): Promise<string | { name: string; path: string }> => {
   const app = await runAppleScript(`use framework "Foundation"
   use scripting additions

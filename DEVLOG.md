@@ -1,10 +1,28 @@
 # PromptLab DevLog - A More Detailed ChangeLog
 
+## v1.2.1 Release
+
+### 2023-11-05
+
+- Refactor placeholders & browsers into separate files
+
+### 2023-11-01
+
+- Added several placeholders/directives from Pins:
+  - `{{timezone}}`,
+  - `{{alert:...}}`
+  - `{{dialog:...}}`
+  - `{{hud:...}}` / `{{toast:...}}`
+  - `{{say:...}}`
+  - `{{type:...}}`
+- Updated default Claude model to claude-instant-1.
+- Fixed bug where `{{input}}`, `{{selectedText}}`, and `{{clipboardText}}` could not be used simultaneously.
+
 ## v1.2.0 Release
 
 ### 2023-08-16
 
-- Added support for OmniWeb and SigmaOS browsers
+- Added support for OmniWeb and SigmaOS browsers.
 
 ### 2023-08-15
 

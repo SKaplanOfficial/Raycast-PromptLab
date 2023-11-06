@@ -1,5 +1,10 @@
 # PromptLab Changelog
 
+## [PromptLab 1.2.1] - 2023-11-xx
+
+- Added `{{alert:...}}`, `{{dialog:...}}`, `{{toast:...}}`, `{{say:...}}`, and `{{type:...}}` placeholder directives
+- Added `{{timezone}}` directive
+
 ## [PromptLab 1.2.0] - 2023-08-15
 
 - Added support for several new browsers

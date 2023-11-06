@@ -2,8 +2,8 @@ import { objcImports, replaceAllHandler, rselectHandler, splitHandler, trimHandl
 import { exec } from "child_process";
 import { Command, CommandOptions, StoreCommand } from "./types";
 import { LocalStorage, AI } from "@raycast/api";
-import { Placeholders } from "./placeholders";
 import { runAppleScript } from "@raycast/utils";
+import { bulkApply } from "./placeholders";
 
 /**
  * Runs the action script of a PromptLab command, providing the AI response as the `response` variable.
@@ -29,7 +29,7 @@ export const runActionScript = async (
   try {
     if (type == "applescript" || type == undefined) {
       await runAppleScript(
-        await Placeholders.bulkApply(`${objcImports}
+        await bulkApply(`${objcImports}
       ${splitHandler}
       ${trimHandler}
       ${replaceAllHandler}
@@ -47,7 +47,7 @@ export const runActionScript = async (
         ${script.replaceAll("\n", " && ")}`;
 
         return new Promise((resolve, reject) => {
-          Placeholders.bulkApply(shellScript).then((subbedScript) => {
+          bulkApply(shellScript).then((subbedScript) => {
             exec(subbedScript, (error, stdout) => {
               if (error) {
                 reject(error);
@@ -108,7 +108,7 @@ export const runReplacements = async (
     }
   }
 
-  subbedPrompt = await Placeholders.bulkApply(subbedPrompt, context);
+  subbedPrompt = await bulkApply(subbedPrompt, context);
 
   // Replace command placeholders
   for (const cmdString of Object.values(await LocalStorage.allItems())) {
@@ -152,7 +152,7 @@ export const updateCommand = async (
   });
 
   if (setCommands != undefined) {
-    setCommands([...commandDataFiltered?.map((data) => JSON.parse(data)), newCommandData]);
+    setCommands([...(commandDataFiltered?.map((data) => JSON.parse(data)) || []), newCommandData]);
   }
 
   if (oldCommandData != undefined && oldCommandData.name != newCommandData.name) {

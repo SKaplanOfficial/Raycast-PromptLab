@@ -1,7 +1,15 @@
-import { LocalStorage, environment } from "@raycast/api";
+import { LocalStorage, environment, getPreferenceValues, showToast } from "@raycast/api";
 import * as fs from "fs";
 import { defaultCommands } from "../data/default-commands";
-import { AudioData, CommandOptions, Extension, ExtensionCommand, ImageData } from "./types";
+import {
+  AudioData,
+  CommandOptions,
+  CustomPlaceholder,
+  Extension,
+  ExtensionCommand,
+  ExtensionPreferences,
+  ImageData,
+} from "./types";
 import { defaultModels } from "../data/default-models";
 import { randomUUID } from "crypto";
 import path from "path";
@@ -13,6 +21,7 @@ import { filterString } from "./context-utils";
 import { defaultAdvancedSettings } from "../data/default-advanced-settings";
 import { exec } from "child_process";
 import * as os from "os";
+import { Placeholder } from "./placeholders/types";
 
 /**
  * Installs the default prompts if they haven't been installed yet and the user hasn't input their own command set.
@@ -80,7 +89,7 @@ export const getImageDetails = async (filePath: string, options: CommandOptions)
     options.useFaceDetection || false,
     options.useRectangleDetection || false,
     options.useSaliencyAnalysis || false,
-    options.useHorizonDetection || false
+    options.useHorizonDetection || false,
   );
   const imageVisionInstructions = filterString(imageDetails.stringValue);
   const exifData =
@@ -228,5 +237,83 @@ export const unzipToTemp = async (zipPath: string) => {
   } catch (e) {
     console.error(e);
     return null;
+  }
+};
+
+/**
+ * Loads custom placeholders from the custom-placeholders.json file in the support directory.
+ * @returns The custom placeholders as a {@link PlaceholderList} object.
+ */
+export const loadCustomPlaceholders = async (settings: typeof defaultAdvancedSettings) => {
+  try {
+    const preferences = getPreferenceValues<ExtensionPreferences>();
+    const customPlaceholdersPath = path.join(environment.supportPath, CUSTOM_PLACEHOLDERS_FILENAME);
+    const customPlaceholderFiles = [
+      customPlaceholdersPath,
+      ...(settings.placeholderSettings.allowCustomPlaceholderPaths ? preferences.customPlaceholderFiles.split(/, ?/g) : []),
+    ].filter(
+      (customPlaceholdersPath) => customPlaceholdersPath.trim().length > 0 && fs.existsSync(customPlaceholdersPath),
+    );
+
+    const customPlaceholderFileContents = await Promise.all(
+      customPlaceholderFiles.map(async (customPlaceholdersPath) => {
+        try {
+          return await fs.promises.readFile(customPlaceholdersPath, "utf-8");
+        } catch (e) {
+          return "";
+        }
+      }),
+    );
+
+    return customPlaceholderFileContents.reduce((acc, customPlaceholdersFile) => {
+      try {
+        const newPlaceholdersData = JSON.parse(customPlaceholdersFile);
+        const newPlaceholders = (Object.entries(newPlaceholdersData) as [string, CustomPlaceholder][]).reduce(
+          (acc, [key, placeholder]) => {
+            try {
+              const newPlaceholder: Placeholder = {
+                name: placeholder.name,
+                regex: new RegExp(key, "g"),
+                apply: async (str: string, context?: { [key: string]: unknown }) => {
+                  if (context?.[placeholder.name]?.toString()?.length) {
+                    return {
+                      result: context[placeholder.name] as string,
+                      [placeholder.name]: context[placeholder.name],
+                    };
+                  }
+                  const match = str.match(new RegExp(key, "g"));
+                  let value = placeholder.value;
+                  (match || []).forEach((m, index) => {
+                    value = value.replaceAll(`$${index}`, m?.replaceAll("\\", "\\\\") || "");
+                  });
+                  const res: { [key: string]: string; result: string } = { result: value, [placeholder.name]: value };
+                  res[placeholder.name] = value;
+                  return res;
+                },
+                result_keys: [placeholder.name],
+                constant: true,
+                fn: async () => (await newPlaceholder.apply(`{{${key}}}`)).result,
+                description: placeholder.description,
+                example: placeholder.example,
+                hintRepresentation: placeholder.hintRepresentation,
+                fullRepresentation: `${placeholder.name} (Custom)`,
+              };
+
+              acc.push(newPlaceholder);
+            } catch (e) {
+              showToast({ title: `Failed to load placeholder "${key}"`, message: `Invalid regex.` });
+            }
+            return acc;
+          },
+          [] as Placeholder[],
+        );
+        return [...acc, ...newPlaceholders];
+      } catch (e) {
+        showToast({ title: "Invalid custom placeholders file", message: (e as Error).message });
+        return acc;
+      }
+    }, [] as Placeholder[]);
+  } catch (e) {
+    return [] as Placeholder[];
   }
 };
