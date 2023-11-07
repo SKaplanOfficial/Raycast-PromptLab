@@ -1,29 +1,32 @@
 import { ActionPanel, Color, getPreferenceValues, Icon, List } from "@raycast/api";
 import { useEffect, useState } from "react";
 import CommandResponse from "./components/Commands/CommandResponse";
-import { Command, ExtensionPreferences, searchPreferences } from "./utils/types";
+import { ExtensionPreferences, searchPreferences } from "./lib/types";
+import { Command } from "./lib/commands/types";
 import CategoryDropdown from "./components/CategoryDropdown";
-import { useCommands } from "./hooks/useCommands";
+import { useCommands } from "./lib/commands/useCommands";
 import CommandListDetail from "./components/Commands/CommandListDetail";
 import RunCommandAction from "./components/Commands/actions/RunCommandAction";
 import ShareCommandAction from "./components/Commands/actions/ShareCommandAction";
 import { CopyCommandActionsSection } from "./components/Commands/actions/CopyCommandActions";
 import { CommandControlsActionsSection } from "./components/Commands/actions/CommandControlActions";
-import { useAdvancedSettings } from "./hooks/useAdvancedSettings";
+import { useAdvancedSettings } from "./lib/settings/useAdvancedSettings";
 import { useCachedState } from "@raycast/utils";
 import { AdvancedActionSubmenu } from "./components/actions/AdvancedActionSubmenu";
-import { COMMAND_CATEGORIES } from "./utils/constants";
+import { COMMAND_CATEGORIES } from "./lib/constants";
 
 export default function SearchCommand(props: { arguments: { commandName: string; queryInput: string } }) {
   const { commandName, queryInput } = props.arguments;
-  const { commands, setCommands, commandNames, isLoading: loadingCommands } = useCommands();
+  const { commands, setCommands, names, isLoading: loadingCommands } = useCommands();
   const [previousCommand] = useCachedState<string>("promptlab-previous-command", "");
   const [targetCategory, setTargetCategory] = useState<string>("All");
   const [searchText, setSearchText] = useState<string | undefined>(
-    commandName == undefined || queryInput ? undefined : commandName.trim()
+    commandName == undefined || queryInput ? undefined : commandName.trim(),
   );
   const { advancedSettings } = useAdvancedSettings();
   const preferences = getPreferenceValues<searchPreferences & ExtensionPreferences>();
+
+  const commandNames = names();
 
   useEffect(() => {
     /* Add default commands if necessary, then get all commands */
@@ -128,7 +131,7 @@ export default function SearchCommand(props: { arguments: { commandName: string;
         acc.push(
           <List.Section title={category.name} key={category.name}>
             {categoryListItems}
-          </List.Section>
+          </List.Section>,
         );
       }
       return acc;
@@ -143,7 +146,7 @@ export default function SearchCommand(props: { arguments: { commandName: string;
       command.favorited ? acc[0].push(command) : acc[1].push(command);
       return acc;
     },
-    [[], []] as [Command[], Command[]]
+    [[], []] as [Command[], Command[]],
   );
 
   return (

@@ -10,15 +10,15 @@ import {
   getPreferenceValues,
 } from "@raycast/api";
 import { useForm, FormValidation } from "@raycast/utils";
-import { useModels } from "../../hooks/useModels";
+import { useModels } from "../../lib/models/useModels";
+import { ExtensionPreferences } from "../../lib/types";
 import {
   BooleanConfigField,
   Command,
   CommandConfig,
-  ExtensionPreferences,
   NumberConfigField,
   StringConfigField,
-} from "../../utils/types";
+} from "../../lib/commands/types";
 import { Fragment, useEffect, useState } from "react";
 import * as crypto from "crypto";
 import { useRef } from "react";
@@ -27,14 +27,15 @@ import {
   OpenAdvancedSettingsAction,
   OpenPlaceholdersGuideAction,
 } from "../actions/OpenFileActions";
-import { updateCommand } from "../../utils/command-utils";
+import { updateCommand } from "../../lib/commands/command-utils";
 import * as fs from "fs";
 import path from "path";
-import { ADVANCED_SETTINGS_FILENAME, COMMAND_CATEGORIES } from "../../utils/constants";
-import { useAdvancedSettings } from "../../hooks/useAdvancedSettings";
-import { isActionEnabled } from "../../utils/action-utils";
-import { DefaultPlaceholders, checkForPlaceholders } from "../../utils/placeholders";
-import { loadCustomPlaceholders } from "../../utils/file-utils";
+import { ADVANCED_SETTINGS_FILENAME, COMMAND_CATEGORIES } from "../../lib/constants";
+import { useAdvancedSettings } from "../../lib/settings/useAdvancedSettings";
+import { isActionEnabled } from "../../lib/action-utils";
+import { loadCustomPlaceholders } from "../../lib/placeholders/utils";
+import { checkForPlaceholders } from "placeholders-toolkit/dist/lib/apply";
+import { PromptLabPlaceholders } from "../../lib/placeholders";
 
 interface CommandFormValues {
   name: string;
@@ -85,7 +86,7 @@ export default function CommandForm(props: {
   const [showAddPlaceholderAction, setShowAddPlaceholderAction] = useState<boolean>(false);
   const [prompt, setPrompt] = useState<string>(oldData != undefined ? oldData.prompt : "");
   const [showResponse, setShowResponse] = useState<boolean>(
-    oldData != undefined && oldData.showResponse != undefined ? oldData.showResponse : true
+    oldData != undefined && oldData.showResponse != undefined ? oldData.showResponse : true,
   );
   const models = useModels();
   const { pop } = useNavigation();
@@ -123,7 +124,7 @@ export default function CommandForm(props: {
   const getDefaultValues = () => {
     try {
       const advancedSettingsValues = JSON.parse(
-        fs.readFileSync(path.join(environment.supportPath, ADVANCED_SETTINGS_FILENAME), "utf-8")
+        fs.readFileSync(path.join(environment.supportPath, ADVANCED_SETTINGS_FILENAME), "utf-8"),
       );
       if ("commandDefaults" in advancedSettingsValues) {
         return advancedSettingsValues.commandDefaults;
@@ -171,26 +172,30 @@ export default function CommandForm(props: {
   useEffect(() => {
     if (oldData) {
       loadCustomPlaceholders(advancedSettings).then((customPlaceholders) => {
-        checkForPlaceholders(oldData.prompt, customPlaceholders).then((includedPlaceholders) => {
+        checkForPlaceholders(oldData.prompt, customPlaceholders, PromptLabPlaceholders).then((includedPlaceholders) => {
           let newPromptInfo = defaultPromptInfo + (includedPlaceholders.length > 0 ? "\n\nDetected Placeholders:" : "");
           includedPlaceholders.forEach((placeholder) => {
             newPromptInfo =
               newPromptInfo +
-              `\n\n${placeholder.hintRepresentation || ""}: ${placeholder.description}\nExample: ${placeholder.example}`;
+              `\n\n${placeholder.hintRepresentation || ""}: ${placeholder.description}\nExample: ${
+                placeholder.example
+              }`;
           });
           setPromptInfo(newPromptInfo);
 
-          checkForPlaceholders(oldData.actionScript || "").then((includedPlaceholders) => {
-            let newScriptInfo = includedPlaceholders.length > 0 ? "Detected Placeholders:" : "";
-            includedPlaceholders.forEach((placeholder) => {
-              newScriptInfo =
-                newScriptInfo +
-                `\n\n${placeholder.hintRepresentation || ""}: ${placeholder.description}\nExample: ${
-                  placeholder.example
-                }`;
-            });
-            setScriptInfo(newScriptInfo);
-          });
+          checkForPlaceholders(oldData.actionScript || "", customPlaceholders, PromptLabPlaceholders).then(
+            (includedPlaceholders) => {
+              let newScriptInfo = includedPlaceholders.length > 0 ? "Detected Placeholders:" : "";
+              includedPlaceholders.forEach((placeholder) => {
+                newScriptInfo =
+                  newScriptInfo +
+                  `\n\n${placeholder.hintRepresentation || ""}: ${placeholder.description}\nExample: ${
+                    placeholder.example
+                  }`;
+              });
+              setScriptInfo(newScriptInfo);
+            },
+          );
         });
       });
     }
@@ -312,7 +317,7 @@ export default function CommandForm(props: {
       if (minNumFiles == "0") {
         if (
           values.prompt.match(
-            /{{(imageText|imageFaces|imageAnimals|imageSubjects|imageSaliency|imageBarcodes|imageRectangles|pdfRawText|pdfOCRText|contents)}}/g
+            /{{(imageText|imageFaces|imageAnimals|imageSubjects|imageSaliency|imageBarcodes|imageRectangles|pdfRawText|pdfOCRText|contents)}}/g,
           ) != null
         ) {
           minNumFiles = "1";
@@ -411,7 +416,7 @@ export default function CommandForm(props: {
             });
             if (oldData && oldData.setupConfig) {
               const oldField = oldData.setupConfig.fields.find(
-                (field) => field.name == (newField as NumberConfigField | BooleanConfigField | StringConfigField).name
+                (field) => field.name == (newField as NumberConfigField | BooleanConfigField | StringConfigField).name,
               );
               if (oldField) {
                 (newField as NumberConfigField | BooleanConfigField | StringConfigField).value = oldField.value;
@@ -476,14 +481,13 @@ export default function CommandForm(props: {
           />
           {showAddPlaceholderAction ? (
             <ActionPanel.Submenu title="Add Placeholder..." icon={Icon.Plus}>
-              {DefaultPlaceholders
-                .filter(
-                  (placeholder) =>
-                    !placeholder.name.startsWith("textfile:") &&
-                    !placeholder.name.startsWith("video:") &&
-                    !placeholder.name.startsWith("audio:") &&
-                    !placeholder.name.startsWith("image:")
-                )
+              {PromptLabPlaceholders.filter(
+                (placeholder) =>
+                  !placeholder.name.startsWith("textfile:") &&
+                  !placeholder.name.startsWith("video:") &&
+                  !placeholder.name.startsWith("audio:") &&
+                  !placeholder.name.startsWith("image:"),
+              )
                 .sort((a, b) => (a.fullRepresentation > b.fullRepresentation ? 1 : -1))
                 .map((placeholder) => (
                   <Action
@@ -702,7 +706,7 @@ export default function CommandForm(props: {
                         key={`removeField-${sectionName}`}
                         onAction={async () => {
                           const fields = [...setupFields.map((field) => ({ ...field }))].filter(
-                            (field) => field.associatedConfigField != section[1]
+                            (field) => field.associatedConfigField != section[1],
                           );
                           setSetupFields(fields);
                           setCurrentFieldFocus(-1);
@@ -812,7 +816,8 @@ export default function CommandForm(props: {
         onChange={async (value) => {
           itemProps.prompt.onChange?.(value);
           setPrompt(value);
-          const includedPlaceholders = await checkForPlaceholders(value);
+          const customPlaceholders = await loadCustomPlaceholders(advancedSettings);
+          const includedPlaceholders = await checkForPlaceholders(value, customPlaceholders, PromptLabPlaceholders);
           let newPromptInfo = defaultPromptInfo + (includedPlaceholders.length > 0 ? "\n\nDetected Placeholders:" : "");
           includedPlaceholders.forEach((placeholder) => {
             newPromptInfo =
@@ -836,7 +841,8 @@ export default function CommandForm(props: {
         {...itemProps.actionScript}
         onChange={async (value) => {
           itemProps.actionScript.onChange?.(value);
-          const includedPlaceholders = await checkForPlaceholders(value);
+          const customPlaceholders = await loadCustomPlaceholders(advancedSettings);
+          const includedPlaceholders = await checkForPlaceholders(value, customPlaceholders, PromptLabPlaceholders);
           let newScriptInfo = includedPlaceholders.length > 0 ? "Detected Placeholders:" : "";
           includedPlaceholders.forEach((placeholder) => {
             newScriptInfo =
@@ -939,7 +945,7 @@ export default function CommandForm(props: {
           <Form.Dropdown.Section title="Favorites">
             {models.models
               .filter((model) => model.favorited)
-              .sort((model) => model.isDefault ? -1 : 1)
+              .sort((model) => (model.isDefault ? -1 : 1))
               .map((model) => (
                 <Form.Dropdown.Item
                   title={model.name}
@@ -952,7 +958,7 @@ export default function CommandForm(props: {
         ) : null}
         {models.models
           .filter((model) => !model.favorited)
-          .sort((model) => model.isDefault ? -1 : 1)
+          .sort((model) => (model.isDefault ? -1 : 1))
           .map((model) => (
             <Form.Dropdown.Item
               title={model.name}

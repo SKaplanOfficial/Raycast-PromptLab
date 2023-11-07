@@ -1,16 +1,16 @@
 import { ActionPanel, Color, Icon, List } from "@raycast/api";
 import { useEffect, useState } from "react";
-import { StoreCommand } from "./utils/types";
+import { StoreCommand } from "./lib/commands/types";
 import { useCachedState, useFetch } from "@raycast/utils";
-import { STORE_ENDPOINT, STORE_KEY } from "./utils/constants";
+import { STORE_ENDPOINT, STORE_KEY } from "./lib/constants";
 import CategoryDropdown from "./components/CategoryDropdown";
-import { useCommands } from "./hooks/useCommands";
+import { useCommands } from "./lib/commands/useCommands";
 import CommandListDetail from "./components/Commands/CommandListDetail";
 import RunCommandAction from "./components/Commands/actions/RunCommandAction";
 import { CopyCommandActionsSection } from "./components/Commands/actions/CopyCommandActions";
 import { CommandControlsActionsSection } from "./components/Commands/actions/CommandControlActions";
 import InstallCommandAction from "./components/Commands/actions/InstallCommandAction";
-import { useAdvancedSettings } from "./hooks/useAdvancedSettings";
+import { useAdvancedSettings } from "./lib/settings/useAdvancedSettings";
 
 export default function Discover() {
   const { commands: myCommands, setCommands: setMyCommands, isLoading: loadingMyCommands } = useCommands();
@@ -44,12 +44,7 @@ export default function Discover() {
         detail={<CommandListDetail command={command} />}
         actions={
           <ActionPanel>
-            <InstallCommandAction
-              command={command}
-              commands={myCommands}
-              setCommands={setMyCommands}
-              settings={advancedSettings}
-            />
+            <InstallCommandAction command={command} setCommands={setMyCommands} settings={advancedSettings} />
             {command.setupConfig?.length ? null : <RunCommandAction command={command} settings={advancedSettings} />}
             <CopyCommandActionsSection command={command} settings={advancedSettings} />
             <CommandControlsActionsSection

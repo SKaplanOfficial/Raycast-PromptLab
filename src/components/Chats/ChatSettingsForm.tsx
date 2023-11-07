@@ -1,12 +1,12 @@
 import { Action, ActionPanel, Form, showToast, Icon, useNavigation, Color, environment, Toast } from "@raycast/api";
-import { Chat, ChatManager, ChatStatistics } from "../../utils/types";
+import { Chat, ChatManager, ChatStatistics } from "../../lib/types";
 import { useEffect, useState } from "react";
-import { filterString } from "../../utils/context-utils";
-import runModel from "../../utils/runModel";
-import { getFileContent } from "../../hooks/useFiles";
+import { filterString } from "../../lib/context-utils";
+import runModel from "../../lib/models/runModel";
+import { getFileContent } from "../../lib/files/useFiles";
 import { AdvancedActionSubmenu } from "../actions/AdvancedActionSubmenu";
 import { defaultAdvancedSettings } from "../../data/default-advanced-settings";
-import { utils } from "../../utils/browsers";
+import { utils } from "placeholders-toolkit";
 
 interface ChatSettingsFormValues {
   chatNameField: string;
@@ -47,7 +47,7 @@ export default function ChatSettingsForm(props: {
 }) {
   const { oldData, chats, setCurrentChat, settings } = props;
   const [contextFields, setContextFields] = useState<{ type: string; source: string; data: string }[]>(
-    [...oldData.contextData] || []
+    [...oldData.contextData] || [],
   );
   const [stats, setStats] = useState<ChatStatistics>();
   const { pop } = useNavigation();
@@ -205,15 +205,15 @@ export default function ChatSettingsForm(props: {
                       case "text": {
                         if (values.chatCondensingStrategyField == "summarize") {
                           prompt = `Summarize the following text in 50 words or fewer: ###${filterString(
-                            contextDataField
+                            contextDataField,
                           )}###`;
                         } else if (values.chatCondensingStrategyField == "summarizeParagraphs") {
                           prompt = `Summarize each paragraph of the following text in 50 words or fewer. Output all of the paragraphs. Here is the text: ###${filterString(
-                            contextDataField
+                            contextDataField,
                           )}###`;
                         } else if (values.chatCondensingStrategyField == "condenseIntelligently") {
                           prompt = `Condense the following text to be 50 words or shorter. ###${filterString(
-                            contextDataField
+                            contextDataField,
                           )}###`;
                         }
                         break;
@@ -499,7 +499,7 @@ export default function ChatSettingsForm(props: {
                 text={Array.isArray(value) ? value.map((entry, index) => `${index + 1}. ${entry}`).join("\n") : value}
                 key={statNames[key]}
               />
-            )
+            ),
           )
         : null}
     </Form>

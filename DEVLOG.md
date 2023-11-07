@@ -4,7 +4,7 @@
 
 ### 2023-11-05
 
-- Refactor placeholders & browsers into separate files
+- Extract placeholders & browsers into standalone package.
 
 ### 2023-11-01
 

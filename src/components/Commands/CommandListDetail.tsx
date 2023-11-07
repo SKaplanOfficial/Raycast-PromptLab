@@ -1,4 +1,5 @@
 import { List } from "@raycast/api";
+import { isTrueStr } from "../../lib/types";
 import {
   Command,
   StoreCommand,
@@ -7,8 +8,7 @@ import {
   BooleanConfigField,
   StringConfigField,
   isStoreCommand,
-  isTrueStr,
-} from "../../utils/types";
+} from "../../lib/commands/types";
 
 export default function CommandListDetail(props: { command: Command | StoreCommand }) {
   const { command } = props;
@@ -120,7 +120,7 @@ ${(isCommand(command) ? command.setupConfig : JSON.parse(command.setupConfig)).f
     (field: NumberConfigField | BooleanConfigField | StringConfigField) =>
       `| ${field.name} | ${
         field.description == undefined || field.description.trim().length == 0 ? "None" : field.description
-      } | ${field.value == undefined || field.value.toString().trim().length == 0 ? "None" : field.value} |`
+      } | ${field.value == undefined || field.value.toString().trim().length == 0 ? "None" : field.value} |`,
   )
   .join("\n")}
 `

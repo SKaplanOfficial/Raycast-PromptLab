@@ -389,7 +389,8 @@
     "mammoth": "^1.6.0",
     "node-fetch": "^3.3.1",
     "pptx-text-parser": "^1.1.1",
-    "xlsx": "https://cdn.sheetjs.com/xlsx-0.19.3/xlsx-0.19.3.tgz"
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.19.3/xlsx-0.19.3.tgz",
+    "placeholders-toolkit": "^0.0.4"
   },
   "devDependencies": {
     "@raycast/eslint-config": "^1.0.6",

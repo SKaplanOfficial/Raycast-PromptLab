@@ -1,9 +1,9 @@
 import { Action, ActionPanel, Color, Icon, List } from "@raycast/api";
-import { useModels } from "./hooks/useModels";
+import { useModels } from "./lib/models/useModels";
 import ModelForm from "./components/Models/ModelForm";
-import { useAdvancedSettings } from "./hooks/useAdvancedSettings";
+import { useAdvancedSettings } from "./lib/settings/useAdvancedSettings";
 import ManageModelsActionPanel from "./components/Models/actions/ManageModelsActionsPanel";
-import { Model } from "./utils/types";
+import { Model } from "./lib/types";
 
 export default function ManageModels() {
   const models = useModels();
@@ -36,7 +36,7 @@ export default function ManageModels() {
       model.favorited ? acc[0].push(model) : acc[1].push(model);
       return acc;
     },
-    [[], []] as [Model[], Model[]]
+    [[], []] as [Model[], Model[]],
   );
 
   return (
