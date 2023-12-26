@@ -8,6 +8,7 @@ import * as fs from "fs";
 
 /**
  * Loads custom placeholders from the custom-placeholders.json file in the support directory.
+ * @param settings The advanced settings object.
  * @returns The custom placeholders as a {@link PlaceholderList} object.
  */
 export const loadCustomPlaceholders = async (settings: typeof defaultAdvancedSettings) => {

@@ -4,7 +4,7 @@ import useModel from "../../lib/models/useModel";
 import { Chat, ExtensionPreferences } from "../../lib/types";
 import { CommandOptions } from "../../lib/commands/types";
 import { runActionScript, runReplacements } from "../../lib/commands/command-utils";
-import { useChats } from "../../lib/chats/useChats";
+import { useChats } from "../../lib/chats";
 import runModel from "../../lib/models/runModel";
 import { useFiles as useFileContents } from "../../lib/files/useFiles";
 import { useAdvancedSettings } from "../../lib/settings/useAdvancedSettings";
@@ -465,7 +465,7 @@ export default function CommandChatView(props: {
         onChange={async (value) => {
           setQuery(value);
           const customPlaceholders = await loadCustomPlaceholders(advancedSettings);
-          PLApplicator.checkForPlaceholders(value, customPlaceholders, PromptLabPlaceholders).then(
+          PLApplicator.checkForPlaceholders(value, { customPlaceholders, defaultPlaceholders: PromptLabPlaceholders }).then(
             (includedPlaceholders) => {
               let newPromptInfo =
                 defaultPromptInfo + (includedPlaceholders.length > 0 ? "\n\nDetected Placeholders:" : "");

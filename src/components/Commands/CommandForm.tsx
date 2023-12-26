@@ -172,7 +172,7 @@ export default function CommandForm(props: {
   useEffect(() => {
     if (oldData) {
       loadCustomPlaceholders(advancedSettings).then((customPlaceholders) => {
-        checkForPlaceholders(oldData.prompt, customPlaceholders, PromptLabPlaceholders).then((includedPlaceholders) => {
+        checkForPlaceholders(oldData.prompt, { customPlaceholders, defaultPlaceholders: PromptLabPlaceholders }).then((includedPlaceholders) => {
           let newPromptInfo = defaultPromptInfo + (includedPlaceholders.length > 0 ? "\n\nDetected Placeholders:" : "");
           includedPlaceholders.forEach((placeholder) => {
             newPromptInfo =
@@ -183,7 +183,7 @@ export default function CommandForm(props: {
           });
           setPromptInfo(newPromptInfo);
 
-          checkForPlaceholders(oldData.actionScript || "", customPlaceholders, PromptLabPlaceholders).then(
+          checkForPlaceholders(oldData.actionScript || "", { customPlaceholders, defaultPlaceholders: PromptLabPlaceholders }).then(
             (includedPlaceholders) => {
               let newScriptInfo = includedPlaceholders.length > 0 ? "Detected Placeholders:" : "";
               includedPlaceholders.forEach((placeholder) => {
@@ -817,7 +817,7 @@ export default function CommandForm(props: {
           itemProps.prompt.onChange?.(value);
           setPrompt(value);
           const customPlaceholders = await loadCustomPlaceholders(advancedSettings);
-          const includedPlaceholders = await checkForPlaceholders(value, customPlaceholders, PromptLabPlaceholders);
+          const includedPlaceholders = await checkForPlaceholders(value, { customPlaceholders, defaultPlaceholders: PromptLabPlaceholders });
           let newPromptInfo = defaultPromptInfo + (includedPlaceholders.length > 0 ? "\n\nDetected Placeholders:" : "");
           includedPlaceholders.forEach((placeholder) => {
             newPromptInfo =
@@ -842,7 +842,7 @@ export default function CommandForm(props: {
         onChange={async (value) => {
           itemProps.actionScript.onChange?.(value);
           const customPlaceholders = await loadCustomPlaceholders(advancedSettings);
-          const includedPlaceholders = await checkForPlaceholders(value, customPlaceholders, PromptLabPlaceholders);
+          const includedPlaceholders = await checkForPlaceholders(value, { customPlaceholders, defaultPlaceholders: PromptLabPlaceholders });
           let newScriptInfo = includedPlaceholders.length > 0 ? "Detected Placeholders:" : "";
           includedPlaceholders.forEach((placeholder) => {
             newScriptInfo =

@@ -1,6 +1,13 @@
 import { AI, LocalStorage, environment, getPreferenceValues } from "@raycast/api";
 import { ExtensionPreferences, JSONObject, Model } from "../types";
 import fetch from "node-fetch";
+import {
+  RAYCAST_AI_FALLBACK_MODEL,
+  RAYCAST_AI_REPRESENTATIONS,
+  RaycastAIRepresentation,
+  getFinalSchema,
+  valueForKeyPath,
+} from "./model-utils";
 
 /**
  * Gets the text response from the model endpoint.
@@ -10,37 +17,6 @@ import fetch from "node-fetch";
  */
 export default async function runModel(basePrompt: string, prompt: string, input: string, temperature = "1.0") {
   const preferences = getPreferenceValues<ExtensionPreferences>();
-
-  // We can be a little forgiving of how users specify Raycast AI
-  const validRaycastAIReps = [
-    "raycast ai",
-    "raycastai",
-    "raycast",
-    "raycast-ai",
-    "raycast ai 3.5",
-    "raycast gpt 4",
-    "raycast 4",
-    "raycast ai 4",
-  ];
-
-  const fallbackModel: Model = {
-    endpoint: "Raycast AI",
-    authType: "",
-    apiKey: "",
-    inputSchema: "",
-    outputKeyPath: "",
-    outputTiming: "async",
-    lengthLimit: "2500",
-    temperature: temperature,
-    name: "Text-Davinci-003 Via Raycast AI",
-    description: "",
-    favorited: false,
-    id: "",
-    icon: "",
-    iconColor: "",
-    notes: "",
-    isDefault: false,
-  };
 
   const preferenceModel: Model = {
     endpoint: preferences.modelEndpoint,
@@ -61,6 +37,8 @@ export default async function runModel(basePrompt: string, prompt: string, input
     isDefault: false,
   };
 
+  const fallbackModel = { ...RAYCAST_AI_FALLBACK_MODEL, temperature: temperature };
+
   const temp = preferences.includeTemperature
     ? parseFloat(temperature) == undefined
       ? 1.0
@@ -75,35 +53,9 @@ export default async function runModel(basePrompt: string, prompt: string, input
     const defaultModel = models.find((model) => model.isDefault);
     const targetModel = defaultModel || (preferenceModel.endpoint == "" ? fallbackModel : preferenceModel);
     const raycastModel =
-      validRaycastAIReps.includes(targetModel.endpoint.toLowerCase()) ||
+      RAYCAST_AI_REPRESENTATIONS.includes(targetModel.endpoint.toLowerCase() as RaycastAIRepresentation) ||
       targetModel.endpoint == "" ||
       preferenceModel.endpoint == "";
-
-    // Get the value at the specified key path
-    const get = (obj: JSONObject | string | string[] | JSONObject[], pathString: string, def?: string) => {
-      const path: string[] = [];
-
-      // Split the key path string into an array of keys
-      pathString
-        .trim()
-        .split(".")
-        .forEach(function (item) {
-          item.split(/\[([^}]+)\]/g).forEach(function (key) {
-            if (key.length > 0) {
-              path.push(key);
-            }
-          });
-        });
-
-      let current = obj;
-      if (typeof current == "object") {
-        for (let i = 0; i < path.length; i++) {
-          if (!(current as JSONObject)[path[i]]) return def;
-          current = (current as JSONObject)[path[i]];
-        }
-      }
-      return current;
-    };
 
     // If the endpoint is a URL, use the fetch hook
     const headers: { [key: string]: string } = {
@@ -124,25 +76,7 @@ export default async function runModel(basePrompt: string, prompt: string, input
 
     const modelSchema = raycastModel
       ? {}
-      : JSON.parse(
-          targetModel.inputSchema
-            .replace(
-              "{prompt}",
-              preferences.promptPrefix +
-                prompt.replaceAll(/[\n\r\s]+/g, " ").replaceAll('"', '\\"') +
-                preferences.promptSuffix,
-            )
-            .replace(
-              "{basePrompt}",
-              preferences.promptPrefix + basePrompt.replaceAll(/[\n\r\s]+/g, " ").replaceAll('"', '\\"'),
-            )
-            .replace(
-              "{input}",
-              targetModel.inputSchema.includes("{prompt") && prompt == input
-                ? ""
-                : input.replaceAll(/[\n\r\s]+/g, " ").replaceAll('"', '\\"') + preferences.promptSuffix,
-            ),
-        );
+      : getFinalSchema(targetModel, prompt, basePrompt, input, preferences);
 
     if (preferences.includeTemperature) {
       modelSchema["temperature"] = temp;
@@ -168,7 +102,7 @@ export default async function runModel(basePrompt: string, prompt: string, input
         if (response.ok) {
           try {
             const jsonData = await response.json();
-            return get(jsonData as JSONObject, targetModel.outputKeyPath) as string;
+            return valueForKeyPath(jsonData as JSONObject, targetModel.outputKeyPath) as string;
           } catch {
             return "Couldn't parse model output";
           }
@@ -192,7 +126,7 @@ export default async function runModel(basePrompt: string, prompt: string, input
             if (entry == undefined) {
               return "";
             } else {
-              return get(entry as JSONObject, targetModel.outputKeyPath) as string;
+              return valueForKeyPath(entry as JSONObject, targetModel.outputKeyPath) as string;
             }
           });
 

@@ -45,9 +45,7 @@ export const runActionScript = async (
       set input to "${input.replaceAll('"', '\\"')}"
       set response to "${response.replaceAll('"', '\\"')}"
       ${script}`,
-          undefined,
-          customPlaceholders,
-          PromptLabPlaceholders,
+          { customPlaceholders, defaultPlaceholders: PromptLabPlaceholders },
         ),
       );
     } else if (type == "zsh") {
@@ -58,7 +56,7 @@ export const runActionScript = async (
         ${script.replaceAll("\n", " && ")}`;
 
         return new Promise((resolve, reject) => {
-          PLApplicator.bulkApply(shellScript, undefined, customPlaceholders, PromptLabPlaceholders).then(
+          PLApplicator.bulkApply(shellScript, { customPlaceholders, defaultPlaceholders: PromptLabPlaceholders }).then(
             (subbedScript) => {
               exec(subbedScript, (error, stdout) => {
                 if (error) {
@@ -123,7 +121,7 @@ export const runReplacements = async (
 
   const settings = loadAdvancedSettingsSync();
   const customPlaceholders = await loadCustomPlaceholders(settings);
-  subbedPrompt = await PLApplicator.bulkApply(subbedPrompt, context, customPlaceholders, PromptLabPlaceholders);
+  subbedPrompt = await PLApplicator.bulkApply(subbedPrompt, { context, customPlaceholders, defaultPlaceholders: PromptLabPlaceholders });
 
   // Replace command placeholders
   for (const cmdString of Object.values(await LocalStorage.allItems())) {
