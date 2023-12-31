@@ -389,6 +389,13 @@ export const defaultAdvancedSettings = {
         modifiers: ["cmd", "opt"],
       },
     },
+    DeleteRunAction: {
+      enabled: ["search-commands"],
+      shortcut: {
+        key: "x",
+        modifiers: ["ctrl"],
+      },
+    }
   },
 };
 

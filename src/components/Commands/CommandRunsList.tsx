@@ -1,9 +1,9 @@
-import { Action, ActionPanel, Alert, Icon, Keyboard, List, confirmAlert } from "@raycast/api";
+import { Action, ActionPanel, Icon, List } from "@raycast/api";
 import { Command, PLCommandRunProperties } from "../../lib/commands/types";
-import { updateCommand } from "../../lib/commands/command-utils";
 import { useState } from "react";
 import RunCommandAction from "./actions/RunCommandAction";
 import { AdvancedSettings } from "../../data/default-advanced-settings";
+import DeleteRunAction from "./actions/DeleteRunAction";
 
 type CommandRunsListProps = {
   command: Command;
@@ -47,27 +47,12 @@ export default function CommandRunsList(props: CommandRunsListProps) {
                     setRuns([newRun, ...runs]);
                   }}
                 />
-                <Action
-                  title="Delete Run"
-                  icon={Icon.Trash}
-                  style={Action.Style.Destructive}
-                  shortcut={Keyboard.Shortcut.Common.Remove}
-                  onAction={async () => {
-                    if (
-                      await confirmAlert({
-                        title: "Delete Run",
-                        message: "Are you sure?",
-                        primaryAction: { title: "Delete", style: Alert.ActionStyle.Destructive },
-                      })
-                    ) {
-                      const updatedCommand = {
-                        ...command,
-                        runs: runs.filter((item) => item.id !== run.id),
-                      };
-                      await updateCommand(command, updatedCommand, setCommands);
-                      setRuns(updatedCommand.runs);
-                    }
-                  }}
+                <DeleteRunAction
+                  run={run}
+                  setRuns={setRuns}
+                  command={command}
+                  setCommands={setCommands}
+                  settings={settings}
                 />
                 <ActionPanel.Section title="Clipboard Actions">
                   <Action.CopyToClipboard title="Copy ID" content={run.id} />

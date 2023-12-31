@@ -6,16 +6,23 @@ import { AdvancedSettings } from "../../../data/default-advanced-settings";
 
 type ViewPreviousRunsActionProps = {
   /**
-   * Hi
+   * The command to view previous runs for.
    */
   command: Command;
+
+  /**
+   * Function to update the list of commands.
+   */
   setCommands: React.Dispatch<React.SetStateAction<Command[]>>;
+
+  /**
+   * The user's advanced settings.
+   */
   settings: AdvancedSettings;
 };
 
 /**
  * Action to view previous runs of a command.
- * @param props The action props.
  * @returns {JSX.Element} An Action.Push component, or null if the action is disabled.
  */
 export default function ViewPreviousRunsAction(props: ViewPreviousRunsActionProps): JSX.Element | null {
