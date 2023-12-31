@@ -34,8 +34,8 @@ import { ADVANCED_SETTINGS_FILENAME, COMMAND_CATEGORIES } from "../../lib/consta
 import { useAdvancedSettings } from "../../lib/settings/useAdvancedSettings";
 import { isActionEnabled } from "../../lib/action-utils";
 import { loadCustomPlaceholders } from "../../lib/placeholders/utils";
-import { checkForPlaceholders } from "placeholders-toolkit/dist/lib/apply";
 import { PromptLabPlaceholders } from "../../lib/placeholders";
+import { PLChecker } from "placeholders-toolkit";
 
 interface CommandFormValues {
   name: string;
@@ -69,6 +69,7 @@ interface CommandFormValues {
   useSpeech?: boolean;
   speakResponse?: boolean;
   showInMenuBar?: boolean;
+  recordRuns?: boolean;
 }
 
 const defaultPromptInfo =
@@ -162,6 +163,7 @@ export default function CommandForm(props: {
       useSpeech: false,
       speakResponse: false,
       showInMenuBar: true,
+      recordRuns: true,
     };
   };
 
@@ -172,7 +174,7 @@ export default function CommandForm(props: {
   useEffect(() => {
     if (oldData) {
       loadCustomPlaceholders(advancedSettings).then((customPlaceholders) => {
-        checkForPlaceholders(oldData.prompt, { customPlaceholders, defaultPlaceholders: PromptLabPlaceholders }).then((includedPlaceholders) => {
+        PLChecker.checkForPlaceholders(oldData.prompt, { customPlaceholders, defaultPlaceholders: PromptLabPlaceholders }).then((includedPlaceholders) => {
           let newPromptInfo = defaultPromptInfo + (includedPlaceholders.length > 0 ? "\n\nDetected Placeholders:" : "");
           includedPlaceholders.forEach((placeholder) => {
             newPromptInfo =
@@ -183,7 +185,7 @@ export default function CommandForm(props: {
           });
           setPromptInfo(newPromptInfo);
 
-          checkForPlaceholders(oldData.actionScript || "", { customPlaceholders, defaultPlaceholders: PromptLabPlaceholders }).then(
+          PLChecker.checkForPlaceholders(oldData.actionScript || "", { customPlaceholders, defaultPlaceholders: PromptLabPlaceholders }).then(
             (includedPlaceholders) => {
               let newScriptInfo = includedPlaceholders.length > 0 ? "Detected Placeholders:" : "";
               includedPlaceholders.forEach((placeholder) => {
@@ -359,6 +361,9 @@ export default function CommandForm(props: {
         showInMenuBar: values.showInMenuBar,
         favorited: values.favorited,
         model: values.model,
+        timesExecuted: oldData ? oldData.timesExecuted : 0,
+        recordRuns: values.recordRuns,
+        runs: oldData ? oldData.runs : [],
       };
 
       if (setupFields.length > 0) {
@@ -473,6 +478,7 @@ export default function CommandForm(props: {
 
   return (
     <Form
+      navigationTitle={oldData && !duplicate ? `Edit Command '${oldData.name}'` : "New PromptLab Command"}
       actions={
         <ActionPanel>
           <Action.SubmitForm
@@ -805,6 +811,13 @@ export default function CommandForm(props: {
         onFocus={() => setShowAddPlaceholderAction(false)}
       />
 
+      <Form.Checkbox
+        label="Record Runs"
+        {...itemProps.recordRuns}
+        info="If checked, the command will record each time it is run, including the fully substituted prompt and the response. You can then use this information using the {{lastRun}} placeholder."
+        onFocus={() => setShowAddPlaceholderAction(false)}
+      />
+
       <Form.Separator />
 
       <Form.TextArea
@@ -817,7 +830,7 @@ export default function CommandForm(props: {
           itemProps.prompt.onChange?.(value);
           setPrompt(value);
           const customPlaceholders = await loadCustomPlaceholders(advancedSettings);
-          const includedPlaceholders = await checkForPlaceholders(value, { customPlaceholders, defaultPlaceholders: PromptLabPlaceholders });
+          const includedPlaceholders = await PLChecker.checkForPlaceholders(value, { customPlaceholders, defaultPlaceholders: PromptLabPlaceholders });
           let newPromptInfo = defaultPromptInfo + (includedPlaceholders.length > 0 ? "\n\nDetected Placeholders:" : "");
           includedPlaceholders.forEach((placeholder) => {
             newPromptInfo =
@@ -842,7 +855,7 @@ export default function CommandForm(props: {
         onChange={async (value) => {
           itemProps.actionScript.onChange?.(value);
           const customPlaceholders = await loadCustomPlaceholders(advancedSettings);
-          const includedPlaceholders = await checkForPlaceholders(value, { customPlaceholders, defaultPlaceholders: PromptLabPlaceholders });
+          const includedPlaceholders = await PLChecker.checkForPlaceholders(value, { customPlaceholders, defaultPlaceholders: PromptLabPlaceholders });
           let newScriptInfo = includedPlaceholders.length > 0 ? "Detected Placeholders:" : "";
           includedPlaceholders.forEach((placeholder) => {
             newScriptInfo =

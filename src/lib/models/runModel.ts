@@ -88,7 +88,7 @@ export default async function runModel(basePrompt: string, prompt: string, input
         return "Raycast AI is not available in this environment.";
       }
 
-      return await AI.ask(preferences.promptPrefix + prompt + preferences.promptSuffix, { creativity: temp });
+      return await AI.ask(preferences.promptPrefix + prompt + preferences.promptSuffix, { creativity: temp, model: "gpt-3.5-turbo" });
     } else {
       const fetchResponse = await fetch(targetModel.endpoint, {
         method: "POST",

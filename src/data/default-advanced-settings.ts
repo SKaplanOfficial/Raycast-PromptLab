@@ -1,10 +1,13 @@
 import { Color, Icon } from "@raycast/api";
 
+/**
+ * The default advanced settings for the extension.
+ */
 export const defaultAdvancedSettings = {
   /**
    * The version of the settings. This is used to determine if the settings need to be migrated.
    */
-  settingsVersion: 1.12,
+  settingsVersion: 1.13,
 
   /**
    * Default values for newly created commands.
@@ -41,6 +44,7 @@ export const defaultAdvancedSettings = {
     useSpeech: false,
     speakResponse: false,
     showInMenuBar: true,
+    recordRuns: true,
   },
 
   /**
@@ -378,5 +382,17 @@ export const defaultAdvancedSettings = {
         modifiers: ["cmd"],
       },
     },
+    ViewPreviousRunsAction: {
+      enabled: ["search-commands"],
+      shortcut: {
+        key: "p",
+        modifiers: ["cmd", "opt"],
+      },
+    },
   },
 };
+
+/**
+ * Interface for the advanced settings of the extension.
+ */
+export type AdvancedSettings = typeof defaultAdvancedSettings;

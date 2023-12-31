@@ -101,6 +101,7 @@ In addition to the above, you can use any supported file extension as a directiv
 | `{{homedir}}` or <br /> `{{homeDirectory}}` | The path to the user's home directory. |
 | `{{hostname}}` | The hostname of the computer. |
 | `{{input}}` | The text entered by the user in an input dialog. You can specify a prompt using `{{input prompt="..."}}`. |
+| `{{lastRun}}` or <br /> `{{previousRun}}` | The response text from the previous execution of the current command. |
 | `{{previousCommand}}` or <br /> `{{lastCommand}}` | The name of the previously executed PromptLab command. |
 | `{{previousPrompt}}` or <br /> `{{lastPrompt}}` | The fully-substituted prompt text of the previously executed PromptLab command. |
 | `{{previousResponse}}` or <br /> `{{previousOutput}}` or <br /> `{{lastResponse}}` or <br /> `{{lastOutput}}` | The fully-substituted output text of the previously executed PromptLab command. |

@@ -10,6 +10,8 @@ PromptLab also supports "action scripts" -- AppleScripts which run with the AI's
 
 [Install PromptLab](https://www.raycast.com/HelloImSteven/promptlab) | [My Other Extensions](https://www.raycast.com/HelloImSteven) | [Donate](https://www.paypal.com/donate/?hosted_button_id=2XFX5UXXR8M6J)
 
+<a href="https://www.producthunt.com/posts/promptlab?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-promptlab" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=431415&theme=neutral" alt="PromptLab - Raycast&#0032;extension&#0032;for&#0032;creating&#0032;context&#0045;aware&#0032;AI&#0032;commands | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
+
 ## Table Of Contents
 
 - [Feature Overview](#feature-overview)

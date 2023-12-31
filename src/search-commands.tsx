@@ -14,6 +14,7 @@ import { useAdvancedSettings } from "./lib/settings/useAdvancedSettings";
 import { useCachedState } from "@raycast/utils";
 import { AdvancedActionSubmenu } from "./components/actions/AdvancedActionSubmenu";
 import { COMMAND_CATEGORIES } from "./lib/constants";
+import ViewPreviousRunsAction from "./components/Commands/actions/ViewPreviousRunsAction";
 
 export default function SearchCommand(props: { arguments: { commandName: string; queryInput: string } }) {
   const { commandName, queryInput } = props.arguments;
@@ -29,7 +30,6 @@ export default function SearchCommand(props: { arguments: { commandName: string;
   const commandNames = names();
 
   useEffect(() => {
-    /* Add default commands if necessary, then get all commands */
     if (!loadingCommands) {
       if (searchText == undefined && !commandNames.includes(commandName)) {
         setSearchText(commandName);
@@ -44,7 +44,7 @@ export default function SearchCommand(props: { arguments: { commandName: string;
     }
     return (
       <CommandResponse
-        commandName={command.name}
+        command={command}
         prompt={command.prompt}
         input={queryInput}
         options={{
@@ -91,6 +91,9 @@ export default function SearchCommand(props: { arguments: { commandName: string;
           actions={
             <ActionPanel>
               <RunCommandAction command={command} setCommands={setCommands} settings={advancedSettings} />
+              {command.runs?.length ? (
+                <ViewPreviousRunsAction command={command} setCommands={setCommands} settings={advancedSettings} />
+              ) : null}
               <ShareCommandAction command={command} settings={advancedSettings} />
 
               <ActionPanel.Submenu

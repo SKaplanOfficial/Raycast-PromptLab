@@ -207,7 +207,7 @@ export default function useModel(
         ...useAI(filterString(preferences.promptPrefix + prompt + preferences.promptSuffix, 5000), {
           execute: execute,
           creativity: temp,
-          model: targetModel.endpoint == "Raycast AI 3.5" ? "gpt-3.5-turbo" : "text-davinci-003",
+          model: targetModel.endpoint == "Raycast AI 4" ? "gpt-4" : "gpt-3.5-turbo",
         }),
         dataTag: basePrompt + prompt + input,
         stopModel: stopModel,

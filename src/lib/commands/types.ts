@@ -66,6 +66,46 @@ export type CommandConfig = {
 };
 
 /**
+ * Record of a single execution of a PromptLab command.
+ */
+export type PLCommandRunProperties = {
+  /**
+   * The unique ID of the command run.
+   */
+  id: string;
+
+  /**
+   * The index of the command run, starting from 0 and increasing by 1 for each run.
+   */
+  index: number;
+
+  /**
+   * The ID of the command that was executed.
+   */
+  commandID: string;
+
+  /**
+   * The date and time that the command was executed.
+   */
+  timestamp: string;
+
+  /**
+   * The full (substituted) prompt that was sent to the model.
+   */
+  prompt: string;
+
+  /**
+   * The response from the model.
+   */
+  response: string;
+
+  /**
+   * The error message, if any, that occurred during the execution of the command.
+   */
+  error?: string;
+};
+
+/**
  * A PromptLab command.
  */
 export type Command = {
@@ -243,6 +283,21 @@ export type Command = {
    * Whether to show the command in PromptLab's menu bar extra.
    */
   showInMenuBar?: boolean;
+
+  /**
+   * The number of times the command has been executed.
+   */
+  timesExecuted?: number;
+
+  /**
+   * Whether to keep a record of the command's run history.
+   */
+  recordRuns?: boolean;
+
+  /**
+   * The list of previous executions.
+   */
+  runs?: PLCommandRunProperties[];
 };
 
 /**
@@ -290,6 +345,7 @@ export type StoreCommand = {
   setupConfig?: string;
   useSpeech?: string;
   speakResponse?: string;
+  recordRuns?: string;
 };
 
 /**

@@ -98,6 +98,7 @@ ${
           : "Any"
       } |
 | Creativity | ${command.temperature == undefined || command.temperature == "" ? "1.0" : command.temperature} |
+| Record Runs? | ${isTrueStr(command.recordRuns) ? "Yes" : "No"} |
 | Use File Metadata? | ${isTrueStr(command.useMetadata) ? "Yes" : "No"} |
 | Use Sound Classification? | ${isTrueStr(command.useSoundClassification) ? "Yes" : "No"} |
 | Use Subject Classification? | ${isTrueStr(command.useSubjectClassification) ? "Yes" : "No"} |

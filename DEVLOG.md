@@ -2,6 +2,14 @@
 
 ## v1.2.1 Release
 
+### 2023-12-26
+
+- Added optional `offsets` parameter to the `{{clipboardText}}` placeholder.
+  - Allows accessing one or more previous clipboard entries.
+- Added command run history.
+  - Accessible via the 'View Previous Runs' action in the 'My PromptLab Commands' command.
+- Added `{{lastRun}}` placeholder for accessing the response of the last run of the current command.
+
 ### 2023-11-05
 
 - Extract placeholders & browsers into standalone package.

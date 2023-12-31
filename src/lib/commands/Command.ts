@@ -1,6 +1,6 @@
 import { Color, Icon, LocalStorage, Toast, showToast } from "@raycast/api";
 import crypto from "crypto";
-import { Command, StoreCommand, isCommand, isStoreCommand } from "./types";
+import { Command, PLCommandRunProperties, StoreCommand, isCommand, isStoreCommand } from "./types";
 import { isTrueStr } from "../types";
 
 /**
@@ -31,18 +31,6 @@ export const loadCommands = async () => {
     newCommands.push(newCommand);
   }
   return newCommands;
-};
-
-/**
- * Updates a command with new data.
- * @param command The command to update.
- * @param newData The new data to update the command with.
- */
-export const updateCommand = async (command: Command, newData: Command) => {
-  if (command.name !== newData.name) {
-    await LocalStorage.removeItem(command.name);
-  }
-  await LocalStorage.setItem(newData.name, JSON.stringify(newData));
 };
 
 /**
@@ -95,6 +83,9 @@ export const dummyCommand = (): Command => {
     website: "",
     version: "1.0.0",
     requirements: "",
+    timesExecuted: 0,
+    recordRuns: false,
+    runs: [],
   };
 };
 
@@ -153,6 +144,9 @@ export const createCommand = async (newData: Command & { [key: string]: string |
     website: newData.website || "",
     version: newData.version || "1.0.0",
     requirements: newData.requirements || "",
+    timesExecuted: 0,
+    recordRuns: false,
+    runs: [],
   };
 
   // Save the command
@@ -218,6 +212,9 @@ export const commandFromStoreCommand = async (storeCommand: StoreCommand): Promi
     speakResponse: storeCommand.speakResponse == "TRUE" ? true : false,
     showInMenuBar: false,
     id: `CM${crypto.randomUUID()}`,
+    timesExecuted: 0,
+    recordRuns: false,
+    runs: [],
   };
   return newCommand;
 };
@@ -271,6 +268,28 @@ export const commandDataForEditing = (oldCommand: Command | StoreCommand, duplic
     speakResponse: isTrueStr(oldCommand.speakResponse),
     showInMenuBar: isStoreCommand(oldCommand) ? false : oldCommand.showInMenuBar,
     model: isCommand(oldCommand) ? oldCommand.model : undefined,
+    timesExecuted: isCommand(oldCommand) ? oldCommand.timesExecuted : 0,
+    recordRuns: isCommand(oldCommand) ? oldCommand.recordRuns : false,
+    runs: isCommand(oldCommand) ? oldCommand.runs : [],
   };
   return commandData;
+};
+
+export const createCommandRun = (
+  command: Command,
+  data: {
+    prompt: string;
+    response: string;
+    error?: string;
+  },
+): PLCommandRunProperties => {
+  return {
+    id: `CR${crypto.randomUUID()}`,
+    index: command.timesExecuted ? command.timesExecuted + 1 : 1,
+    commandID: command.id,
+    timestamp: new Date().toISOString(),
+    prompt: data.prompt,
+    response: data.response,
+    error: data.error,
+  };
 };
