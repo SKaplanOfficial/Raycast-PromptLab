@@ -1,3 +1,5 @@
+import { Color, Icon } from "@raycast/api";
+
 /**
  * General preferences for the entire extension.
  */
@@ -747,4 +749,24 @@ export interface AudioData extends DataProviderOutput {
    * Labels for sounds identified in the audio.
    */
   soundClassifications: string;
+}
+
+/**
+ * A category of commands.
+ */
+export type CommandCategory = {
+  /**
+   * The name of the category as it appears in the command editor.
+   */
+  name: string;
+
+  /**
+   * The Raycast icon to use for the category.
+   */
+  icon: Icon;
+
+  /**
+   * The color of the icon.
+   */
+  color: Color;
 }

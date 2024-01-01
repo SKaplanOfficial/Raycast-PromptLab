@@ -13,7 +13,7 @@ import { commandFromStoreCommand } from "../../../lib/commands/Command";
  */
 export default function InstallCommandAction(props: {
   command: StoreCommand;
-  setCommands: React.Dispatch<React.SetStateAction<Command[]>>;
+  setCommands: (commands: Command[]) => void;
   settings: typeof defaultAdvancedSettings;
 }): JSX.Element | null {
   const { command, setCommands, settings } = props;

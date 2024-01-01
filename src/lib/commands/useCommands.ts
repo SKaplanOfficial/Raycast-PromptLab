@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Command } from "./types";
 import { installDefaults } from "../files/file-utils";
 import { loadCommands } from "./Command";
+import { CommandCategory } from "../types";
 
 /**
  * Returns a stateful list of commands.
@@ -22,49 +23,62 @@ export function useCommands() {
   }, []);
 
   const revalidate = async () => {
-    return loadCommands();
+    setIsLoading(true);
+    const updatedCommandList = await loadCommands();
+    setCommands(updatedCommandList);
+    setIsLoading(false);
   };
 
-  const names = () => {
-    return commands.map((command) => command.name);
+  const updateCommandList = (newCommands: Command[]) => {
+    setCommands(newCommands);
   };
 
-  const favorites = () => {
-    return commands.filter((command) => command.favorited);
+  const commandsMatchingCategory = (category: string | CommandCategory) => {
+    const categoryName = typeof category === "string" ? category : category.name;
+    return commands?.filter((command) => command.categories?.includes(categoryName) || categoryName == "All") || [];
   };
 
   return {
     /**
      * The list of commands.
      */
-    commands: commands,
+    commands,
 
     /**
      * Force-sets the list of commands. Use with caution.
      */
-    setCommands: setCommands,
+    setCommands: updateCommandList,
 
     /**
      * True if the commands are still loading, false otherwise.
      */
-    isLoading: isLoading,
+    isLoading,
 
     /**
      * Revalidates the list of commands.
      * @returns A promise that resolves onces the commands are revalidated.
      */
-    revalidate: revalidate,
+    revalidate,
 
     /**
-     * Gets the names of all commands.
-     * @returns An array of command names.
+     * The list of command names.
      */
-    names,
+    commandNames: commands.map((command) => command.name),
 
     /**
-     * Gets all favorited commands.
-     * @returns An array of favorited commands.
+     * The list of favorited commands.
      */
-    favorites: favorites,
+    favoritedCommands: commands.filter((command) => command.favorited),
+
+    /**
+     * The list of unfavorited commands.
+     */
+    unfavoritedCommands: commands.filter((command) => !command.favorited),
+
+    /**
+     * Returns a list of commands that match the given category. If the category is "All", returns all commands.
+     * @param category The category to filter by.
+     */
+    commandsMatchingCategory,
   };
 }

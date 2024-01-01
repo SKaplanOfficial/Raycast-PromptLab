@@ -13,7 +13,7 @@ import { AdvancedSettings } from "../../../data/default-advanced-settings";
  */
 export default function RunCommandAction(props: {
   command: Command | StoreCommand;
-  setCommands?: React.Dispatch<React.SetStateAction<Command[]>>;
+  setCommands?: (commands: Command[]) => void;
   settings: AdvancedSettings;
   onCompletion?: (newRun: PLCommandRunProperties) => void;
 }): JSX.Element | null {

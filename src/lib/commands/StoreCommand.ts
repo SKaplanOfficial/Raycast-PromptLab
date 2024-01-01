@@ -10,7 +10,7 @@ import { commandFromStoreCommand } from "./Command";
  */
 export const installAllCommands = async (
   availableCommands: StoreCommand[],
-  setCommands: React.Dispatch<React.SetStateAction<Command[]>>,
+  setCommands: (commands: Command[]) => void,
 ) => {
   const successes: string[] = [];
   const failures: string[] = [];

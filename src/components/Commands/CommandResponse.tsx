@@ -21,7 +21,7 @@ export default function CommandResponse(props: {
   prompt: string;
   input?: string;
   options: CommandOptions;
-  setCommands?: React.Dispatch<React.SetStateAction<Command[]>>;
+  setCommands?: (commands: Command[]) => void;
   onCompletion?: (newRun: PLCommandRunProperties) => void;
 }) {
   const { command, prompt, input, setCommands, onCompletion } = props;

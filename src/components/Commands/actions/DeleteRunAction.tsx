@@ -23,7 +23,7 @@ type DeleteRunActionProps = {
   /**
    * Function to update the list of commands.
    */
-  setCommands: React.Dispatch<React.SetStateAction<Command[]>>;
+  setCommands: (commands: Command[]) => void;
 
   /**
    * The user's advanced settings.

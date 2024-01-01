@@ -77,7 +77,7 @@ const defaultPromptInfo =
 
 export default function CommandForm(props: {
   oldData?: Command;
-  setCommands?: React.Dispatch<React.SetStateAction<Command[]>>;
+  setCommands?: (commands: Command[]) => void;
   duplicate?: boolean;
 }) {
   const { oldData, setCommands, duplicate } = props;

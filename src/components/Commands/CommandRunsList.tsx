@@ -7,7 +7,7 @@ import DeleteRunAction from "./actions/DeleteRunAction";
 
 type CommandRunsListProps = {
   command: Command;
-  setCommands: React.Dispatch<React.SetStateAction<Command[]>>;
+  setCommands: (commands: Command[]) => void;
   settings: AdvancedSettings;
 };
 

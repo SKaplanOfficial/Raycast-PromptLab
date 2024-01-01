@@ -9,6 +9,7 @@
 - Added command run history.
   - Accessible via the 'View Previous Runs' action in the 'My PromptLab Commands' command.
 - Added `{{lastRun}}` placeholder for accessing the response of the last run of the current command.
+- Added per-command option to `Record Runs` or not.
 
 ### 2023-11-05
 

@@ -153,7 +153,7 @@ export const runReplacements = async (
 export const updateCommand = async (
   oldCommandData: Command | undefined,
   newCommandData: Command,
-  setCommands?: React.Dispatch<React.SetStateAction<Command[]>>,
+  setCommands?: (commands: Command[]) => void,
 ) => {
   const commandData = await LocalStorage.allItems();
   const commandDataFiltered = Object.values(commandData).filter((cmd, index) => {

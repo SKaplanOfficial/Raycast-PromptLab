@@ -20,7 +20,7 @@ export const CommandControlsActionsSection = (props: {
   command: Command | StoreCommand;
   availableCommands?: StoreCommand[];
   commands: Command[];
-  setCommands: React.Dispatch<React.SetStateAction<Command[]>>;
+  setCommands: (commands: Command[]) => void;
   settings: typeof defaultAdvancedSettings;
 }) => {
   const { command, availableCommands, commands, setCommands, settings } = props;
@@ -76,7 +76,7 @@ export const CommandControlsActionsSection = (props: {
  */
 export const ToggleFavoriteAction = (props: {
   command: Command;
-  setCommands: React.Dispatch<React.SetStateAction<Command[]>>;
+  setCommands: (commands: Command[]) => void;
   settings: typeof defaultAdvancedSettings;
 }) => {
   const { command, setCommands, settings } = props;
@@ -125,7 +125,7 @@ export const CreateQuickLinkAction = (props: { command: Command; settings: typeo
  */
 export const EditCommandAction = (props: {
   command: Command;
-  setCommands: React.Dispatch<React.SetStateAction<Command[]>>;
+  setCommands: (commands: Command[]) => void;
   settings: typeof defaultAdvancedSettings;
 }) => {
   const { command, setCommands, settings } = props;
@@ -149,7 +149,7 @@ export const EditCommandAction = (props: {
 export const DeleteCommandAction = (props: {
   command: Command;
   commands: Command[];
-  setCommands: React.Dispatch<React.SetStateAction<Command[]>>;
+  setCommands: (commands: Command[]) => void;
   settings: typeof defaultAdvancedSettings;
 }) => {
   const { command, commands, setCommands, settings } = props;
@@ -184,7 +184,7 @@ export const DeleteCommandAction = (props: {
  */
 export const DeleteAllCommandsAction = (props: {
   commands: Command[];
-  setCommands: React.Dispatch<React.SetStateAction<Command[]>>;
+  setCommands: (commands: Command[]) => void;
   settings: typeof defaultAdvancedSettings;
 }) => {
   const { commands, setCommands, settings } = props;
@@ -218,7 +218,7 @@ export const DeleteAllCommandsAction = (props: {
  */
 export const CreateDerivativeAction = (props: {
   command: Command | StoreCommand;
-  setCommands: React.Dispatch<React.SetStateAction<Command[]>>;
+  setCommands: (commands: Command[]) => void;
   settings: typeof defaultAdvancedSettings;
 }) => {
   const { command, setCommands, settings } = props;
@@ -242,7 +242,7 @@ export const CreateDerivativeAction = (props: {
  */
 export const InstallAllCommandsAction = (props: {
   availableCommands: StoreCommand[];
-  setCommands: React.Dispatch<React.SetStateAction<Command[]>>;
+  setCommands: (commands: Command[]) => void;
   settings: typeof defaultAdvancedSettings;
 }) => {
   const { availableCommands, setCommands, settings } = props;
