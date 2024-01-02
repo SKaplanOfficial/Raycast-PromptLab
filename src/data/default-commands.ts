@@ -1,10 +1,13 @@
-export const defaultCommands = {
+import { Command } from "../lib/commands/types";
+
+export const defaultCommands: { [key: string]: Partial<Command> } = {
   "Suggest PromptLab Commands": {
     name: "Suggest PromptLab Commands",
     prompt:
       "Based on my current commands for the PromptLab extension, suggest new commands to create. Provide suggestions for titles as well prompts. The prompts must be relevant to an AI that can read the content of files, get information about the system, and get outside  data such as calendar events. The commands must be unique. Format the response as a single markdown list. Here are the commands I currently have: {{promptlabCommands}}",
     icon: "desktop-16",
     iconColor: "raycast-magenta",
+
     minNumFiles: "0",
     acceptedFileExtensions: "",
     useMetadata: false,

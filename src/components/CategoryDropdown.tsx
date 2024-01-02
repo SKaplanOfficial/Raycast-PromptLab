@@ -1,7 +1,29 @@
 import { List } from "@raycast/api";
 import { COMMAND_CATEGORIES } from "../lib/constants";
-export default function CategoryDropdown(props: { onSelection: (newValue: string) => void }) {
-  const { onSelection } = props;
+
+type CategoryDropdownProps = {
+  /**
+   * Whether the parent list component is loading. If true, the dropdown will not be rendered.
+   */
+  isLoading: boolean;
+
+  /**
+   * The callback to invoke when a new category is selected.
+   */
+  onSelection: (newValue: string) => void;
+};
+
+/**
+ * The dropdown component for selecting a focused command category in the 'My PromptLab Commands' command.
+ * @returns A {@link List.Dropdown} component, or null if the parent list is loading.
+ */
+export default function CategoryDropdown(props: CategoryDropdownProps) {
+  const {isLoading, onSelection } = props;
+
+  if (isLoading) {
+    return null;
+  }
+
   return (
     <List.Dropdown
       tooltip="Select Command Category"

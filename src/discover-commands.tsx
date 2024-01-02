@@ -64,7 +64,7 @@ export default function Discover() {
       isLoading={loadingMyCommands || isLoading}
       isShowingDetail={availableCommands != undefined}
       searchBarPlaceholder="Search PromptLab store..."
-      searchBarAccessory={<CategoryDropdown onSelection={setTargetCategory} />}
+      searchBarAccessory={<CategoryDropdown onSelection={setTargetCategory} isLoading={isLoading} />}
     >
       <List.EmptyView title="Loading..." icon={{ source: "no-view.png" }} />
       {targetCategory == "All" ? <List.Section title="Newest Commands">{listItems.slice(0, 5)}</List.Section> : null}

@@ -1,13 +1,14 @@
 import { ActionPanel, Color, Icon, List } from "@raycast/api";
-import CommandListDetail from "./CommandListDetail";
-import RunCommandAction from "./actions/RunCommandAction";
-import ViewPreviousRunsAction from "./actions/ViewPreviousRunsAction";
-import ShareCommandAction from "./actions/ShareCommandAction";
-import { CopyCommandActionsSection } from "./actions/CopyCommandActions";
-import { CommandControlsActionsSection } from "./actions/CommandControlActions";
-import { AdvancedActionSubmenu } from "../actions/AdvancedActionSubmenu";
-import { Command } from "../../lib/commands/types";
-import { AdvancedSettings } from "../../data/default-advanced-settings";
+import CommandListDetail from "../../CommandListDetail";
+import RunCommandAction from "../../actions/RunCommandAction";
+import ViewPreviousRunsAction from "../../actions/ViewPreviousRunsAction";
+import ShareCommandAction from "../../actions/ShareCommandAction";
+import { CopyCommandActionsSection } from "../../actions/CopyCommandActions";
+import { CommandControlsActionsSection } from "../../actions/CommandControlActions";
+import { AdvancedActionSubmenu } from "../../../actions/AdvancedActionSubmenu";
+import { Command } from "../../../../lib/commands/types";
+import { AdvancedSettings } from "../../../../data/default-advanced-settings";
+import { useCommandListContext } from "../../../../lib/contexts/commands";
 
 type CommandListItemProps = {
   /**
@@ -21,24 +22,18 @@ type CommandListItemProps = {
   previousCommand: string;
 
   /**
-   * The list of all commands.
-   */
-  commands: Command[];
-
-  /**
-   * The function to update the list of commands.
-   * @param commands The new list of commands.
-   */
-  setCommands: (commands: Command[]) => void;
-
-  /**
    * The user's advanced settings.
    */
   settings: AdvancedSettings;
 };
 
+/**
+ * A list item representing a PromptLab command.
+ * @returns A {@link List.Item} component.
+ */
 export default function CommandListItem(props: CommandListItemProps) {
-  const { command, previousCommand, setCommands, commands, settings } = props;
+  const { command, previousCommand, settings } = props;
+  const { commands, setCommands } = useCommandListContext();
 
   return (
     <List.Item
