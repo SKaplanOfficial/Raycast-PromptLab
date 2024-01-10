@@ -1,5 +1,5 @@
 import { Keyboard, environment } from "@raycast/api";
-import { defaultAdvancedSettings } from "../data/default-advanced-settings";
+import { defaultAdvancedSettings } from "../../data/default-advanced-settings";
 
 /**
  * Checks if the specified action is enabled for the current command.

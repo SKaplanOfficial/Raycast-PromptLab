@@ -1,7 +1,7 @@
 import { Action, Icon } from "@raycast/api";
 import { Command } from "../../../lib/commands/types";
 import CommandRunsList from "../CommandRunsList";
-import { getActionShortcut, isActionEnabled } from "../../../lib/action-utils";
+import { getActionShortcut, isActionEnabled } from "../../../lib/actions";
 import { AdvancedSettings } from "../../../data/default-advanced-settings";
 
 type ViewPreviousRunsActionProps = {

@@ -1,13 +1,15 @@
 import { Color, Form, Icon, LocalStorage, Toast, getPreferenceValues, showToast } from "@raycast/api";
 import { useEffect, useState } from "react";
-import useModel from "../../lib/models/useModel";
-import { Chat, ExtensionPreferences } from "../../lib/types";
+import useModel from "../../hooks/useModel";
+import { Chat } from "../../lib/chats/types";
+import { ExtensionPreferences } from "../../lib/preferences/types";
 import { CommandOptions } from "../../lib/commands/types";
 import { runActionScript, runReplacements } from "../../lib/commands/command-utils";
-import { useChats } from "../../lib/chats";
+import { deleteChat } from "../../lib/chats";
+import { useChats } from "../../hooks/useChats";
 import runModel from "../../lib/models/runModel";
-import { useFiles as useFileContents } from "../../lib/files/useFiles";
-import { useAdvancedSettings } from "../../lib/settings/useAdvancedSettings";
+import { useFiles as useFileContents } from "../../hooks/useFiles";
+import { useAdvancedSettings } from "../../hooks/useAdvancedSettings";
 import { ChatActionPanel } from "./actions/ChatActionPanel";
 import { useCachedState } from "@raycast/utils";
 import { loadCustomPlaceholders } from "../../lib/placeholders/utils";
@@ -360,7 +362,7 @@ export default function CommandChatView(props: {
     chats.revalidate().then(() => {
       setPreviousResponse("");
       if (chat && !chats.checkExists(chat)) {
-        chats.deleteChat(chat.name);
+        deleteChat(chat);
         setCurrentChat(undefined);
         showToast({ title: "Chat Doesn't Exist", style: Toast.Style.Failure });
         chats.revalidate();
@@ -465,20 +467,21 @@ export default function CommandChatView(props: {
         onChange={async (value) => {
           setQuery(value);
           const customPlaceholders = await loadCustomPlaceholders(advancedSettings);
-          PLApplicator.checkForPlaceholders(value, { customPlaceholders, defaultPlaceholders: PromptLabPlaceholders }).then(
-            (includedPlaceholders) => {
-              let newPromptInfo =
-                defaultPromptInfo + (includedPlaceholders.length > 0 ? "\n\nDetected Placeholders:" : "");
-              includedPlaceholders.forEach((placeholder) => {
-                newPromptInfo =
-                  newPromptInfo +
-                  `\n\n${placeholder.hintRepresentation || ""}: ${placeholder.description}\nExample: ${
-                    placeholder.example
-                  }`;
-              });
-              setPromptInfo(newPromptInfo);
-            },
-          );
+          PLApplicator.checkForPlaceholders(value, {
+            customPlaceholders,
+            defaultPlaceholders: PromptLabPlaceholders,
+          }).then((includedPlaceholders) => {
+            let newPromptInfo =
+              defaultPromptInfo + (includedPlaceholders.length > 0 ? "\n\nDetected Placeholders:" : "");
+            includedPlaceholders.forEach((placeholder) => {
+              newPromptInfo =
+                newPromptInfo +
+                `\n\n${placeholder.hintRepresentation || ""}: ${placeholder.description}\nExample: ${
+                  placeholder.example
+                }`;
+            });
+            setPromptInfo(newPromptInfo);
+          });
         }}
         autoFocus={true}
       />

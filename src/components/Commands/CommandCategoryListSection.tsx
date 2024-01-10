@@ -1,7 +1,7 @@
 import { List } from "@raycast/api";
 import { Command } from "../../lib/commands/types";
 import { AdvancedSettings } from "../../data/default-advanced-settings";
-import { CommandCategory } from "../../lib/types";
+import { CommandCategory } from "../../lib/commands/types";
 import CommandListItem from "./CommandListItem";
 
 type CommandCategoryListSectionProps = {

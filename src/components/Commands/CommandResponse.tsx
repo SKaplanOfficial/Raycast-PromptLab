@@ -1,20 +1,21 @@
 import { closeMainWindow, showHUD, showToast, Toast, useNavigation } from "@raycast/api";
 import { useEffect, useState } from "react";
-import { ERRORTYPE } from "../../lib/types";
+import { ERRORTYPE } from "../../lib/common/types";
 import { Command, CommandOptions, PLCommandRunProperties } from "../../lib/commands/types";
-import { runActionScript, runReplacements, updateCommand } from "../../lib/commands/command-utils";
-import useModel from "../../lib/models/useModel";
+import { runActionScript, runReplacements } from "../../lib/commands/command-utils";
+import { updateCommand } from "../../lib/commands";
+import useModel from "../../hooks/useModel";
 import CommandDetailView from "./CommandDetailView";
 import CommandChatView from "../Chats/CommandChatView";
 import CommandListView from "./CommandListView";
 import CommandGridView from "./CommandGridView";
 import { useCachedState } from "@raycast/utils";
-import { useModels } from "../../lib/models/useModels";
+import { useModels } from "../../hooks/useModels";
 import CommandSetupForm from "./CommandSetupForm";
 import SpeechInputView from "./SpeechInputView";
-import { useFiles } from "../../lib/files/useFiles";
+import { useFiles } from "../../hooks/useFiles";
 import { showDialog } from "../../lib/scripts";
-import { createCommandRun } from "../../lib/commands/Command";
+import { createCommandRun } from "../../lib/commands";
 
 export default function CommandResponse(props: {
   command: Command;
@@ -179,7 +180,12 @@ export default function CommandResponse(props: {
     !options.setupConfig.fields.every((field) => field.value != undefined && field.value.toString().length > 0)
   ) {
     return (
-      <CommandSetupForm commandName={command.name} options={options} setCommands={setCommands} setOptions={setOptions} />
+      <CommandSetupForm
+        commandName={command.name}
+        options={options}
+        setCommands={setCommands}
+        setOptions={setOptions}
+      />
     );
   }
 

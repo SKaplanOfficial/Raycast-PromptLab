@@ -1,5 +1,5 @@
 import { getPreferenceValues } from "@raycast/api";
-import { ExtensionPreferences } from "./types";
+import { ExtensionPreferences } from "./preferences/types";
 import { runAppleScript } from "@raycast/utils";
 
 /**

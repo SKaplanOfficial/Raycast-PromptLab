@@ -1,5 +1,7 @@
 import { AI, LocalStorage, environment, getPreferenceValues } from "@raycast/api";
-import { ExtensionPreferences, JSONObject, Model } from "../types";
+import { JSONObject } from "../common/types";
+import { Model } from "./types";
+import { ExtensionPreferences } from "../preferences/types";
 import fetch from "node-fetch";
 import {
   RAYCAST_AI_FALLBACK_MODEL,
@@ -74,9 +76,7 @@ export default async function runModel(basePrompt: string, prompt: string, input
       }
     }
 
-    const modelSchema = raycastModel
-      ? {}
-      : getFinalSchema(targetModel, prompt, basePrompt, input, preferences);
+    const modelSchema = raycastModel ? {} : getFinalSchema(targetModel, prompt, basePrompt, input, preferences);
 
     if (preferences.includeTemperature) {
       modelSchema["temperature"] = temp;
@@ -88,7 +88,10 @@ export default async function runModel(basePrompt: string, prompt: string, input
         return "Raycast AI is not available in this environment.";
       }
 
-      return await AI.ask(preferences.promptPrefix + prompt + preferences.promptSuffix, { creativity: temp, model: "gpt-3.5-turbo" });
+      return await AI.ask(preferences.promptPrefix + prompt + preferences.promptSuffix, {
+        creativity: temp,
+        model: "gpt-3.5-turbo",
+      });
     } else {
       const fetchResponse = await fetch(targetModel.endpoint, {
         method: "POST",

@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { Command } from "./types";
-import { installDefaults } from "../files/file-utils";
-import { loadCommands } from "./Command";
-import { CommandCategory } from "../types";
+import { Command } from "../lib/commands/types";
+import { installDefaults } from "../lib/files/file-utils";
+import { loadCommands } from "../lib/commands";
+import { CommandCategory } from "../lib/commands/types";
 
 /**
  * Returns a stateful list of commands.

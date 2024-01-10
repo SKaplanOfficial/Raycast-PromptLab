@@ -15,9 +15,9 @@ const LastRunPLaceholder: Placeholder = {
   result_keys: ["lastRun"],
   constant: true,
   fn: async () => (await LastRunPLaceholder.apply("{{lastRun}}")).result,
-  example:
-    "Compare these responses: First response: ###{{lastRun}}###\n\nSecond Response: ###{{prompt:some text}}###",
-  description: "Replaced with the response text of the previous run of the current command. If the current command has not been run before, this will be replaced with an empty string.",
+  example: "Compare these responses: First response: ###{{lastRun}}###\n\nSecond Response: ###{{prompt:some text}}###",
+  description:
+    "Replaced with the response text of the previous run of the current command. If the current command has not been run before, this will be replaced with an empty string.",
   hintRepresentation: "{{lastRun}}",
   fullRepresentation: "Last Run",
   type: PlaceholderType.Informational,

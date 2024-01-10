@@ -1,7 +1,7 @@
 import { Color, Icon, LocalStorage, Toast, showToast } from "@raycast/api";
 import crypto from "crypto";
 import { Command, PLCommandRunProperties, StoreCommand, isCommand, isStoreCommand } from "./types";
-import { isTrueStr } from "../types";
+import { isTrueStr } from "../common/types";
 
 /**
  * Loads all commands from local storage.
@@ -293,3 +293,51 @@ export const createCommandRun = (
     error: data.error,
   };
 };
+
+/**
+ * Updates a command with new data.
+ * @param oldCommandData The old data object for the command.
+ * @param newCommandData The new data object for the command.
+ * @param setCommands The function to update the list of commands.
+ */
+export const updateCommand = async (
+  oldCommandData: Command | undefined,
+  newCommandData: Command,
+  setCommands?: (commands: Command[]) => void,
+) => {
+  const commandData = await LocalStorage.allItems();
+  const commandDataFiltered = Object.values(commandData).filter((cmd, index) => {
+    return (
+      !Object.keys(commandData)[index].startsWith("--") &&
+      !Object.keys(commandData)[index].startsWith("id-") &&
+      (oldCommandData == undefined || JSON.parse(cmd).name != oldCommandData.name)
+    );
+  });
+
+  if (setCommands != undefined) {
+    setCommands([...(commandDataFiltered?.map((data) => JSON.parse(data)) || []), newCommandData]);
+  }
+
+  if (oldCommandData != undefined && oldCommandData.name != newCommandData.name) {
+    await LocalStorage.removeItem(oldCommandData.name);
+  }
+  await LocalStorage.setItem(newCommandData.name, JSON.stringify(newCommandData));
+};
+
+export async function deleteCommandRun(run: PLCommandRunProperties) {
+  const commandData = await LocalStorage.allItems();
+  const commands = Object.values(commandData)
+    .filter((cmd, index) => {
+      return !Object.keys(commandData)[index].startsWith("--") && !Object.keys(commandData)[index].startsWith("id-");
+    })
+    .map((cmd) => JSON.parse(cmd)) as Command[];
+
+  const command = commands.find((cmd) => cmd.id == run.commandID);
+  if (command && command.runs) {
+    const updatedCommand = {
+      ...command,
+      runs: command.runs.filter((r) => r.id != run.id),
+    };
+    await updateCommand(command, updatedCommand);
+  }
+}

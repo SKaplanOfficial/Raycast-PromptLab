@@ -1,12 +1,13 @@
 import { Action, ActionPanel, Form, showToast, Icon, useNavigation, Color, environment, Toast } from "@raycast/api";
-import { Chat, ChatManager, ChatStatistics } from "../../lib/types";
+import { Chat, ChatManager, ChatStatistics } from "../../lib/chats/types";
 import { useEffect, useState } from "react";
 import { filterString } from "../../lib/context-utils";
 import runModel from "../../lib/models/runModel";
-import { getFileContent } from "../../lib/files/useFiles";
+import { getFileContent } from "../../hooks/useFiles";
 import { AdvancedActionSubmenu } from "../actions/AdvancedActionSubmenu";
 import { defaultAdvancedSettings } from "../../data/default-advanced-settings";
 import { utils } from "placeholders-toolkit";
+import { updateChat } from "../../lib/chats";
 
 interface ChatSettingsFormValues {
   chatNameField: string;
@@ -254,7 +255,7 @@ export default function ChatSettingsForm(props: {
                 allowAutonomy: values.chatAllowAutonomyField,
               };
 
-              chats.updateChat(oldData.name, newChat);
+              updateChat(oldData, newChat);
 
               chats.revalidate().then(() => {
                 setCurrentChat(newChat);

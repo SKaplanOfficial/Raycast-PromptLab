@@ -1,7 +1,7 @@
 import { Grid } from "@raycast/api";
 import ResponseActions from "./actions/ResponseActions";
 import { CommandOptions } from "../../lib/commands/types";
-import { useSpeech } from "../../lib/commands/useSpeech";
+import { useSpeech } from "../../hooks/useSpeech";
 
 export default function CommandGridView(props: {
   isLoading: boolean;

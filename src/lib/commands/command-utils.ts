@@ -121,7 +121,11 @@ export const runReplacements = async (
 
   const settings = loadAdvancedSettingsSync();
   const customPlaceholders = await loadCustomPlaceholders(settings);
-  subbedPrompt = await PLApplicator.bulkApply(subbedPrompt, { context, customPlaceholders, defaultPlaceholders: PromptLabPlaceholders });
+  subbedPrompt = await PLApplicator.bulkApply(subbedPrompt, {
+    context,
+    customPlaceholders,
+    defaultPlaceholders: PromptLabPlaceholders,
+  });
 
   // Replace command placeholders
   for (const cmdString of Object.values(await LocalStorage.allItems())) {
@@ -142,34 +146,4 @@ export const runReplacements = async (
   }
 
   return subbedPrompt;
-};
-
-/**
- * Updates a command with new data.
- * @param oldCommandData The old data object for the command.
- * @param newCommandData The new data object for the command.
- * @param setCommands The function to update the list of commands.
- */
-export const updateCommand = async (
-  oldCommandData: Command | undefined,
-  newCommandData: Command,
-  setCommands?: (commands: Command[]) => void,
-) => {
-  const commandData = await LocalStorage.allItems();
-  const commandDataFiltered = Object.values(commandData).filter((cmd, index) => {
-    return (
-      !Object.keys(commandData)[index].startsWith("--") &&
-      !Object.keys(commandData)[index].startsWith("id-") &&
-      (oldCommandData == undefined || JSON.parse(cmd).name != oldCommandData.name)
-    );
-  });
-
-  if (setCommands != undefined) {
-    setCommands([...(commandDataFiltered?.map((data) => JSON.parse(data)) || []), newCommandData]);
-  }
-
-  if (oldCommandData != undefined && oldCommandData.name != newCommandData.name) {
-    await LocalStorage.removeItem(oldCommandData.name);
-  }
-  await LocalStorage.setItem(newCommandData.name, JSON.stringify(newCommandData));
 };

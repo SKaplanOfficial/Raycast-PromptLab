@@ -3,7 +3,8 @@ import { Command, PLCommandRunProperties } from "../../lib/commands/types";
 import { useState } from "react";
 import RunCommandAction from "./actions/RunCommandAction";
 import { AdvancedSettings } from "../../data/default-advanced-settings";
-import DeleteRunAction from "./actions/DeleteRunAction";
+import DeleteAction from "../actions/DeleteAction";
+import { loadCommands } from "../../lib/commands";
 
 type CommandRunsListProps = {
   command: Command;
@@ -47,12 +48,14 @@ export default function CommandRunsList(props: CommandRunsListProps) {
                     setRuns([newRun, ...runs]);
                   }}
                 />
-                <DeleteRunAction
-                  run={run}
-                  setRuns={setRuns}
-                  command={command}
-                  setCommands={setCommands}
+                <DeleteAction
+                  object={run}
                   settings={settings}
+                  revalidateObjects={async () => {
+                    setRuns(runs.filter((r) => r.id !== run.id));
+                    const newCommands = await loadCommands();
+                    setCommands(newCommands);
+                  }}
                 />
                 <ActionPanel.Section title="Clipboard Actions">
                   <Action.CopyToClipboard title="Copy ID" content={run.id} />

@@ -1,12 +1,13 @@
 import { LocalStorage, environment } from "@raycast/api";
 import * as fs from "fs";
 import { defaultCommands } from "../../data/default-commands";
-import { AudioData, Extension, ExtensionCommand, ImageData } from "../types";
+import { Extension, ExtensionCommand } from "../common/types";
+import { AudioData, ImageData } from "../scripts/types";
 import { CommandOptions } from "../commands/types";
 import { defaultModels } from "../../data/default-models";
 import { randomUUID } from "crypto";
 import path from "path";
-import { ADVANCED_SETTINGS_FILENAME, CUSTOM_PLACEHOLDERS_FILENAME } from "../constants";
+import { ADVANCED_SETTINGS_FILENAME, CUSTOM_PLACEHOLDERS_FILENAME } from "../common/constants";
 import { defaultCustomPlaceholders } from "../../data/default-custom-placeholders";
 import { ScriptRunner } from "../scripts";
 import exifr from "exifr";

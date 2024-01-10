@@ -2,15 +2,15 @@ import { ActionPanel, Color, Icon, List } from "@raycast/api";
 import { useEffect, useState } from "react";
 import { StoreCommand } from "./lib/commands/types";
 import { useCachedState, useFetch } from "@raycast/utils";
-import { STORE_ENDPOINT, STORE_KEY } from "./lib/constants";
+import { STORE_ENDPOINT, STORE_KEY } from "./lib/common/constants";
 import CategoryDropdown from "./components/CategoryDropdown";
-import { useCommands } from "./lib/commands/useCommands";
+import { useCommands } from "./hooks/useCommands";
 import CommandListDetail from "./components/Commands/CommandListDetail";
 import RunCommandAction from "./components/Commands/actions/RunCommandAction";
 import { CopyCommandActionsSection } from "./components/Commands/actions/CopyCommandActions";
 import { CommandControlsActionsSection } from "./components/Commands/actions/CommandControlActions";
 import InstallCommandAction from "./components/Commands/actions/InstallCommandAction";
-import { useAdvancedSettings } from "./lib/settings/useAdvancedSettings";
+import { useAdvancedSettings } from "./hooks/useAdvancedSettings";
 
 export default function Discover() {
   const { commands: myCommands, setCommands: setMyCommands, isLoading: loadingMyCommands } = useCommands();

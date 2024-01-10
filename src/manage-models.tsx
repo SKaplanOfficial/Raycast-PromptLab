@@ -1,9 +1,9 @@
 import { Action, ActionPanel, Color, Icon, List } from "@raycast/api";
-import { useModels } from "./lib/models/useModels";
+import { useModels } from "./hooks/useModels";
 import ModelForm from "./components/Models/ModelForm";
-import { useAdvancedSettings } from "./lib/settings/useAdvancedSettings";
+import { useAdvancedSettings } from "./hooks/useAdvancedSettings";
 import ManageModelsActionPanel from "./components/Models/actions/ManageModelsActionsPanel";
-import { Model } from "./lib/types";
+import { Model } from "./lib/models/types";
 
 export default function ManageModels() {
   const models = useModels();

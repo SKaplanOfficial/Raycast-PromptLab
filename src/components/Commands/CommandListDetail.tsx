@@ -1,14 +1,7 @@
 import { List } from "@raycast/api";
-import { isTrueStr } from "../../lib/types";
-import {
-  Command,
-  StoreCommand,
-  isCommand,
-  NumberConfigField,
-  BooleanConfigField,
-  StringConfigField,
-  isStoreCommand,
-} from "../../lib/commands/types";
+import { isTrueStr } from "../../lib/common/types";
+import { Command, StoreCommand, isCommand, isStoreCommand } from "../../lib/commands/types";
+import { NumberConfigField, BooleanConfigField, StringConfigField } from "../../lib/commands/config/types";
 
 export default function CommandListDetail(props: { command: Command | StoreCommand }) {
   const { command } = props;

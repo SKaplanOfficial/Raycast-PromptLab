@@ -1,12 +1,12 @@
 import { getPreferenceValues, List } from "@raycast/api";
 import { useEffect, useState } from "react";
 import CommandResponse from "./components/Commands/CommandResponse";
-import { ExtensionPreferences, searchPreferences } from "./lib/types";
+import { ExtensionPreferences, searchPreferences } from "./lib/preferences/types";
 import CategoryDropdown from "./components/CategoryDropdown";
-import { useCommands } from "./lib/commands/useCommands";
-import { useAdvancedSettings } from "./lib/settings/useAdvancedSettings";
+import { useCommands } from "./hooks/useCommands";
+import { useAdvancedSettings } from "./hooks/useAdvancedSettings";
 import { useCachedState } from "@raycast/utils";
-import { COMMAND_CATEGORIES } from "./lib/constants";
+import { COMMAND_CATEGORIES } from "./lib/common/constants";
 import CommandListItem from "./components/Commands/CommandListItem";
 import CommandCategoryListSection from "./components/Commands/CommandCategoryListSection";
 

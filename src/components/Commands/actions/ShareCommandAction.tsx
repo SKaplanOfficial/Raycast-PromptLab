@@ -1,8 +1,8 @@
 import { Action, Icon, Toast, showToast } from "@raycast/api";
 import { Command, StoreCommand } from "../../../lib/commands/types";
-import { STORE_ENDPOINT, STORE_KEY } from "../../../lib/constants";
+import { STORE_ENDPOINT, STORE_KEY } from "../../../lib/common/constants";
 import fetch from "node-fetch";
-import { getActionShortcut, isActionEnabled } from "../../../lib/action-utils";
+import { getActionShortcut, isActionEnabled } from "../../../lib/actions";
 import { AdvancedSettings } from "../../../data/default-advanced-settings";
 
 /**

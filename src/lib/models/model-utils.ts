@@ -1,4 +1,6 @@
-import { ExtensionPreferences, JSONObject, Model } from "../types";
+import { JSONObject } from "../common/types";
+import { Model } from "./types";
+import { ExtensionPreferences } from "../preferences/types";
 
 /**
  * Valid string representations of a Raycast AI model endpoint.

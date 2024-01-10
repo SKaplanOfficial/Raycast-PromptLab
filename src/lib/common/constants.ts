@@ -1,5 +1,5 @@
 import { Color, Icon } from "@raycast/api";
-import { CommandCategory } from "./types";
+import { CommandCategory } from "../commands/types";
 
 /**
  * The base URL for the PromptLab Store API.

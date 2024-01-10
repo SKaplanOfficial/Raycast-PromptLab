@@ -1,6 +1,6 @@
 import { LocalStorage, Toast, showToast } from "@raycast/api";
 import { Command, StoreCommand } from "./types";
-import { commandFromStoreCommand } from "./Command";
+import { commandFromStoreCommand } from ".";
 
 /**
  * Installs all commands from the store.

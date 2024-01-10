@@ -1,11 +1,19 @@
 import { AI, environment, getPreferenceValues } from "@raycast/api";
 import { useAI } from "@raycast/utils";
-import { ExtensionPreferences, Model, JSONObject } from "../types";
+import { JSONObject } from "../lib/common/types";
+import { Model } from "../lib/models/types";
+import { ExtensionPreferences } from "../lib/preferences/types";
 import { useEffect, useRef, useState } from "react";
 import fetch, { Response } from "node-fetch";
 import { useModels } from "./useModels";
-import { filterString } from "../context-utils";
-import { RAYCAST_AI_FALLBACK_MODEL, RAYCAST_AI_REPRESENTATIONS, RaycastAIRepresentation, getFinalSchema, valueForKeyPath } from "./model-utils";
+import { filterString } from "../lib/context-utils";
+import {
+  RAYCAST_AI_FALLBACK_MODEL,
+  RAYCAST_AI_REPRESENTATIONS,
+  RaycastAIRepresentation,
+  getFinalSchema,
+  valueForKeyPath,
+} from "../lib/models/model-utils";
 
 /**
  * Gets the text response from the model endpoint.
@@ -80,9 +88,7 @@ export default function useModel(
     }
   }
 
-  const modelSchema = raycastModel
-    ? {}
-    : getFinalSchema(targetModel, prompt, basePrompt, input, preferences);
+  const modelSchema = raycastModel ? {} : getFinalSchema(targetModel, prompt, basePrompt, input, preferences);
   if (preferences.includeTemperature) {
     modelSchema["temperature"] = temp;
   }

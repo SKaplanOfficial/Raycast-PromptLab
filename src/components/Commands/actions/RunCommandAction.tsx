@@ -1,8 +1,8 @@
 import { Action, Icon } from "@raycast/api";
-import { isTrueStr } from "../../../lib/types";
+import { isTrueStr } from "../../../lib/common/types";
 import { Command, PLCommandRunProperties, StoreCommand, isCommand } from "../../../lib/commands/types";
 import CommandResponse from "../CommandResponse";
-import { getActionShortcut, isActionEnabled } from "../../../lib/action-utils";
+import { getActionShortcut, isActionEnabled } from "../../../lib/actions";
 import { AdvancedSettings } from "../../../data/default-advanced-settings";
 
 /**
