@@ -2,6 +2,11 @@
 
 ## v1.2.1 Release
 
+### 2024-01-16
+
+- Fixed bug where commands that don't show a response view would hang if the prompt evaluated to an empty string.
+- Fixed bug where setting an endpoint but not updating the API key from "N/A" would result in an error with no useful information.
+
 ### 2023-12-26
 
 - Added optional `offsets` parameter to the `{{clipboardText}}` placeholder.

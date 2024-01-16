@@ -214,7 +214,7 @@ Contributions are welcome! Please see the [contributing guidelines](./CONTRIBUTI
 
 ## Roadmap
 
-### Current Release: v1.1.0
+### Current Release: v1.2.0
 
 - Create, Edit, and Run Custom Commands
 - Detail, List, Chat, and No-View Command Types
@@ -247,26 +247,18 @@ Contributions are welcome! Please see the [contributing guidelines](./CONTRIBUTI
 - Manage Models [example](./examples/promptlab-1.1.0/models.png)
 - Menu Bar Extra [example](./examples/promptlab-1.1.0/menubar.png)
 - Placeholders Guide
+- Record Previous Runs of a Command and Use Them as Input
 
-### Next Release: v1.2.0
+### Next Release: v1.3.0
 
 #### Planned
 
 - [ ] Saved Responses
-- [ ] WordNet Integration
 - [ ] Command Templates
-- [ ] Improved Local Processing
-  - [ ] DOCX Parsing
-  - [ ] Keynote/PowerPoint Parsing
-  - [ ] Spreadsheet Parsing
-  - [ ] XML Parsing
-  - [ ] Live Audio Classification
-- [ ] WeatherKit Integration
+- [ ] Improved Chat UI
 
 #### Possible
 
-- [ ] Run Automator Actions
-- [ ] Global Statistics
 - [ ] TF-IDF
 - [ ] Autonomous Web Search
 - [ ] LangChain Integration
