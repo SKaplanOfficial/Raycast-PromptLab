@@ -1,10 +1,42 @@
 # PromptLab DevLog - A More Detailed ChangeLog
 
+## v1.2.1 Release
+
+### 2024-01-16
+
+- Fixed bug where commands that don't show a response view would hang if the prompt evaluated to an empty string.
+- Fixed bug where setting an endpoint but not updating the API key from "N/A" would result in an error with no useful information.
+
+### 2023-12-26
+
+- Added optional `offsets` parameter to the `{{clipboardText}}` placeholder.
+  - Allows accessing one or more previous clipboard entries.
+- Added command run history.
+  - Accessible via the 'View Previous Runs' action in the 'My PromptLab Commands' command.
+- Added `{{lastRun}}` placeholder for accessing the response of the last run of the current command.
+- Added per-command option to `Record Runs` or not.
+
+### 2023-11-05
+
+- Extract placeholders & browsers into standalone package.
+
+### 2023-11-01
+
+- Added several placeholders/directives from Pins:
+  - `{{timezone}}`,
+  - `{{alert:...}}`
+  - `{{dialog:...}}`
+  - `{{hud:...}}` / `{{toast:...}}`
+  - `{{say:...}}`
+  - `{{type:...}}`
+- Updated default Claude model to claude-instant-1.
+- Fixed bug where `{{input}}`, `{{selectedText}}`, and `{{clipboardText}}` could not be used simultaneously.
+
 ## v1.2.0 Release
 
 ### 2023-08-16
 
-- Added support for OmniWeb and SigmaOS browsers
+- Added support for OmniWeb and SigmaOS browsers.
 
 ### 2023-08-15
 
