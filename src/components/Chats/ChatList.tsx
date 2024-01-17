@@ -27,7 +27,6 @@ import ChatDetail from "./ChatDetail";
 import { usePreviousCommand } from "../../hooks/usePreviousCommand";
 import { runActionScript, runReplacements } from "../../utils/command-utils";
 import { useFiles } from "../../hooks/useFiles";
-import { Insights } from "../../utils";
 
 export default function ChatList(props: {
   isLoading: boolean;
@@ -144,9 +143,6 @@ export default function ChatList(props: {
     await revalidateChats();
     setCurrentChat(chat);
     if (chat) {
-      if (preferences.useChatStatistics) {
-        Insights.add("Create Chat", `Created chat: ${newChatName}`, ["chats"], []);
-      }
       await addQuery(chat, userQuery);
     }
   };
@@ -192,9 +188,7 @@ export default function ChatList(props: {
     if (data?.length > 0 && enableModel) {
       if (dataTag != undefined && dataTag.includes(sentQuery)) {
         // Update the response field as the model generates text
-        if (!data.includes(previousResponse)) {
-          setCurrentResponse(data.replaceAll("MODEL_RESPONSE:", "").replaceAll("USER_QUERY:", ""));
-        }
+        setCurrentResponse(data.replaceAll("MODEL_RESPONSE:", "").replaceAll("USER_QUERY:", ""));
 
         // If the model returns a command number and input, set the input
         // This will trigger running the command if autonomous features are enabled

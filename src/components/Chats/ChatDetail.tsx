@@ -32,7 +32,7 @@ export default function ChatDetail(props: { chatRef: ChatRef; currentChat?: Chat
           .join("\n\t");
       } else if (message.type == MessageType.QUERY) {
         return `${
-          message.text.match(/(?<!###).*(?<=###)(.*)(?=###).*?(?!###).*?(?=<END OF QUERY>)/)?.[1] || message.text
+          message.text
         }\n---\n`;
       } else {
         return "";

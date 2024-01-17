@@ -372,31 +372,89 @@ export const checkExists = (ref: ChatRef) => {
 };
 
 export const addQuery = async (chat: Chat, query: string) => {
-  chat.conversation.push({
+  while (await LocalStorage.getItem("--saving-chat")) {
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+
+  await LocalStorage.setItem("--saving-chat", true);
+
+  const chatFile = path.join(environment.supportPath, CHATS_DIRECTORY, `${chat.id}.json`);
+
+  let oldData = chat;
+  try {
+    oldData = JSON.parse(await fs.promises.readFile(chatFile, "utf-8")) as Chat;
+  } catch (error) {
+    console.error(error);
+  }
+
+  const updatedConvo = [...oldData.conversation, {
     text: query,
     type: MessageType.QUERY,
     date: new Date().toISOString(),
-  });
-  const chatFile = path.join(environment.supportPath, CHATS_DIRECTORY, `${chat.id}.json`);
-  await fs.promises.writeFile(chatFile, JSON.stringify(chat));
+  }];
+  const newChatData = { ...oldData, conversation: updatedConvo }
+
+  await updateChat(newChatData)
+  await fs.promises.writeFile(chatFile, JSON.stringify(newChatData));
+
+  await LocalStorage.setItem("--saving-chat", false);
 };
 
 export const addResponse = async (chat: Chat, response: string) => {
-  chat.conversation.push({
+  const chatFile = path.join(environment.supportPath, CHATS_DIRECTORY, `${chat.id}.json`);
+
+
+  while (await LocalStorage.getItem("--saving-chat")) {
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+
+  await LocalStorage.setItem("--saving-chat", true);
+
+  let oldData = chat;
+  try {
+    oldData = JSON.parse(await fs.promises.readFile(chatFile, "utf-8")) as Chat;
+  } catch (error) {
+    console.error(error);
+  }
+
+  const updatedConvo = [...oldData.conversation, {
     text: response,
     type: MessageType.RESPONSE,
     date: new Date().toISOString(),
-  });
-  const chatFile = path.join(environment.supportPath, CHATS_DIRECTORY, `${chat.id}.json`);
-  await fs.promises.writeFile(chatFile, JSON.stringify(chat));
+  }];
+  const newChatData = { ...oldData, conversation: updatedConvo }
+  
+  await updateChat(newChatData)
+  await fs.promises.writeFile(chatFile, JSON.stringify(newChatData));
+
+  await LocalStorage.setItem("--saving-chat", false);
 };
 
 export const addSystemMessage = async (chat: Chat, message: string) => {
-  chat.conversation.push({
+  while (await LocalStorage.getItem("--saving-chat")) {
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+
+  await LocalStorage.setItem("--saving-chat", true);
+
+  const chatFile = path.join(environment.supportPath, CHATS_DIRECTORY, `${chat.id}.json`);
+
+  let oldData = chat;
+  try {
+    oldData = JSON.parse(await fs.promises.readFile(chatFile, "utf-8")) as Chat;
+  } catch (error) {
+    console.error(error);
+  }
+
+  const updatedConvo = [...oldData.conversation, {
     text: message,
     type: MessageType.SYSTEM,
     date: new Date().toISOString(),
-  });
-  const chatFile = path.join(environment.supportPath, CHATS_DIRECTORY, `${chat.id}.json`);
-  await fs.promises.writeFile(chatFile, JSON.stringify(chat));
+  }];
+  const newChatData = { ...oldData, conversation: updatedConvo }
+  
+  await updateChat(newChatData)
+  await fs.promises.writeFile(chatFile, JSON.stringify(newChatData));
+
+  await LocalStorage.setItem("--saving-chat", false);
 };

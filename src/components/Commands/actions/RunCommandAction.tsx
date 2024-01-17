@@ -4,7 +4,6 @@ import CommandResponse from "../CommandResponse";
 import { defaultAdvancedSettings } from "../../../data/default-advanced-settings";
 import { getActionShortcut, isActionEnabled } from "../../../utils/action-utils";
 import { getPersistentVariable, setPersistentVariable } from "../../../utils/placeholders";
-import { Insights } from "../../../utils";
 
 /**
  * Action to run a command.
@@ -29,19 +28,6 @@ export default function RunCommandAction(props: {
     <Action
       title="Run PromptLab Command"
       onAction={async () => {
-        await Insights.add(
-          `Command Execution`,
-          `Executed command ${command.name} via Raycast window`,
-          ["commands"],
-          []
-        );
-
-        if (preferences.useCommandStatistics) {
-          const currentCountString = await getPersistentVariable(`${command.name}_executions`);
-          const currentCount = currentCountString.length ? parseInt(currentCountString) : 0;
-          await setPersistentVariable(`${command.name}_executions`, (currentCount + 1).toString());
-        }
-
         push(
           <CommandResponse
             command={command}

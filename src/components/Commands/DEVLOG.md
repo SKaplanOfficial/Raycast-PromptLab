@@ -1,6 +1,0 @@
-- Added Insights (experimental)
-  - Small summaries of your PromptLab usage generated locally as you use the extension.
-  - Used to deliver command and placeholder suggestions.
-    - Added command suggestions (toggleable, off by default) in menubar and 'My PromptLab Commands'.
-    - Added placeholder suggestions (toggleable, off by default) command creation and editing views.
-    - Added `{{insights:tag}}` placeholder - returns a summary of recent insights, optionally filtered by tag.
